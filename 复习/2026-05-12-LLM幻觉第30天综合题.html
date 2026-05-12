@@ -1,0 +1,872 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<title>5/12 复习 · LLM 幻觉 · 第 30 天综合题闭环</title>
+<style>
+:root{
+  --silver-1:#eef0f3;
+  --silver-2:#d8dde3;
+  --silver-3:#b9c0c9;
+  --slate-1:#5c6675;
+  --slate-2:#3f4754;
+  --slate-3:#2a313c;
+  --black-1:#1a1f28;
+  --black-2:#0e1218;
+  --black-3:#07090d;
+  --accent:#6b89a8;
+  --accent-dim:#4a6280;
+  --warn:#9a6048;
+  --warn-dim:#6b3f30;
+  --gold:#a89270;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{
+  background:var(--black-2);
+  color:var(--silver-2);
+  font-family:'JetBrains Mono','SF Mono',ui-monospace,'Menlo',monospace;
+  font-weight:200;
+  line-height:1.7;
+  letter-spacing:0.02em;
+  overflow-x:hidden;
+}
+body{
+  background:
+    radial-gradient(circle at var(--mx,30%) var(--my,20%), rgba(107,137,168,0.08), transparent 50%),
+    radial-gradient(circle at 80% 80%, rgba(107,137,168,0.04), transparent 60%),
+    linear-gradient(180deg, var(--black-1) 0%, var(--black-2) 50%, var(--black-3) 100%);
+  background-attachment:fixed;
+  min-height:100vh;
+  position:relative;
+}
+body::before{
+  content:'';
+  position:fixed;
+  inset:0;
+  background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='200' height='200'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 0.5 0 0 0 0 0.5 0 0 0 0 0.55 0 0 0 0.4 0'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>");
+  mix-blend-mode:overlay;
+  opacity:0.35;
+  pointer-events:none;
+  z-index:1;
+}
+.container{
+  max-width:1100px;
+  margin:0 auto;
+  padding:80px 32px 120px;
+  position:relative;
+  z-index:2;
+}
+
+/* ============ Hero ============ */
+.hero{
+  border:1px solid var(--slate-2);
+  background:linear-gradient(135deg, rgba(60,68,80,0.4) 0%, rgba(20,25,32,0.6) 100%);
+  padding:56px 48px;
+  margin-bottom:56px;
+  position:relative;
+  overflow:hidden;
+}
+.hero::before{
+  content:'';
+  position:absolute;
+  inset:0;
+  background:linear-gradient(120deg,transparent 30%,rgba(107,137,168,0.08) 50%,transparent 70%);
+  pointer-events:none;
+}
+.hero-eyebrow{
+  font-size:11px;
+  letter-spacing:0.4em;
+  color:var(--slate-1);
+  text-transform:uppercase;
+  margin-bottom:24px;
+}
+.hero h1{
+  font-size:38px;
+  font-weight:200;
+  color:var(--silver-1);
+  letter-spacing:0.04em;
+  margin-bottom:18px;
+  line-height:1.3;
+}
+.hero-subtitle{
+  font-size:14px;
+  color:var(--silver-3);
+  font-weight:200;
+  max-width:720px;
+  margin-bottom:36px;
+  line-height:1.8;
+}
+.hero-stats{
+  display:grid;
+  grid-template-columns:repeat(4,1fr);
+  gap:24px;
+  margin-top:36px;
+  border-top:1px solid var(--slate-3);
+  padding-top:32px;
+}
+.stat{
+  border-left:1px solid var(--slate-2);
+  padding-left:20px;
+}
+.stat-num{
+  font-size:34px;
+  color:var(--silver-1);
+  font-weight:200;
+  letter-spacing:0.02em;
+}
+.stat-label{
+  font-size:10px;
+  letter-spacing:0.3em;
+  color:var(--slate-1);
+  text-transform:uppercase;
+  margin-top:6px;
+}
+
+/* ============ Section ============ */
+section{
+  margin-bottom:64px;
+  opacity:0;
+  transform:translateY(40px);
+  transition:opacity 0.9s ease, transform 0.9s ease;
+}
+section.visible{
+  opacity:1;
+  transform:translateY(0);
+}
+.sec-tag{
+  display:inline-block;
+  font-size:10px;
+  letter-spacing:0.3em;
+  color:var(--accent);
+  border:1px solid var(--accent-dim);
+  padding:4px 12px;
+  margin-bottom:16px;
+  text-transform:uppercase;
+}
+h2{
+  font-size:24px;
+  font-weight:200;
+  color:var(--silver-1);
+  letter-spacing:0.06em;
+  margin-bottom:8px;
+}
+.sec-sub{
+  font-size:12px;
+  color:var(--slate-1);
+  margin-bottom:32px;
+  letter-spacing:0.05em;
+}
+
+/* ============ Card ============ */
+.card{
+  border:1px solid var(--slate-3);
+  background:linear-gradient(180deg, rgba(40,46,56,0.4), rgba(20,25,32,0.4));
+  padding:32px;
+  margin-bottom:20px;
+  transition:transform 0.4s ease, border-color 0.4s ease, background 0.4s ease, box-shadow 0.4s ease;
+}
+.card:hover{
+  transform:translateY(-4px);
+  border-color:var(--accent-dim);
+  background:linear-gradient(180deg, rgba(50,58,72,0.5), rgba(30,36,46,0.5));
+  box-shadow:0 12px 40px rgba(0,0,0,0.4), inset 0 1px 0 rgba(107,137,168,0.15);
+}
+.card-title{
+  font-size:14px;
+  color:var(--silver-1);
+  font-weight:300;
+  letter-spacing:0.05em;
+  margin-bottom:14px;
+  display:flex;
+  align-items:center;
+  gap:10px;
+}
+.card-title::before{
+  content:'';
+  width:6px;
+  height:6px;
+  background:var(--accent);
+  display:inline-block;
+}
+.card-body{
+  font-size:13px;
+  color:var(--silver-3);
+  line-height:1.85;
+}
+.card-body strong{
+  color:var(--silver-1);
+  font-weight:400;
+}
+.card-body em{
+  color:var(--accent);
+  font-style:normal;
+}
+
+/* ============ Compare two-col ============ */
+.compare{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:20px;
+  margin-bottom:24px;
+}
+.compare .card.left{
+  border-left:2px solid var(--warn-dim);
+}
+.compare .card.right{
+  border-left:2px solid var(--accent-dim);
+}
+.compare-tag{
+  font-size:10px;
+  letter-spacing:0.3em;
+  text-transform:uppercase;
+  margin-bottom:10px;
+}
+.compare .left .compare-tag{color:var(--warn)}
+.compare .right .compare-tag{color:var(--accent)}
+
+/* ============ Code/ASCII block ============ */
+pre{
+  background:var(--black-3);
+  border:1px solid var(--slate-3);
+  padding:24px;
+  overflow-x:auto;
+  font-size:12px;
+  color:var(--silver-2);
+  line-height:1.7;
+  box-shadow:inset 0 2px 8px rgba(0,0,0,0.5);
+  margin:18px 0;
+  font-family:'JetBrains Mono','SF Mono',ui-monospace,monospace;
+}
+pre .hl{color:var(--accent);font-weight:400}
+pre .err{color:var(--warn)}
+pre .ok{color:#7da890}
+code{
+  background:rgba(20,25,32,0.7);
+  padding:2px 8px;
+  border:1px solid var(--slate-3);
+  font-size:12px;
+  color:var(--accent);
+}
+
+/* ============ Three layer (上下兄弟) ============ */
+.layers{
+  display:grid;
+  gap:14px;
+  margin:20px 0;
+}
+.layer{
+  padding:18px 24px;
+  border-left:3px solid;
+  background:linear-gradient(90deg, rgba(40,46,56,0.5), transparent);
+  transition:all 0.3s ease;
+}
+.layer:hover{transform:translateX(6px)}
+.layer-1{border-color:var(--silver-3);background-color:rgba(50,58,72,0.3)}
+.layer-2{border-color:var(--slate-1);background-color:rgba(40,48,60,0.3)}
+.layer-3{border-color:var(--slate-2);background-color:rgba(30,36,46,0.3)}
+.layer-tag{
+  font-size:10px;
+  letter-spacing:0.3em;
+  color:var(--slate-1);
+  text-transform:uppercase;
+  margin-bottom:6px;
+}
+.layer-content{
+  font-size:13px;
+  color:var(--silver-1);
+}
+
+/* ============ Decision list ============ */
+.decision{
+  list-style:none;
+  counter-reset:dec;
+}
+.decision li{
+  counter-increment:dec;
+  padding:18px 24px 18px 64px;
+  border:1px solid var(--slate-3);
+  margin-bottom:10px;
+  position:relative;
+  background:rgba(30,36,46,0.4);
+  transition:all 0.3s ease;
+}
+.decision li::before{
+  content:counter(dec,decimal-leading-zero);
+  position:absolute;
+  left:24px;
+  top:18px;
+  font-size:11px;
+  letter-spacing:0.2em;
+  color:var(--slate-1);
+}
+.decision li:hover{
+  border-color:var(--accent-dim);
+  background:rgba(40,48,60,0.6);
+  transform:translateX(4px);
+}
+
+/* ============ Details (折叠) ============ */
+details{
+  border:1px solid var(--slate-3);
+  margin-bottom:14px;
+  background:rgba(20,25,32,0.5);
+  transition:border-color 0.3s ease;
+}
+details[open]{border-color:var(--accent-dim)}
+summary{
+  padding:18px 24px;
+  cursor:pointer;
+  font-size:13px;
+  color:var(--silver-2);
+  letter-spacing:0.04em;
+  position:relative;
+  list-style:none;
+  user-select:none;
+}
+summary::-webkit-details-marker{display:none}
+summary::after{
+  content:'+';
+  position:absolute;
+  right:24px;
+  top:50%;
+  transform:translateY(-50%);
+  font-size:18px;
+  color:var(--accent);
+  transition:transform 0.4s ease;
+  font-weight:200;
+}
+details[open] summary::after{transform:translateY(-50%) rotate(45deg)}
+details > div{
+  padding:0 24px 24px;
+  color:var(--silver-3);
+  font-size:13px;
+  line-height:1.85;
+  border-top:1px solid var(--slate-3);
+  padding-top:20px;
+}
+
+/* ============ Table ============ */
+table{
+  width:100%;
+  border-collapse:collapse;
+  font-size:12px;
+  margin:16px 0;
+}
+th,td{
+  padding:14px 18px;
+  text-align:left;
+  border-bottom:1px solid var(--slate-3);
+  font-weight:200;
+}
+th{
+  color:var(--slate-1);
+  font-size:10px;
+  letter-spacing:0.25em;
+  text-transform:uppercase;
+  font-weight:300;
+  border-bottom:1px solid var(--slate-2);
+}
+td{color:var(--silver-2)}
+tr:hover td{background:rgba(40,48,60,0.4)}
+.badge{
+  display:inline-block;
+  padding:2px 8px;
+  font-size:10px;
+  letter-spacing:0.15em;
+  border:1px solid;
+  text-transform:uppercase;
+}
+.badge-ok{color:#8fb09a;border-color:#5d7a68}
+.badge-warn{color:var(--warn);border-color:var(--warn-dim)}
+.badge-fail{color:#a26b6b;border-color:#6b4040}
+.badge-meta{color:var(--gold);border-color:#5a4d3a}
+
+/* ============ Insight quote ============ */
+.insight{
+  border-left:3px solid var(--gold);
+  padding:24px 28px;
+  background:linear-gradient(90deg, rgba(60,52,40,0.3), rgba(20,25,32,0.3));
+  margin:24px 0;
+  font-size:14px;
+  color:var(--silver-1);
+  line-height:1.9;
+  font-weight:300;
+  letter-spacing:0.04em;
+}
+.insight .src{
+  display:block;
+  font-size:11px;
+  color:var(--gold);
+  letter-spacing:0.2em;
+  margin-top:14px;
+  text-transform:uppercase;
+}
+
+/* ============ Grid 3 ============ */
+.grid-3{
+  display:grid;
+  grid-template-columns:repeat(3,1fr);
+  gap:18px;
+}
+
+/* ============ Footer ============ */
+footer{
+  margin-top:80px;
+  padding-top:40px;
+  border-top:1px solid var(--slate-3);
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  font-size:11px;
+  color:var(--slate-1);
+  letter-spacing:0.2em;
+  text-transform:uppercase;
+}
+.tag-list{display:flex;gap:14px;flex-wrap:wrap}
+.tag-list span{
+  border:1px solid var(--slate-3);
+  padding:4px 10px;
+  font-size:10px;
+}
+
+/* ============ Responsive ============ */
+@media (max-width:780px){
+  .hero h1{font-size:26px}
+  .hero-stats{grid-template-columns:repeat(2,1fr)}
+  .compare{grid-template-columns:1fr}
+  .grid-3{grid-template-columns:1fr}
+  .container{padding:48px 20px 80px}
+  .hero{padding:36px 24px}
+}
+</style>
+</head>
+<body>
+<div class="container">
+
+  <!-- ========== HERO ========== -->
+  <header class="hero">
+    <div class="hero-eyebrow">Review · Misted Metal · Day 30 · Hallucination</div>
+    <h1>2026 / 05 / 12 · LLM 幻觉<br>第 30 天综合题闭环（提前一天）</h1>
+    <p class="hero-subtitle">
+      28 天逾期债，今日一次性清算。1 小时内完成 5 项老顽固焊死、双链分离意识落地、思维习惯命名。<br>
+      不是答对了一道题——是把 28 天前埋下的整套坑，用今天的元层级钥匙重新开了一遍。
+    </p>
+    <div class="hero-stats">
+      <div class="stat"><div class="stat-num">5</div><div class="stat-label">今日毕业</div></div>
+      <div class="stat"><div class="stat-num">5→1</div><div class="stat-label">比较式 焊死</div></div>
+      <div class="stat"><div class="stat-num">2</div><div class="stat-label">独立因果链</div></div>
+      <div class="stat"><div class="stat-num">28d</div><div class="stat-label">逾期清债</div></div>
+    </div>
+  </header>
+
+  <!-- ========== 1. 双链分离 ========== -->
+  <section>
+    <span class="sec-tag">01 · core mechanism</span>
+    <h2>双链分离意识 · 幻觉不是一条链</h2>
+    <p class="sec-sub">今日最重要的认知升级——把"通用三层模板"打散，建立两条平行的独立因果链</p>
+
+    <div class="compare">
+      <div class="card left">
+        <div class="compare-tag">Chain A · 自我欺骗链</div>
+        <div class="card-title">机制层：物理特性导致</div>
+        <div class="card-body">
+          <strong>Transformer 自回归特性</strong> → 模型生成下一个 token 时，依据已生成的全部 token，<em>但分不清前文里哪些是用户输入、哪些是自己刚生成的</em>。
+          <br><br>
+          一旦自己生成了一个错的 token，下一步会把这个错 token 当成事实继续推理 → <strong>滚雪球幻觉</strong>。
+        </div>
+      </div>
+      <div class="card right">
+        <div class="compare-tag">Chain B · 知识不匹配链</div>
+        <div class="card-title">训练层：SFT 阶段埋坑</div>
+        <div class="card-body">
+          <strong>SFT 阶段</strong>：标注员写出的答案<em>包含模型不具备的知识</em>。<br>
+          损失函数<strong>只看输出长得像不像</strong>，<em>不检查模型是否真的具备该知识</em>。
+          <br><br>
+          模型模仿后，学到的不是"我有这个知识"，而是<strong>"遇到这种问题，我应该自信地编一个看起来像样的答案"</strong>。
+        </div>
+      </div>
+    </div>
+
+    <div class="insight">
+      <strong>关键洞察</strong>：两条链是<em>平行</em>的，源头不同。
+      不能拿"架构 → 成因 → 现象"这个通用模板套到链 B 上——链 B 的源头不是"架构"，是 SFT 训练数据。
+      <span class="src">— 5/12 双链分离意识焊死</span>
+    </div>
+  </section>
+
+  <!-- ========== 2. ASCII 流程图 ========== -->
+  <section>
+    <span class="sec-tag">02 · flow diagram</span>
+    <h2>双链 ASCII 全景图</h2>
+    <p class="sec-sub">把两条链的源头、机制、现象一次画清楚——视觉记忆比文字描述强十倍</p>
+
+    <pre>
+<span class="hl">┌─────────────────────────────────────────────────────────────┐</span>
+<span class="hl">│              幻觉的两条平行因果链                              │</span>
+<span class="hl">└─────────────────────────────────────────────────────────────┘</span>
+
+  <span class="ok">链 A · 自我欺骗链</span>                <span class="ok">链 B · 知识不匹配链</span>
+  ━━━━━━━━━━━━━━━━━━━━━━━━━            ━━━━━━━━━━━━━━━━━━━━━━━━━
+
+  Transformer <span class="hl">自回归</span>特性               <span class="hl">SFT 阶段</span>·标注员答案
+        │                                  │
+        ▼                                  ▼
+  生成下一 token 依据已                  超出模型知识范围
+  生成的全部 token                       (loss 只看长得像)
+        │                                  │
+        ▼                                  ▼
+  分不清"输入" vs "自己生成"            学到"不知道也要
+        │                                  自信地答"
+        ▼                                  │
+  <span class="err">自我欺骗</span>(Self-Delusion)              ▼
+        │                            <span class="err">知识不匹配</span>(Knowledge
+        ▼                              Mismatch)
+  <span class="err">滚雪球幻觉</span>                            │
+  (一个错 token →                          ▼
+  错误持续放大)                       <span class="err">自信地编造</span>
+                                      (confident
+                                      fabrication)
+
+  ┌────────────────────────────────────────────────────────┐
+  │              <span class="hl">隐藏帮凶 · RLHF 比较式信号</span>                  │
+  │  信号说："A 比 B 好"——不解释为什么好                  │
+  │  → 模型只能从 A、B 表面差异里猜偏好                    │
+  │  → 标注员普遍偏好"听起来自信"的回答                    │
+  │  → <span class="err">放大两条链的"自信"表象</span>                            │
+  └────────────────────────────────────────────────────────┘
+    </pre>
+  </section>
+
+  <!-- ========== 3. 三层钥匙复用 ========== -->
+  <section>
+    <span class="sec-tag">03 · meta · layer key</span>
+    <h2>"上下兄弟"分层钥匙今日复用</h2>
+    <p class="sec-sub">昨天 5/11 焊死的横向分层意识，今天扩展到了纵向分链——元层级二次升级</p>
+
+    <div class="grid-3">
+      <div class="card">
+        <div class="card-title">5/11 · 横向分层</div>
+        <div class="card-body">
+          <strong>找父类 / 兄弟 / 工具</strong><br>
+          解决"把工具当方法"<br>
+          (采样 ≠ 自洽性)
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-title">5/12 · 纵向分链</div>
+        <div class="card-body">
+          <strong>区分平行因果链</strong><br>
+          解决"把现象当成因"<br>
+          (链 A ≠ 链 B)
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-title">5/12 · 映射网</div>
+        <div class="card-body">
+          <strong>先问哪条链再选工具</strong><br>
+          解决"经验模糊随便贴"<br>
+          (措施 → 成因)
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========== 4. 三类坑 ========== -->
+  <section>
+    <span class="sec-tag">04 · three traps</span>
+    <h2>今日暴露的三类层级坑</h2>
+    <p class="sec-sub">不是"知识漏洞"——是同一种思维习惯在不同维度上的失灵</p>
+
+    <div class="layers">
+      <div class="layer layer-1">
+        <div class="layer-tag">Trap 1 · 现象 vs 成因（最浅）</div>
+        <div class="layer-content">
+          初答"知识不匹配"理由：训练数据截止到 2024 → 所以胡扯。
+          <br><span style="color:var(--warn)">⚠ 这是描述"模型不知道"的<em>现象</em>，不是"为什么模型不说我不知道"的<em>成因</em>。</span>
+        </div>
+      </div>
+      <div class="layer layer-2">
+        <div class="layer-tag">Trap 2 · 跨链套模板（中等）</div>
+        <div class="layer-content">
+          初答因果链：底层填"自回归"+ 中层填"知识不匹配"。
+          <br><span style="color:var(--warn)">⚠ 把链 A 的源头（自回归）硬套给链 B 的成因（KM）——两条链不能互套模板。</span>
+        </div>
+      </div>
+      <div class="layer layer-3">
+        <div class="layer-tag">Trap 3 · 经验模糊贴标签（最深）</div>
+        <div class="layer-content">
+          缓解措施 4 条全部贴错或漏标——RAG 贴自我欺骗、奖励改造塞 KM、提示词贴自我欺骗。
+          <br><span style="color:var(--warn)">⚠ 工具能选对（直觉），但成因贴近义就行——这是"刚焊死的钥匙没真用"的证据。</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========== 5. 决策清单 · 比较式焊死 ========== -->
+  <section>
+    <span class="sec-tag">05 · word lock</span>
+    <h2>"比较式" · 5 次失守 → 1 次焊死</h2>
+    <p class="sec-sub">这个词不是知识漏洞，是"近义词替代"思维习惯的失灵——必须靠肌肉记忆破解</p>
+
+    <table>
+      <thead>
+        <tr><th>日期</th><th>给出的词</th><th>距离正确</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>4/20</td><td>(没答出)</td><td><span class="badge badge-fail">∞</span></td></tr>
+        <tr><td>5/07</td><td>(没答出，方向对)</td><td><span class="badge badge-warn">中</span></td></tr>
+        <tr><td>5/11</td><td>(没答出，方向对)</td><td><span class="badge badge-warn">中</span></td></tr>
+        <tr><td>5/12 #1</td><td>"打分式" ❌</td><td><span class="badge badge-fail">远</span></td></tr>
+        <tr><td>5/12 #2</td><td>"排序式" ❌</td><td><span class="badge badge-warn">近</span></td></tr>
+        <tr><td>5/12 #3</td><td><strong>"比较式" ✅</strong></td><td><span class="badge badge-ok">命中</span></td></tr>
+      </tbody>
+    </table>
+
+    <div class="insight" style="border-left-color:var(--accent)">
+      <strong>口诀（亲手敲，肌肉记忆）</strong>：
+      <pre style="margin:14px 0;background:rgba(0,0,0,0.5)">
+RLHF 信号 = <span class="hl">比较式</span>
+A 比 B 好 —— 只比、不打分、不排序。</pre>
+      <span class="src">— 三重编码：肌肉记忆 + 视觉印象 + 主动调取</span>
+    </div>
+  </section>
+
+  <!-- ========== 6. 决策清单 · 缓解措施 ========== -->
+  <section>
+    <span class="sec-tag">06 · prescription</span>
+    <h2>缓解幻觉 · 四条措施 · 成因→工具映射网</h2>
+    <p class="sec-sub">真正的高手不是看到工具就贴——是先问"这是哪条链"，再选对应工具</p>
+
+    <ol class="decision">
+      <li>
+        <strong>RAG（接入文档检索）</strong> · 针对 <span class="badge badge-ok">知识不匹配 KM</span><br>
+        <span style="color:var(--silver-3);font-size:12px">机制：直接把模型不具备的知识塞进上下文，从源头消除知识缺口。</span>
+        <span style="color:var(--accent);font-size:11px;margin-left:10px">[章节·RAG 系统基础架构]</span>
+      </li>
+      <li>
+        <strong>奖励函数改造（Schulman 思路）</strong> · 针对 <span class="badge badge-ok">RLHF 偏差</span><br>
+        <span style="color:var(--silver-3);font-size:12px">机制：把"虚构事实"作为新的惩罚信号，反向覆盖 RLHF 偏向自信的旧偏好。</span>
+        <span style="color:var(--accent);font-size:11px;margin-left:10px">[章节·LLM 幻觉成因与缓解]</span>
+      </li>
+      <li>
+        <strong>调低温度（Greedy Decoding）</strong> · 针对 <span class="badge badge-ok">自我欺骗 SD</span><br>
+        <span style="color:var(--silver-3);font-size:12px">机制：降低采样随机性 → 减少生成"低概率错 token"的机会 → 掐住滚雪球的起点。</span>
+        <span style="color:var(--accent);font-size:11px;margin-left:10px">[章节·采样 Sampling]</span>
+      </li>
+      <li>
+        <strong>提示词"不知道就说不知道"</strong> · 针对 <span class="badge badge-warn">RLHF 主 + KM 次</span><br>
+        <span style="color:var(--silver-3);font-size:12px">机制：人为指令覆盖 SFT/RLHF 训出来的"必须自信"偏好。<em>最弱工具</em>——没改训练，只改输入，模型可能"嘴上答应实际还编"。</span>
+        <span style="color:var(--accent);font-size:11px;margin-left:10px">[章节·提示工程]</span>
+        <br>
+        <span style="color:var(--warn);font-size:11px">⚠ 5/12 答错版：错贴 SD —— 提示词改不了 Transformer 自回归的物理机制。</span>
+      </li>
+    </ol>
+  </section>
+
+  <!-- ========== 7. 横向连接（折叠） ========== -->
+  <section>
+    <span class="sec-tag">07 · lateral connection</span>
+    <h2>横向连接 · 与既往章节的关系</h2>
+    <p class="sec-sub">幻觉不是孤立章节——它是把前几章工具拉成"协同打链"的最佳跨章综合题</p>
+
+    <details>
+      <summary>幻觉 ↔ 采样（Sampling）：温度调节是"自我欺骗链"的入口拦截器</summary>
+      <div>
+        采样章节学的"温度参数"——温度高 → 概率分布更平 → 容易选低概率 token。<br>
+        这正好对应"链 A"的<em>起点</em>——一旦生成了低概率错 token，自回归会把它当成事实继续推理。<br>
+        所以<strong>调低温度 = 掐住链 A 起点</strong>。这是采样工具与幻觉成因的精确对接。
+      </div>
+    </details>
+
+    <details>
+      <summary>幻觉 ↔ 推理时计算：Best-of-N 为什么不直接救幻觉？</summary>
+      <div>
+        昨天 5/11 学习者自己说出的洞察："Best-of-N 本质上还是在看哪个模型最自信。"<br>
+        Best-of-N 让打分模型从多个候选里挑"最高分"——但<em>打分模型本身</em>也来自 RLHF 训练，
+        它<strong>偏好"听起来自信"的回答</strong>。所以 Best-of-N 在"答错也自信"的场景里反而<em>放大</em>了 RLHF 偏差。<br>
+        → 这就是为什么 Schulman 提出"奖励函数改造"而不是单纯依赖 Best-of-N。
+      </div>
+    </details>
+
+    <details>
+      <summary>幻觉 ↔ RAG：为什么 RAG 是治本工具而提示词是治标？</summary>
+      <div>
+        RAG 直接给模型补充了它<em>原本不具备的知识</em>——从源头消除"知识缺口"，KM 链的根被切断。<br>
+        提示词只是<em>多塞几个字</em>，没改训练、没补知识——只是<em>劝</em>模型不要编。<br>
+        → RAG 是结构性解决方案，提示词是表层缓解。这就是为什么提示词被标记为"弱工具"。
+      </div>
+    </details>
+
+    <details>
+      <summary>分层钥匙 ↔ 幻觉：为什么这一章是分层意识的最佳考场？</summary>
+      <div>
+        幻觉这章天然有<em>三层结构</em>（架构→成因→现象），又有<em>两条平行链</em>（SD vs KM），
+        还有<em>跨章节工具映射</em>（RAG/采样/Best-of-N/奖励改造）。<br>
+        任何一层混淆都会暴露——所以它成了 5/12 这天检验"分层钥匙是否成本能"的最严苛测试。<br>
+        结论：钥匙搭起来了，但还没成本能——需要继续在新场景里调用。
+      </div>
+    </details>
+  </section>
+
+  <!-- ========== 8. 元层级成长曲线 ========== -->
+  <section>
+    <span class="sec-tag">08 · meta growth</span>
+    <h2>30 分钟内的元层级跃迁</h2>
+    <p class="sec-sub">不是知识增加了——是因果结构清晰了</p>
+
+    <pre>
+<span class="hl">时间轴 →</span>
+
+T+0min  ┃ <span class="err">一锅粥</span>
+        ┃ 自回归 + RLHF + 采样 + KM 全混在"中间层"
+        ┃
+T+10min ┃ <span class="hl">单链</span>
+        ┃ 架构 → 成因 → 现象（但只有通用模板，套不到 KM）
+        ┃
+T+20min ┃ <span class="ok">双链分离</span>
+        ┃ 链 A: 自回归 → 自我欺骗 → 滚雪球
+        ┃ 链 B: SFT → KM → 自信编造
+        ┃
+T+45min ┃ <span class="ok">三重锁</span>
+        ┃ "比较式"焊死 + 信号层 vs 推断层分清
+        ┃
+T+60min ┃ <span class="ok">映射网（基础版）</span>
+        ┃ 工具→成因 4 条映射（3.5/4 命中）+ 习惯命名
+    </pre>
+
+    <div class="insight">
+      <strong>今日最强洞察 · 学习者原话</strong><br>
+      "今天这道题我又一次踩了'<em>经验模糊随便说的</em>'这个思维习惯——刚焊死的双链意识没真正用上。
+      下次再遇到'缓解措施'类题目，我应该<em>先问哪条链</em>再选工具，而不是看到工具就贴近义成因。"
+      <span class="src">— 这是元学习的核心动作：给思维习惯命名 → 它就能被监控 → 才能被纠正</span>
+    </div>
+  </section>
+
+  <!-- ========== 9. 学习报告网格 ========== -->
+  <section>
+    <span class="sec-tag">09 · report grid</span>
+    <h2>本单元学习报告</h2>
+    <p class="sec-sub">A / B / 元层级 三层掌握度</p>
+
+    <div class="grid-3">
+      <div class="card">
+        <div class="card-title">A 层 · 核心概念</div>
+        <div class="card-body">
+          🎓 自回归特性<br>
+          🎓 知识不匹配本质<br>
+          🎓 RLHF 比较式信号<br>
+          🎓 双链分离意识
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-title">B 层 · 工具映射</div>
+        <div class="card-body">
+          ✅ RAG → KM<br>
+          ✅ 奖励改造 → RLHF<br>
+          ✅ 调温度 → SD<br>
+          ⚠ 提示词 → 应为 RLHF 主+KM 次
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-title">META · 元层级</div>
+        <div class="card-body">
+          🌟 "经验模糊随便说"命名<br>
+          🌟 "先问哪条链"调用规则<br>
+          🌟 横向分层 → 纵向分链<br>
+          (从 5/11 钥匙的二次升级)
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========== 10. 复习计划 ========== -->
+  <section>
+    <span class="sec-tag">10 · review plan</span>
+    <h2>下次复习安排</h2>
+    <p class="sec-sub">间隔重复 · 5/14 大复习日重点合并</p>
+
+    <table>
+      <thead>
+        <tr><th>项目</th><th>复习日</th><th>验证重点</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>缓存技术降低延迟</td>
+          <td>5/13 (D+1)</td>
+          <td>5 分钟闭卷回忆，3 道闭卷题</td>
+        </tr>
+        <tr>
+          <td>提示词→成因映射（今日错题）</td>
+          <td>5/14</td>
+          <td>RLHF 主 + KM 次，不是 SD</td>
+        </tr>
+        <tr>
+          <td>"经验模糊随便说"习惯</td>
+          <td>5/14</td>
+          <td>新场景下能否主动调用"先问哪条链"</td>
+        </tr>
+        <tr>
+          <td>TCC 三大准则（第 5 次）</td>
+          <td>5/14</td>
+          <td>英文缩写焊死 + Consistency 含义</td>
+        </tr>
+        <tr>
+          <td>Think-in-Memory（第 6 次）</td>
+          <td>5/14</td>
+          <td>口诀"反思提炼新认知"</td>
+        </tr>
+        <tr>
+          <td>解耦三条工程好处（第 6 次）</td>
+          <td>5/14</td>
+          <td>三条都要"做什么 + 带来什么好处"</td>
+        </tr>
+        <tr>
+          <td>RLHF→偏向自信（口诀复用）</td>
+          <td>5/14</td>
+          <td>"比较式"是否还能脱口而出</td>
+        </tr>
+        <tr>
+          <td>路由器和模型网关（第 7 天）</td>
+          <td>5/15</td>
+          <td>原计划</td>
+        </tr>
+        <tr>
+          <td>AI 智能体概述（第 30 天）</td>
+          <td>5/20</td>
+          <td>原计划</td>
+        </tr>
+      </tbody>
+    </table>
+  </section>
+
+  <!-- ========== Footer ========== -->
+  <footer>
+    <div>2026 · 05 · 12 · Misted Metal Review</div>
+    <div class="tag-list">
+      <span>Hallucination</span>
+      <span>Day 30</span>
+      <span>Dual-Chain</span>
+      <span>Meta-Layer</span>
+      <span>Word Lock</span>
+    </div>
+  </footer>
+
+</div>
+
+<script>
+// 滚动浮现
+const io = new IntersectionObserver((entries)=>{
+  entries.forEach(e=>{ if(e.isIntersecting) e.target.classList.add('visible'); });
+},{threshold:0.1});
+document.querySelectorAll('section').forEach(s=>io.observe(s));
+
+// 鼠标视差光晕
+document.addEventListener('mousemove',(e)=>{
+  const x = (e.clientX / window.innerWidth) * 100;
+  const y = (e.clientY / window.innerHeight) * 100;
+  document.body.style.setProperty('--mx', x + '%');
+  document.body.style.setProperty('--my', y + '%');
+});
+</script>
+</body>
+</html>
