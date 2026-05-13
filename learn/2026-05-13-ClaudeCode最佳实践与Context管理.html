@@ -1,0 +1,883 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>2026-05-13 · Claude Code 最佳实践与 Context 管理</title>
+<style>
+  /* ───────────────────────────────
+     雾化金属表面 · Misted Metal Surface
+     ─────────────────────────────── */
+  :root {
+    --metal-100: #eef0f3;
+    --metal-200: #d8dde3;
+    --metal-300: #aab2bd;
+    --metal-400: #7c8693;
+    --metal-500: #5c6675;
+    --metal-600: #3f4754;
+    --metal-700: #2a313c;
+    --metal-800: #1a1f28;
+    --metal-900: #07090d;
+    --accent: #6b89a8;
+    --accent-dim: #4a6987;
+    --warn: #a86b5c;
+    --warn-dim: #6b3f3a;
+    --mono: ui-monospace, SFMono-Regular, "JetBrains Mono", Menlo, Consolas, monospace;
+    --thin: 200;
+    --reg: 300;
+    --med: 400;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html, body {
+    background: var(--metal-900);
+    color: var(--metal-200);
+    font-family: var(--mono);
+    font-weight: var(--reg);
+    line-height: 1.7;
+    overflow-x: hidden;
+    min-height: 100vh;
+  }
+
+  /* SVG 噪点纹理 */
+  body::before {
+    content: "";
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: 1;
+    opacity: 0.35;
+    mix-blend-mode: overlay;
+    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='200' height='200'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 0.5  0 0 0 0 0.55  0 0 0 0 0.6  0 0 0 0.4 0'/></filter><rect width='100%25' height='100%25' filter='url(%23n)'/></svg>");
+  }
+
+  /* 鼠标跟随光晕 */
+  body::after {
+    content: "";
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: 0;
+    background: radial-gradient(
+      600px circle at var(--mx, 50%) var(--my, 30%),
+      rgba(107, 137, 168, 0.10),
+      transparent 40%
+    );
+    transition: background 0.2s ease;
+  }
+
+  .container {
+    position: relative;
+    z-index: 2;
+    max-width: 1180px;
+    margin: 0 auto;
+    padding: 80px 32px 120px;
+  }
+
+  /* ─── HERO ─── */
+  .hero {
+    border: 1px solid var(--metal-700);
+    background: linear-gradient(135deg, var(--metal-800), var(--metal-900) 60%);
+    padding: 64px 56px;
+    position: relative;
+    overflow: hidden;
+  }
+  .hero::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(circle at 80% 20%, rgba(107,137,168,0.06), transparent 50%);
+    pointer-events: none;
+  }
+  .hero .meta {
+    font-size: 11px;
+    letter-spacing: 0.4em;
+    color: var(--metal-400);
+    text-transform: uppercase;
+    margin-bottom: 28px;
+  }
+  .hero h1 {
+    font-size: clamp(28px, 4vw, 48px);
+    font-weight: var(--thin);
+    letter-spacing: -0.01em;
+    color: var(--metal-100);
+    margin-bottom: 24px;
+    line-height: 1.15;
+  }
+  .hero .lead {
+    font-size: 15px;
+    color: var(--metal-300);
+    max-width: 720px;
+    line-height: 1.8;
+    border-left: 1px solid var(--accent-dim);
+    padding-left: 20px;
+    margin-top: 24px;
+  }
+  .hero .stats {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 0;
+    margin-top: 56px;
+    border-top: 1px solid var(--metal-700);
+    padding-top: 32px;
+  }
+  .hero .stats .stat {
+    border-right: 1px solid var(--metal-700);
+    padding: 0 24px;
+  }
+  .hero .stats .stat:last-child { border-right: none; }
+  .hero .stats .stat:first-child { padding-left: 0; }
+  .hero .stats .num {
+    font-size: 32px;
+    font-weight: var(--thin);
+    color: var(--metal-100);
+    letter-spacing: -0.02em;
+  }
+  .hero .stats .lbl {
+    font-size: 10px;
+    letter-spacing: 0.3em;
+    color: var(--metal-400);
+    text-transform: uppercase;
+    margin-top: 8px;
+  }
+
+  /* ─── SECTION ─── */
+  section {
+    margin-top: 96px;
+    opacity: 0;
+    transform: translateY(28px);
+    transition: opacity 0.9s ease, transform 0.9s ease;
+  }
+  section.visible {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  section .sec-num {
+    font-size: 11px;
+    letter-spacing: 0.4em;
+    color: var(--accent);
+    margin-bottom: 16px;
+  }
+  section h2 {
+    font-size: 28px;
+    font-weight: var(--thin);
+    color: var(--metal-100);
+    letter-spacing: -0.01em;
+    border-bottom: 1px solid var(--metal-700);
+    padding-bottom: 20px;
+    margin-bottom: 36px;
+  }
+  section p {
+    color: var(--metal-300);
+    margin-bottom: 16px;
+    font-size: 14px;
+  }
+  section p strong { color: var(--metal-100); font-weight: var(--med); }
+  section em { color: var(--accent); font-style: normal; }
+
+  /* ─── 双卡并列 ─── */
+  .compare {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 24px;
+    margin: 32px 0;
+  }
+  .card {
+    background: var(--metal-800);
+    border: 1px solid var(--metal-700);
+    padding: 28px;
+    transition: all 0.3s ease;
+    position: relative;
+  }
+  .card:hover {
+    transform: translateY(-4px);
+    border-color: var(--accent-dim);
+    background: var(--metal-700);
+    box-shadow: 0 16px 40px rgba(0,0,0,0.5), inset 0 1px 0 rgba(107,137,168,0.15);
+  }
+  .card .tag {
+    font-size: 10px;
+    letter-spacing: 0.25em;
+    color: var(--metal-400);
+    text-transform: uppercase;
+    margin-bottom: 14px;
+  }
+  .card.wrong .tag { color: var(--warn); }
+  .card.right .tag { color: var(--accent); }
+  .card h3 {
+    font-size: 18px;
+    font-weight: var(--reg);
+    color: var(--metal-100);
+    margin-bottom: 14px;
+  }
+  .card p {
+    font-size: 13px;
+    color: var(--metal-300);
+    line-height: 1.7;
+  }
+
+  /* ─── 三栏分层 ─── */
+  .layers {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1px;
+    background: var(--metal-700);
+    border: 1px solid var(--metal-700);
+    margin: 28px 0;
+  }
+  .layer {
+    padding: 28px 24px;
+    transition: background 0.3s ease;
+  }
+  .layer-1 { background: var(--metal-800); }
+  .layer-2 { background: #232a36; }
+  .layer-3 { background: var(--metal-700); }
+  .layer:hover { background: var(--metal-600); }
+  .layer .lbl {
+    font-size: 10px;
+    letter-spacing: 0.3em;
+    color: var(--accent);
+    text-transform: uppercase;
+    margin-bottom: 12px;
+  }
+  .layer h4 {
+    font-size: 16px;
+    font-weight: var(--reg);
+    color: var(--metal-100);
+    margin-bottom: 12px;
+  }
+  .layer p {
+    font-size: 12px;
+    color: var(--metal-300);
+    line-height: 1.7;
+  }
+  .layer code {
+    font-size: 12px;
+    color: var(--accent);
+    background: rgba(107,137,168,0.08);
+    padding: 1px 6px;
+    border-radius: 2px;
+  }
+
+  /* ─── ASCII 代码块 ─── */
+  .ascii {
+    background: var(--metal-900);
+    border: 1px solid var(--metal-700);
+    padding: 28px 32px;
+    font-family: var(--mono);
+    font-size: 12px;
+    line-height: 1.7;
+    color: var(--metal-300);
+    white-space: pre;
+    overflow-x: auto;
+    margin: 28px 0;
+    box-shadow: inset 0 0 60px rgba(0,0,0,0.6);
+    position: relative;
+  }
+  .ascii::before {
+    content: "▎ ASCII";
+    position: absolute;
+    top: 12px;
+    right: 16px;
+    font-size: 9px;
+    letter-spacing: 0.3em;
+    color: var(--metal-500);
+  }
+  .ascii .hi { color: var(--accent); }
+  .ascii .em { color: var(--metal-100); font-weight: var(--med); }
+  .ascii .warn { color: var(--warn); }
+
+  /* ─── 折叠面板 ─── */
+  details {
+    border: 1px solid var(--metal-700);
+    background: var(--metal-800);
+    margin: 12px 0;
+    transition: background 0.3s ease;
+  }
+  details[open] { background: var(--metal-700); }
+  summary {
+    cursor: pointer;
+    padding: 18px 24px;
+    list-style: none;
+    display: flex;
+    align-items: center;
+    color: var(--metal-200);
+    font-size: 14px;
+    font-weight: var(--reg);
+    transition: color 0.2s ease;
+  }
+  summary::-webkit-details-marker { display: none; }
+  summary::before {
+    content: "+";
+    margin-right: 16px;
+    color: var(--accent);
+    font-weight: var(--thin);
+    font-size: 18px;
+    transition: transform 0.3s ease;
+    display: inline-block;
+  }
+  details[open] summary::before { transform: rotate(45deg); }
+  summary:hover { color: var(--metal-100); }
+  details .body {
+    padding: 0 24px 24px 56px;
+    color: var(--metal-300);
+    font-size: 13px;
+    line-height: 1.8;
+  }
+
+  /* ─── 决策清单 ─── */
+  .checklist {
+    counter-reset: ck;
+    margin: 28px 0;
+  }
+  .checklist .item {
+    counter-increment: ck;
+    border-left: 2px solid var(--metal-700);
+    padding: 18px 24px;
+    margin-bottom: 8px;
+    background: var(--metal-800);
+    transition: all 0.25s ease;
+    display: flex;
+    align-items: flex-start;
+    gap: 24px;
+  }
+  .checklist .item:hover {
+    border-left-color: var(--accent);
+    background: var(--metal-700);
+    transform: translateX(4px);
+  }
+  .checklist .item::before {
+    content: counter(ck, decimal-leading-zero);
+    font-size: 22px;
+    font-weight: var(--thin);
+    color: var(--accent);
+    min-width: 36px;
+  }
+  .checklist .item .txt h4 {
+    font-size: 14px;
+    font-weight: var(--med);
+    color: var(--metal-100);
+    margin-bottom: 6px;
+  }
+  .checklist .item .txt p {
+    font-size: 12px;
+    color: var(--metal-400);
+    margin: 0;
+  }
+
+  /* ─── 学习报告网格 ─── */
+  .report-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 16px;
+    margin: 28px 0;
+  }
+  .report-cell {
+    background: var(--metal-800);
+    border: 1px solid var(--metal-700);
+    padding: 24px;
+    transition: all 0.3s ease;
+  }
+  .report-cell:hover {
+    border-color: var(--accent-dim);
+    background: var(--metal-700);
+  }
+  .report-cell .hd {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 14px;
+    padding-bottom: 12px;
+    border-bottom: 1px dashed var(--metal-600);
+  }
+  .report-cell .lvl {
+    font-size: 10px;
+    letter-spacing: 0.3em;
+    color: var(--accent);
+    text-transform: uppercase;
+  }
+  .report-cell .pct {
+    font-size: 11px;
+    color: var(--metal-400);
+  }
+  .report-cell h4 {
+    font-size: 14px;
+    color: var(--metal-100);
+    font-weight: var(--reg);
+    margin-bottom: 8px;
+  }
+  .report-cell p {
+    font-size: 12px;
+    color: var(--metal-400);
+    line-height: 1.7;
+    margin: 0;
+  }
+  .report-cell.warn { border-color: var(--warn-dim); }
+  .report-cell.warn .lvl { color: var(--warn); }
+
+  /* ─── 复习计划时间表 ─── */
+  .timeline {
+    border: 1px solid var(--metal-700);
+    background: var(--metal-800);
+    margin: 28px 0;
+  }
+  .timeline .row {
+    display: grid;
+    grid-template-columns: 140px 100px 1fr;
+    align-items: center;
+    padding: 16px 24px;
+    border-bottom: 1px solid var(--metal-700);
+    transition: background 0.25s ease;
+  }
+  .timeline .row:last-child { border-bottom: none; }
+  .timeline .row:hover { background: var(--metal-700); }
+  .timeline .when {
+    font-size: 11px;
+    letter-spacing: 0.2em;
+    color: var(--accent);
+    text-transform: uppercase;
+  }
+  .timeline .date {
+    font-size: 12px;
+    color: var(--metal-300);
+  }
+  .timeline .what {
+    font-size: 13px;
+    color: var(--metal-200);
+  }
+
+  /* ─── 元层级 ─── */
+  .meta-growth {
+    background: linear-gradient(180deg, var(--metal-800), var(--metal-900));
+    border: 1px solid var(--metal-700);
+    padding: 36px;
+    margin: 28px 0;
+  }
+  .meta-growth blockquote {
+    font-size: 16px;
+    font-weight: var(--thin);
+    color: var(--metal-200);
+    line-height: 1.7;
+    border-left: 2px solid var(--accent);
+    padding-left: 20px;
+    margin: 16px 0;
+    font-style: italic;
+  }
+
+  /* ─── 页脚 ─── */
+  footer {
+    margin-top: 120px;
+    padding-top: 32px;
+    border-top: 1px solid var(--metal-700);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 16px;
+  }
+  footer .tags {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+  footer .tag {
+    font-size: 10px;
+    letter-spacing: 0.2em;
+    color: var(--metal-400);
+    text-transform: uppercase;
+    border: 1px solid var(--metal-700);
+    padding: 6px 12px;
+    transition: all 0.25s ease;
+  }
+  footer .tag:hover {
+    color: var(--accent);
+    border-color: var(--accent-dim);
+  }
+  footer .pos {
+    font-size: 11px;
+    letter-spacing: 0.3em;
+    color: var(--metal-500);
+  }
+
+  @media (max-width: 768px) {
+    .container { padding: 48px 20px 80px; }
+    .hero { padding: 40px 28px; }
+    .hero .stats { grid-template-columns: repeat(2, 1fr); gap: 24px; }
+    .hero .stats .stat { border-right: none; padding: 0; }
+    .compare, .layers, .report-grid { grid-template-columns: 1fr; }
+    .timeline .row { grid-template-columns: 1fr; gap: 8px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="container">
+
+  <!-- ─── HERO ─── -->
+  <header class="hero">
+    <div class="meta">2026 · 05 · 13 ─── LEARNING NOTE / NO. 19</div>
+    <h1>Claude Code 最佳实践<br/>—— 当 Context Window 成为最贵的资源</h1>
+    <p class="lead">
+      这一节学习的真正目的不是"列出几个技巧"，而是把一个<em>元约束</em>焊死进直觉里：
+      Claude Code 是一个 agentic 编程环境，它的所有"效果不稳定"，最终都可以追溯到同一根稻草——
+      context window 被无关信息污染。三个工具（/clear、subagents、Plan Mode）不是孤立技巧，
+      而是同一种思维的三个变种：<em>不要让无关的东西占用你最贵的资源。</em>
+    </p>
+
+    <div class="stats">
+      <div class="stat"><div class="num">1</div><div class="lbl">爷爷层</div></div>
+      <div class="stat"><div class="num">3</div><div class="lbl">兄弟工具</div></div>
+      <div class="stat"><div class="num">2</div><div class="lbl">概念混淆已修正</div></div>
+      <div class="stat"><div class="num">1</div><div class="lbl">遗漏待补</div></div>
+    </div>
+  </header>
+
+  <!-- ─── SECTION 1：核心机制 ─── -->
+  <section>
+    <div class="sec-num">SECTION 01 ─── 核心机制</div>
+    <h2>为什么 context window 决定了一切</h2>
+
+    <p>
+      Claude Code 不是聊天机器人。它会<strong>自己读文件、自己跑命令</strong>，
+      这两个动作的产物会全部塞进 context。一次调试可能消耗数万个 token——这才是 context 爆炸的真正大头。
+    </p>
+
+    <div class="compare">
+      <div class="card right">
+        <div class="tag">— 现象 ─ Lost in the Middle</div>
+        <h3>注意力分布不均匀</h3>
+        <p>
+          模型对 <strong>开头</strong> 和 <strong>结尾</strong> 的注意力远高于中间部分。
+          context 越长，重要信息越容易被埋在"中段塌陷"里被忽略。
+        </p>
+      </div>
+      <div class="card right">
+        <div class="tag">— 后果 ─ 工程层面</div>
+        <h3>效果不稳定的根因</h3>
+        <p>
+          context 越长 → 模型越容易"丢重点" → 边读边改时 context 越滚越乱 →
+          一旦决策点被埋进中段，就成了你感受到的"它怎么又忘了我的要求"。
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ─── SECTION 2：上下兄弟分层 ─── -->
+  <section>
+    <div class="sec-num">SECTION 02 ─── 三层家族图</div>
+    <h2>"上下兄弟问三句"在工具层的运用</h2>
+
+    <p>
+      这一次学习，<strong>"上下兄弟问三句"</strong>这个元工具第一次真正派上用场——
+      在 Plan Mode 那一格，你把它错放成了"启动新 agent"，被工具拎出来后修正成功。
+    </p>
+
+    <div class="ascii">
+<span class="em">第3层（爷爷）</span>     ┌──────────────────────────────────────┐
+                  │  保护主 context 不被无关内容污染  │  ← 核心理念
+                  └──────────────────┬───────────────┘
+                                     │
+       ┌─────────────────────────────┼─────────────────────────────┐
+       ▼                             ▼                             ▼
+<span class="em">第2层（兄弟）</span>  <span class="hi">/clear</span>                     <span class="hi">subagents</span>                    <span class="hi">Plan Mode</span>
+              （时间维度·清空）           （空间维度·外包）            （阶段维度·分离）
+       │                             │                             │
+       └────── 都使用 ──────→ <span class="em">context window 管理</span> ←────── 底层操作
+<span class="em">第1层（工具）</span>                  （读/写/隔离/切换权限）</div>
+  </section>
+
+  <!-- ─── SECTION 3：三工具对比 ─── -->
+  <section>
+    <div class="sec-num">SECTION 03 ─── 三工具精确分工</div>
+    <h2>它们看似相似，做的动作完全不同</h2>
+
+    <div class="layers">
+      <div class="layer layer-1">
+        <div class="lbl">Time · 时间</div>
+        <h4>/clear</h4>
+        <p>
+          <strong>清空</strong>当前主 context，让对话回到"刚打开"的状态。
+          不启动新 agent，就是把过去的脏东西扔掉。
+        </p>
+        <p style="margin-top:10px">
+          场景：刚调完 bug，要写不相关的新功能 → <code>/clear</code>
+        </p>
+      </div>
+
+      <div class="layer layer-2">
+        <div class="lbl">Space · 空间</div>
+        <h4>subagents</h4>
+        <p>
+          <strong>启动子 agent</strong>，子 agent 有<em>自己独立的 context</em>，
+          它读 30 个文件不会污染你。最后只把<strong>摘要</strong>回传给主对话。
+        </p>
+        <p style="margin-top:10px">
+          场景：调研"项目里有没有现成的 OAuth 工具" → 派 subagent
+        </p>
+      </div>
+
+      <div class="layer layer-3">
+        <div class="lbl">Phase · 阶段</div>
+        <h4>Plan Mode</h4>
+        <p>
+          <strong>同一个 agent，切换到只读模式</strong>。不启动新 agent，
+          只是禁止改文件——先想清楚，看到完整计划，再切回 Normal Mode 执行。
+        </p>
+        <p style="margin-top:10px">
+          场景：跨 5 个文件的重构 → 先 Plan Mode 审计计划
+        </p>
+      </div>
+    </div>
+
+    <div class="ascii">
+<span class="em">真实分工对照表</span>
+
+工具          | 启动新 agent? | context 怎么处理        | 解决什么
+──────────────┼───────────────┼─────────────────────────┼──────────────────────────────
+<span class="hi">/clear</span>        | <span class="warn">✗ 不启动</span>      | 清空主 context          | 之前的脏东西不要了
+<span class="hi">subagents</span>     | <span class="hi">✓ 启动</span>         | 子 agent 独立 context   | 脏活外包，主 context 别脏
+<span class="hi">Plan Mode</span>     | <span class="warn">✗ 不启动</span>      | 同一 context，切换权限  | 在动手之前先审计计划</div>
+  </section>
+
+  <!-- ─── SECTION 4：三类坑 ─── -->
+  <section>
+    <div class="sec-num">SECTION 04 ─── 今天踩过的三类坑</div>
+    <h2>三个被工具拎出来的混淆</h2>
+
+    <div class="checklist">
+      <div class="item">
+        <div class="txt">
+          <h4>坑 1 · 把"现象"当"机制"</h4>
+          <p>用"注意力分散""拎不清重点"解释 context 满载——只是换了个说法，没解释机制。修正：触达 Lost in the Middle 这个真正的物理现象。</p>
+        </div>
+      </div>
+      <div class="item">
+        <div class="txt">
+          <h4>坑 2 · 把 Plan Mode 当 subagent</h4>
+          <p>说"Plan Mode 拿着计划启动另一个 agent"——这是典型的"上下兄弟"层级混乱。两者虽是兄弟（都保护主 context），但具体动作完全不同：subagent 真的另起 agent，Plan Mode 只切模式。</p>
+        </div>
+      </div>
+      <div class="item">
+        <div class="txt">
+          <h4>坑 3 · 用术语贴标签代替展开解释</h4>
+          <p>"因为 lost in the middle"这种一句话答案，看起来正确，实际上没有信息量。修正：术语后面必须跟一句"它的意思是 ..."。</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ─── SECTION 5：决策清单 ─── -->
+  <section>
+    <div class="sec-num">SECTION 05 ─── 回到工位就能用</div>
+    <h2>下次开 Claude Code，先问自己这 4 件事</h2>
+
+    <div class="checklist">
+      <div class="item">
+        <div class="txt">
+          <h4>当前任务和上一个任务相关吗？</h4>
+          <p>不相关 → 立刻 <code style="color:var(--accent)">/clear</code>。不要让上一个任务的 30 个文件污染下一个任务。</p>
+        </div>
+      </div>
+      <div class="item">
+        <div class="txt">
+          <h4>这个动作需要"读很多文件"吗？</h4>
+          <p>需要 → 派 subagent。让脏活在别的 context 里干，主对话只收摘要。</p>
+        </div>
+      </div>
+      <div class="item">
+        <div class="txt">
+          <h4>这次改动跨了几个文件？</h4>
+          <p>跨 ≥ 3 个文件，或我自己也不确定方案 → 先 Plan Mode 看计划，再切 Normal Mode 执行。</p>
+        </div>
+      </div>
+      <div class="item">
+        <div class="txt">
+          <h4>关键信息我放在哪里？</h4>
+          <p>Lost in the Middle 提醒：把约束、目标、决策放在 prompt 的<strong>开头或结尾</strong>，不要塞中间。</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ─── SECTION 6：横向连接 ─── -->
+  <section>
+    <div class="sec-num">SECTION 06 ─── 横向连接</div>
+    <h2>这个知识和你以前学过的什么相关？</h2>
+
+    <details>
+      <summary>与 RAG 检索系统的相似性 —— 都是在"解决 context 太贵"</summary>
+      <div class="body">
+        RAG 的本质是"不要把全部知识塞进 context，只在需要时检索一小段塞进去"。
+        Claude Code 的 subagent 思路完全一致：不要把全部探索过程塞进主 context，
+        只让子 agent 探索，回传一段摘要。<br/><br/>
+        <strong>同一种思维：稀缺的不是知识，是 context 的"卖场货架"。</strong>
+      </div>
+    </details>
+
+    <details>
+      <summary>与 AI 智能体三要素的关系 —— Plan Mode 是"规划与行动分离"的实例</summary>
+      <div class="body">
+        在 AI 智能体里，"规划（Planning）"和"行动（Action）"是两个独立要素。
+        Plan Mode 把这两个要素在 Claude Code 里显式拆成了两个阶段——
+        这是智能体设计原则在工具层的具体体现。<br/><br/>
+        <strong>不是新概念，是旧理念的工程化。</strong>
+      </div>
+    </details>
+
+    <details>
+      <summary>与采样（Sampling）的对照 —— 都是底层工具，不是上层方法</summary>
+      <div class="body">
+        2026-05-11 那次踩坑：把"采样"误认为"自洽性方法"。今天这次同样的失误：
+        把"Plan Mode 的实现细节"误认为"启动新 agent"。<br/><br/>
+        <strong>元层级的薄弱点：你倾向于把"工具/操作"当成"方法/策略"。</strong>
+        这是同一种思维习惯的失灵，不是两个独立漏洞。
+      </div>
+    </details>
+
+    <details>
+      <summary>与 AI 代理设计原则的关系 —— context 隔离是核心模式</summary>
+      <div class="body">
+        在 AI 代理设计里，"任务隔离""职责单一"是核心原则。
+        subagent 就是这个原则的产物：把一个有界的探索任务交给独立 agent，
+        主 agent 只负责协调和决策。<br/><br/>
+        <strong>下次设计自己的 agent 时，记住：不是"一个 agent 干所有事"，是"主 agent 协调子 agent"。</strong>
+      </div>
+    </details>
+  </section>
+
+  <!-- ─── SECTION 7：元层级成长 ─── -->
+  <section>
+    <div class="sec-num">SECTION 07 ─── 元层级成长曲线</div>
+    <h2>本次学习中，你的思维进步了什么？</h2>
+
+    <div class="meta-growth">
+      <blockquote>
+        "你倾向于用'短而抽象的词'封装答案，而不是用'长而具体的句子'展开答案。"
+      </blockquote>
+      <p style="color:var(--metal-300); font-size:13px; margin-top:16px;">
+        这是今天教练在你身上观察到的思维习惯。最后一轮关门复述里，你已经开始修正——
+        把"Lost in the Middle"展开了一句"即关注开头和结尾大于关注中间"。
+        这是从"贴标签"到"讲清楚"的关键一跃。
+      </p>
+      <blockquote style="margin-top:28px">
+        "你打断了一个权威，问'你带我去的地方对吗'。"
+      </blockquote>
+      <p style="color:var(--metal-300); font-size:13px; margin-top:16px;">
+        中途那一问，让教练自己也修正了过深追问的方向。这个习惯比答对题更值钱——
+        它在你以后自学任何东西的时候，都会救你的命。
+      </p>
+    </div>
+  </section>
+
+  <!-- ─── SECTION 8：学习报告 ─── -->
+  <section>
+    <div class="sec-num">SECTION 08 ─── 学习报告</div>
+    <h2>A / B / C 层 + 横向连接</h2>
+
+    <div class="report-grid">
+      <div class="report-cell">
+        <div class="hd"><div class="lvl">A 层 · 核心</div><div class="pct">100% · 焊死</div></div>
+        <h4>context 三连</h4>
+        <p>context 是稀缺资源 · Lost in the Middle · /clear / subagents / Plan Mode 三工具分工</p>
+      </div>
+
+      <div class="report-cell warn">
+        <div class="hd"><div class="lvl">A 层 · 漏洞</div><div class="pct">⚠ 待补</div></div>
+        <h4>遗漏的 context 来源</h4>
+        <p>"Claude 自己读的文件 + 自己跑命令的输出"——这一类一直没补上，是 context 爆炸的最大头。下次复习第一题</p>
+      </div>
+
+      <div class="report-cell">
+        <div class="hd"><div class="lvl">B 层 · 理解</div><div class="pct">0% · 未碰</div></div>
+        <h4>扩展机制全家</h4>
+        <p>CLAUDE.md / 权限模式 / MCP / hooks / skills / plugins / subagents 之间的分工——下次再学</p>
+      </div>
+
+      <div class="report-cell">
+        <div class="hd"><div class="lvl">C 层 · 备查</div><div class="pct">— 不必记</div></div>
+        <h4>命令参数 & 脚本</h4>
+        <p>claude -p 参数 / Writer-Reviewer 脚本 / 跨文件 fan-out 模板——用时再翻</p>
+      </div>
+
+      <div class="report-cell">
+        <div class="hd"><div class="lvl">横向连接</div><div class="pct">✓ 已建立</div></div>
+        <h4>RAG · 智能体 · 采样</h4>
+        <p>三处旧知识与今天的连接已建立，"context 稀缺性"是统一主题</p>
+      </div>
+
+      <div class="report-cell">
+        <div class="hd"><div class="lvl">元层级</div><div class="pct">↑ 进步</div></div>
+        <h4>反问 + 自我修正</h4>
+        <p>首次成功反问老师 + 首次用"上下兄弟"工具修正层级混淆</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ─── SECTION 9：复习计划 ─── -->
+  <section>
+    <div class="sec-num">SECTION 09 ─── 间隔重复时间表</div>
+    <h2>记得不在临时，在间隔</h2>
+
+    <div class="timeline">
+      <div class="row">
+        <div class="when">第 1 天 · 当天</div>
+        <div class="date">05/13</div>
+        <div class="what">5 分钟不看资料回忆当天所学（"context 三连 + 三工具"）</div>
+      </div>
+      <div class="row">
+        <div class="when">第 2 天</div>
+        <div class="date">05/14</div>
+        <div class="what">3 道闭卷题 · 第一题主攻"漏掉的 context 来源"——读文件 + 跑命令</div>
+      </div>
+      <div class="row">
+        <div class="when">第 7 天</div>
+        <div class="date">05/20</div>
+        <div class="what">5 道题 · 跨章节关联（"上下兄弟"工具复用 · 与 RAG 的连接）</div>
+      </div>
+      <div class="row">
+        <div class="when">第 30 天</div>
+        <div class="date">06/12</div>
+        <div class="what">综合题 · 用今天学的知识解决一个真实的 Claude Code 使用场景</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ─── 页脚 ─── -->
+  <footer>
+    <div class="tags">
+      <div class="tag">Claude Code</div>
+      <div class="tag">Context Window</div>
+      <div class="tag">Lost in the Middle</div>
+      <div class="tag">Subagents</div>
+      <div class="tag">Plan Mode</div>
+      <div class="tag">上下兄弟问三句</div>
+    </div>
+    <div class="pos">2026 / 05 / 13 ─── NOTE 19</div>
+  </footer>
+
+</div>
+
+<script>
+  /* 鼠标光晕 */
+  document.addEventListener("mousemove", (e) => {
+    const x = (e.clientX / window.innerWidth) * 100;
+    const y = (e.clientY / window.innerHeight) * 100;
+    document.body.style.setProperty("--mx", x + "%");
+    document.body.style.setProperty("--my", y + "%");
+  });
+
+  /* 滚动浮现 */
+  const io = new IntersectionObserver((entries) => {
+    entries.forEach((entry) => {
+      if (entry.isIntersecting) {
+        entry.target.classList.add("visible");
+        io.unobserve(entry.target);
+      }
+    });
+  }, { threshold: 0.12 });
+  document.querySelectorAll("section").forEach((s) => io.observe(s));
+</script>
+
+</body>
+</html>
