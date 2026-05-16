@@ -1,0 +1,695 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>5/13 复习 · 缓存技术 D+1 · Claude Code D+0</title>
+<style>
+:root {
+  --silver-1: #eef0f3;
+  --silver-2: #d8dde3;
+  --silver-3: #b6bec8;
+  --slate-1: #8993a3;
+  --slate-2: #5c6675;
+  --slate-3: #3f4754;
+  --slate-4: #2a313c;
+  --black-1: #1a1f28;
+  --black-2: #0e1218;
+  --black-3: #07090d;
+  --accent: #6b89a8;
+  --accent-dim: #4a6280;
+  --accent-glow: rgba(107, 137, 168, 0.15);
+  --warn: #9a6048;
+  --warn-dim: #6b3f30;
+  --good: #5a9a7a;
+  --gold: #a89270;
+  --font-sans: -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", system-ui, sans-serif;
+  --font-mono: "SF Mono", "JetBrains Mono", "Fira Code", monospace;
+  --mx: 30%;
+  --my: 20%;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { width: 100%; }
+
+body {
+  font-family: var(--font-sans);
+  font-weight: 200;
+  color: var(--silver-2);
+  background:
+    radial-gradient(circle at var(--mx) var(--my), rgba(107,137,168,0.09), transparent 45%),
+    radial-gradient(ellipse at 80% 70%, rgba(100,130,165,0.06), transparent 50%),
+    linear-gradient(180deg, var(--black-1) 0%, var(--black-2) 50%, var(--black-3) 100%);
+  background-attachment: fixed;
+  min-height: 100vh;
+  line-height: 1.75;
+  letter-spacing: 0.02em;
+  overflow-x: hidden;
+}
+
+body::before {
+  content: "";
+  position: fixed; inset: 0;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='200' height='200'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 0 0 0 0.04 0'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>");
+  pointer-events: none;
+  opacity: 0.55;
+  z-index: 1;
+  mix-blend-mode: overlay;
+}
+
+.container {
+  position: relative;
+  z-index: 2;
+  max-width: 920px;
+  margin: 0 auto;
+  padding: 72px 28px 120px;
+}
+
+/* ─── Hero ─── */
+.hero {
+  position: relative;
+  padding: 52px 44px;
+  border-radius: 16px;
+  background: linear-gradient(135deg, rgba(42,49,60,0.7), rgba(26,31,40,0.9));
+  border: 1px solid rgba(107,137,168,0.15);
+  margin-bottom: 56px;
+  overflow: hidden;
+}
+.hero::after {
+  content: "";
+  position: absolute; inset: 0;
+  background: radial-gradient(ellipse at 20% 0%, rgba(107,137,168,0.12), transparent 60%);
+  pointer-events: none;
+}
+.hero .date {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.25em;
+  color: var(--accent);
+  text-transform: uppercase;
+  margin-bottom: 12px;
+}
+.hero h1 {
+  font-size: 28px;
+  font-weight: 300;
+  color: var(--silver-1);
+  line-height: 1.3;
+  margin-bottom: 16px;
+}
+.hero .purpose {
+  font-size: 14px;
+  color: var(--slate-1);
+  margin-bottom: 20px;
+}
+.hero .stats {
+  display: flex;
+  gap: 32px;
+  flex-wrap: wrap;
+}
+.hero .stat {
+  text-align: center;
+}
+.hero .stat .num {
+  font-family: var(--font-mono);
+  font-size: 28px;
+  font-weight: 300;
+  color: var(--accent);
+}
+.hero .stat .label {
+  font-size: 10px;
+  letter-spacing: 0.2em;
+  color: var(--slate-2);
+  text-transform: uppercase;
+  margin-top: 4px;
+}
+
+/* ─── Sections ─── */
+section {
+  margin-bottom: 48px;
+  opacity: 0;
+  transform: translateY(24px);
+  transition: all 0.6s cubic-bezier(0.22, 1, 0.36, 1);
+}
+section.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+.sec-num {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.3em;
+  color: var(--accent-dim);
+  text-transform: uppercase;
+  margin-bottom: 8px;
+}
+section h2 {
+  font-size: 20px;
+  font-weight: 300;
+  color: var(--silver-1);
+  margin-bottom: 20px;
+}
+
+/* ─── Cards ─── */
+.card {
+  background: rgba(42,49,60,0.45);
+  border: 1px solid rgba(107,137,168,0.1);
+  border-radius: 12px;
+  padding: 24px 28px;
+  margin-bottom: 16px;
+  transition: all 0.3s ease;
+}
+.card:hover {
+  border-color: rgba(107,137,168,0.25);
+  background: rgba(50,58,70,0.55);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(0,0,0,0.3);
+}
+.card h3 {
+  font-size: 14px;
+  font-weight: 400;
+  color: var(--silver-1);
+  margin-bottom: 12px;
+}
+.card p, .card li {
+  font-size: 13px;
+  color: var(--silver-3);
+  line-height: 1.8;
+}
+
+/* ─── Dual Cards ─── */
+.dual {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+@media (max-width: 640px) { .dual { grid-template-columns: 1fr; } }
+
+/* ─── Table ─── */
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 16px 0;
+  font-size: 13px;
+}
+th {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--accent);
+  text-align: left;
+  padding: 12px 16px;
+  border-bottom: 1px solid rgba(107,137,168,0.2);
+}
+td {
+  padding: 12px 16px;
+  border-bottom: 1px solid rgba(107,137,168,0.06);
+  color: var(--silver-3);
+}
+tr:hover td { background: rgba(107,137,168,0.04); }
+
+/* ─── Code Block ─── */
+.code-block {
+  background: rgba(14,18,24,0.8);
+  border: 1px solid rgba(107,137,168,0.1);
+  border-radius: 10px;
+  padding: 20px 24px;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  line-height: 1.8;
+  color: var(--silver-3);
+  overflow-x: auto;
+  box-shadow: inset 0 2px 8px rgba(0,0,0,0.4);
+  white-space: pre;
+  margin: 16px 0;
+}
+.code-block .hl { color: var(--accent); font-weight: 400; }
+.code-block .warn { color: var(--gold); }
+.code-block .dim { color: var(--slate-2); }
+
+/* ─── Pills ─── */
+.pill {
+  display: inline-block;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.1em;
+  padding: 3px 10px;
+  border-radius: 20px;
+  margin-right: 6px;
+}
+.pill.pass { background: rgba(90,154,122,0.15); color: var(--good); border: 1px solid rgba(90,154,122,0.3); }
+.pill.warn { background: rgba(154,96,72,0.15); color: var(--warn); border: 1px solid rgba(154,96,72,0.3); }
+.pill.info { background: rgba(107,137,168,0.15); color: var(--accent); border: 1px solid rgba(107,137,168,0.3); }
+
+/* ─── Collapsible ─── */
+details {
+  background: rgba(42,49,60,0.35);
+  border: 1px solid rgba(107,137,168,0.08);
+  border-radius: 10px;
+  margin-bottom: 12px;
+  overflow: hidden;
+}
+details[open] { border-color: rgba(107,137,168,0.2); }
+summary {
+  padding: 16px 24px;
+  cursor: pointer;
+  font-size: 14px;
+  color: var(--silver-1);
+  font-weight: 300;
+  list-style: none;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  transition: background 0.2s;
+}
+summary:hover { background: rgba(107,137,168,0.05); }
+summary::before {
+  content: "+";
+  font-family: var(--font-mono);
+  font-size: 16px;
+  color: var(--accent);
+  transition: transform 0.3s;
+  display: inline-block;
+  width: 20px;
+  text-align: center;
+}
+details[open] summary::before { transform: rotate(45deg); }
+.details-content {
+  padding: 0 24px 20px;
+  font-size: 13px;
+  color: var(--silver-3);
+  line-height: 1.8;
+}
+
+/* ─── Report Grid ─── */
+.report-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 14px;
+}
+@media (max-width: 640px) { .report-grid { grid-template-columns: 1fr; } }
+.report-cell {
+  background: rgba(42,49,60,0.4);
+  border: 1px solid rgba(107,137,168,0.1);
+  border-radius: 10px;
+  padding: 20px 24px;
+  transition: all 0.3s ease;
+}
+.report-cell:hover {
+  border-color: rgba(107,137,168,0.25);
+  transform: translateY(-2px);
+}
+.report-cell .lvl {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.25em;
+  color: var(--accent);
+  text-transform: uppercase;
+  margin-bottom: 8px;
+}
+.report-cell h4 {
+  font-size: 14px;
+  font-weight: 300;
+  color: var(--silver-1);
+  margin-bottom: 8px;
+}
+.report-cell p {
+  font-size: 12px;
+  color: var(--slate-1);
+  line-height: 1.7;
+}
+.report-cell.warn-cell { border-color: rgba(154,96,72,0.25); }
+.report-cell.warn-cell .lvl { color: var(--warn); }
+.report-cell.good-cell { border-color: rgba(90,154,122,0.25); }
+.report-cell.good-cell .lvl { color: var(--good); }
+
+/* ─── Timeline ─── */
+.timeline {
+  border: 1px solid rgba(107,137,168,0.1);
+  border-radius: 10px;
+  overflow: hidden;
+  background: rgba(30,36,46,0.5);
+}
+.timeline .row {
+  display: grid;
+  grid-template-columns: 130px 90px 1fr;
+  align-items: center;
+  padding: 14px 20px;
+  border-bottom: 1px solid rgba(107,137,168,0.06);
+  transition: background 0.2s;
+}
+.timeline .row:last-child { border-bottom: none; }
+.timeline .row:hover { background: rgba(107,137,168,0.05); }
+.timeline .when {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.15em;
+  color: var(--accent);
+  text-transform: uppercase;
+}
+.timeline .dt {
+  font-size: 12px;
+  color: var(--slate-1);
+}
+.timeline .what {
+  font-size: 12px;
+  color: var(--silver-3);
+}
+
+/* ─── Footer ─── */
+footer {
+  margin-top: 64px;
+  padding-top: 32px;
+  border-top: 1px solid rgba(107,137,168,0.1);
+  text-align: center;
+}
+.tags {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-bottom: 16px;
+}
+.tag {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.1em;
+  padding: 4px 12px;
+  border-radius: 20px;
+  border: 1px solid rgba(107,137,168,0.15);
+  color: var(--slate-1);
+}
+.footer-note {
+  font-size: 11px;
+  color: var(--slate-2);
+  letter-spacing: 0.15em;
+}
+</style>
+</head>
+<body>
+<div class="container">
+
+  <!-- ═══════ HERO ═══════ -->
+  <div class="hero">
+    <div class="date">2026 / 05 / 13 · 复习日</div>
+    <h1>缓存技术 D+1 闭卷<br>+ Claude Code D+0 回忆</h1>
+    <p class="purpose">间隔检索验证 · 定位空白 · 为 5/14 大复习日铺路</p>
+    <div class="stats">
+      <div class="stat"><div class="num">3</div><div class="label">闭卷题</div></div>
+      <div class="stat"><div class="num">2</div><div class="label">复习项目</div></div>
+      <div class="stat"><div class="num">1</div><div class="label">满分题</div></div>
+      <div class="stat"><div class="num">2</div><div class="label">空白定位</div></div>
+    </div>
+  </div>
+
+  <!-- ═══════ SECTION 1: 缓存闭卷结果 ═══════ -->
+  <section>
+    <div class="sec-num">SECTION 01 ─── 缓存技术 · D+1 闭卷 3 题</div>
+    <h2>核心框架已入脑，分类口诀需焊死</h2>
+
+    <table>
+      <thead>
+        <tr><th>题号</th><th>内容</th><th>判定</th><th>备注</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>1</td>
+          <td>精确缓存 vs 语义缓存本质区别</td>
+          <td><span class="pill pass">通过</span></td>
+          <td>"先交保护费"模式精准答出</td>
+        </tr>
+        <tr>
+          <td>2</td>
+          <td>语义缓存三类坑（三个抽屉）</td>
+          <td><span class="pill warn">修正后通过</span></td>
+          <td>第一次分类混乱 → 提示后答对质量+性能，"安全"差一个词</td>
+        </tr>
+        <tr>
+          <td>3</td>
+          <td>前置过滤问题（否决条件）</td>
+          <td><span class="pill pass">满分</span></td>
+          <td>时效性 + 数据泄露，逻辑清晰</td>
+        </tr>
+      </tbody>
+    </table>
+  </section>
+
+  <!-- ═══════ SECTION 2: 精确 vs 语义对比 ═══════ -->
+  <section>
+    <div class="sec-num">SECTION 02 ─── 概念对比 · 精确缓存 vs 语义缓存</div>
+    <h2>一个比字符串，一个比语义</h2>
+
+    <div class="dual">
+      <div class="card">
+        <h3>精确缓存</h3>
+        <p>比的是<strong>字符完全一致</strong></p>
+        <p>命中 → 直接返回</p>
+        <p>未命中 → 处理 + 存 + 返回</p>
+        <p style="color:var(--good); margin-top:12px;">无前置判断费</p>
+      </div>
+      <div class="card">
+        <h3>语义缓存</h3>
+        <p>比的是<strong>意思相近</strong></p>
+        <p>三步：嵌入 → 向量搜索 → 阈值判断</p>
+        <p>命中率天花板高，但坑也多</p>
+        <p style="color:var(--warn); margin-top:12px;">"先交保护费" · 不管命不命中都付判断费</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════ SECTION 3: 三类坑分层 ═══════ -->
+  <section>
+    <div class="sec-num">SECTION 03 ─── 语义缓存三类坑 · 必须焊死的口诀</div>
+    <h2>质量 · 性能 · 安全</h2>
+
+    <div class="code-block"><span class="dim">┌─────────────────────────────────────────────────────┐</span>
+<span class="dim">│</span>  语义缓存的 5~7 个坑 → 归纳为 <span class="hl">3 个抽屉</span>           <span class="dim">│</span>
+<span class="dim">├─────────────────────────────────────────────────────┤</span>
+<span class="dim">│</span>                                                     <span class="dim">│</span>
+<span class="dim">│</span>  <span class="hl">质量</span>（判断准不准）                                <span class="dim">│</span>
+<span class="dim">│</span>    ├── 嵌入向量质量差                               <span class="dim">│</span>
+<span class="dim">│</span>    ├── 向量搜索质量差（不准，不是慢！）              <span class="dim">│</span>
+<span class="dim">│</span>    ├── 相似度度量标准不可靠                         <span class="dim">│</span>
+<span class="dim">│</span>    └── 阈值难调                                    <span class="dim">│</span>
+<span class="dim">│</span>                                                     <span class="dim">│</span>
+<span class="dim">│</span>  <span class="warn">性能</span>（判断贵不贵）                                <span class="dim">│</span>
+<span class="dim">│</span>    ├── 每次查询都要跑一次向量搜索                   <span class="dim">│</span>
+<span class="dim">│</span>    └── 缓存越大，搜索越慢、越贵                     <span class="dim">│</span>
+<span class="dim">│</span>                                                     <span class="dim">│</span>
+<span class="dim">│</span>  <span class="hl" style="color:#c97070">安全</span>（该不该缓存）                                <span class="dim">│</span>
+<span class="dim">│</span>    ├── 用户专属查询 → 数据泄露                      <span class="dim">│</span>
+<span class="dim">│</span>    └── 时效性查询 → 返回过期答案                    <span class="dim">│</span>
+<span class="dim">│</span>                                                     <span class="dim">│</span>
+<span class="dim">└─────────────────────────────────────────────────────┘</span>
+
+<span class="dim">记忆口诀：</span><span class="hl">质量 · 性能 · 安全</span>
+<span class="dim">分类依据：</span>不准 → 质量 ❌🎯  |  不快/贵 → 性能 💰  |  出事 → 安全 🚨</div>
+
+    <div class="card" style="border-color: rgba(154,96,72,0.3);">
+      <h3>今日易错点</h3>
+      <p>第一次作答时把"搜索<strong>慢</strong>"归到了质量抽屉 → 慢是<strong>性能</strong>问题，不是质量问题。</p>
+      <p>质量抽屉里那个坑是"向量搜索<strong>质量差</strong>"= 搜出来的结果<strong>不准</strong>。</p>
+      <p style="margin-top:8px; color:var(--accent);">不准 → 质量 ｜ 不快 → 性能 ｜ 出事 → 安全</p>
+    </div>
+  </section>
+
+  <!-- ═══════ SECTION 4: 决策清单回顾 ═══════ -->
+  <section>
+    <div class="sec-num">SECTION 04 ─── 前置过滤 · 决策清单（满分）</div>
+    <h2>先问两道"生死题"，再算经济账</h2>
+
+    <div class="card">
+      <h3>两个前置过滤（今日满分命中）</h3>
+      <p><span class="pill warn">否决 1</span> 用户查询是否涉及<strong>个人数据</strong>？ → 是 = 泄露风险 → 直接否决</p>
+      <p style="margin-top:8px;"><span class="pill warn">否决 2</span> 查询答案是否有<strong>时效性</strong>？ → 是 = 过期风险 → 直接否决</p>
+      <p style="margin-top:16px; color:var(--slate-1);">这两条只要有一条答"是"，就不需要再往下算经济账。</p>
+    </div>
+  </section>
+
+  <!-- ═══════ SECTION 5: Claude Code D+0 ═══════ -->
+  <section>
+    <div class="sec-num">SECTION 05 ─── Claude Code · D+0 当天回忆</div>
+    <h2>主线留住，细节有空白</h2>
+
+    <div class="card" style="border-color: rgba(90,154,122,0.3);">
+      <h3>记住的（主线完整）</h3>
+      <p>Context window 是最稀缺资源 → Lost in the Middle → 三工具分工：</p>
+      <p style="margin-top:8px;"><span class="pill pass">/clear</span> 新任务清除上下文</p>
+      <p><span class="pill pass">subagents</span> 子智能体不占主上下文</p>
+      <p><span class="pill pass">Plan Mode</span> 只读模式 · 犯错成本从"回退操作"降为"回退计划"</p>
+    </div>
+
+    <div class="card" style="border-color: rgba(154,96,72,0.3);">
+      <h3>漏掉的（明天 D+1 必考）</h3>
+      <p><span class="pill warn">空白 1</span> context 的隐藏来源 = <strong>Claude 自己读文件 + 跑命令的输出</strong></p>
+      <p style="margin-top:8px;"><span class="pill warn">空白 2</span> 开 Claude Code 前的 <strong>4 问清单</strong>：</p>
+      <p style="padding-left:20px; margin-top:6px;">① 当前任务和上一个任务相关吗？</p>
+      <p style="padding-left:20px;">② 这个动作需要读很多文件吗？</p>
+      <p style="padding-left:20px;">③ 这次改动跨了几个文件？</p>
+      <p style="padding-left:20px;">④ 关键信息我放在哪里了？</p>
+    </div>
+  </section>
+
+  <!-- ═══════ SECTION 6: Plan Mode 洞察 ═══════ -->
+  <section>
+    <div class="sec-num">SECTION 06 ─── 今日最佳表述</div>
+    <h2>Plan Mode 的错误成本降维</h2>
+
+    <div class="card" style="border-left: 3px solid var(--accent);">
+      <p style="font-size:15px; color:var(--silver-1); font-style:italic;">
+        "将'犯错回退操作步骤'这类成本比较高的操作，回退为'犯错回退计划'"
+      </p>
+      <p style="margin-top:12px; color:var(--slate-1); font-size:12px;">
+        ——学习者原话。精准捕捉了 Plan Mode 的核心价值：不是"帮你想清楚"这种空话，而是错误成本从"实操代价"降维为"纸面代价"。
+      </p>
+    </div>
+  </section>
+
+  <!-- ═══════ SECTION 7: 横向连接 ═══════ -->
+  <section>
+    <div class="sec-num">SECTION 07 ─── 横向连接</div>
+    <h2>缓存 × Claude Code × RAG 的共同主题</h2>
+
+    <details>
+      <summary>缓存的"安全坑" ↔ RAG 的"数据泄露风险"</summary>
+      <div class="details-content">
+        <p>语义缓存的安全抽屉（个人数据泄露）和 RAG 系统中的数据隔离问题是同一类工程风险：<strong>用户 A 的数据被错误地返回给用户 B</strong>。</p>
+        <p>解决思路也类似：前置过滤器 + 权限隔离。</p>
+      </div>
+    </details>
+
+    <details>
+      <summary>Claude Code 的 context 管理 ↔ RAG 的分块策略</summary>
+      <div class="details-content">
+        <p>两者的底层矛盾一样：<strong>窗口有限，信息无限</strong>。</p>
+        <p>RAG 用分块 + 检索来筛选；Claude Code 用 /clear + subagents + Plan Mode 来控制。</p>
+        <p>核心洞察：context 稀缺性是 AI 工程的统一主题。</p>
+      </div>
+    </details>
+
+    <details>
+      <summary>"上下兄弟"工具在今天两个话题中的运用</summary>
+      <div class="details-content">
+        <p><strong>缓存话题</strong>：三类坑本身就是分层——质量/性能/安全是同级兄弟，都属于"语义缓存风险"这个爷爷。</p>
+        <p><strong>Claude Code 话题</strong>：/clear、subagents、Plan Mode 是三兄弟，都属于"context 管理工具"这个爷爷，底层工具是 token 窗口机制。</p>
+      </div>
+    </details>
+  </section>
+
+  <!-- ═══════ SECTION 8: 学习报告 ═══════ -->
+  <section>
+    <div class="sec-num">SECTION 08 ─── 学习报告</div>
+    <h2>掌握度网格</h2>
+
+    <div class="report-grid">
+      <div class="report-cell good-cell">
+        <div class="lvl">缓存 · 通过</div>
+        <h4>核心框架</h4>
+        <p>精确 vs 语义区别 ✓ · "先交保护费"模式 ✓ · 前置过滤否决条件 ✓</p>
+      </div>
+      <div class="report-cell warn-cell">
+        <div class="lvl">缓存 · 需固化</div>
+        <h4>三类坑口诀</h4>
+        <p>"质量·性能·安全"第一次分错 → 修正后答对。需再验一次确认焊死。注意"不准≠慢"</p>
+      </div>
+      <div class="report-cell good-cell">
+        <div class="lvl">Claude Code · 记住</div>
+        <h4>主线 + 三工具</h4>
+        <p>Lost in the Middle ✓ · /clear / subagents / Plan Mode 分工 ✓ · Plan Mode 价值表述精准</p>
+      </div>
+      <div class="report-cell warn-cell">
+        <div class="lvl">Claude Code · 空白</div>
+        <h4>隐藏来源 + 4问清单</h4>
+        <p>"读文件+跑命令的输出"和"开工前4问"完全空白 → 5/14 D+1 第一优先级考点</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════ SECTION 9: 复习计划 ═══════ -->
+  <section>
+    <div class="sec-num">SECTION 09 ─── 间隔重复时间表</div>
+    <h2>下次验证安排</h2>
+
+    <div class="timeline">
+      <div class="row">
+        <div class="when">5/14 · 明天</div>
+        <div class="dt">Claude Code D+1</div>
+        <div class="what">3 道闭卷题 · 主攻"隐藏 context 来源" + "4问清单"</div>
+      </div>
+      <div class="row">
+        <div class="when">5/14 · 明天</div>
+        <div class="dt">顽固薄弱点</div>
+        <div class="what">TCC 准则（第5次）· TiM（第6次）· 解耦三条（第6次）</div>
+      </div>
+      <div class="row">
+        <div class="when">5/19 · D+7</div>
+        <div class="dt">缓存 D+7</div>
+        <div class="what">5 道题 · 含跨章节（关联 RAG 检索 / 嵌入向量）</div>
+      </div>
+      <div class="row">
+        <div class="when">5/20</div>
+        <div class="dt">Claude Code D+7</div>
+        <div class="what">5 道题 · 跨章节关联（"上下兄弟"工具复用 · 与 RAG 的连接）</div>
+      </div>
+      <div class="row">
+        <div class="when">6/12</div>
+        <div class="dt">缓存 D+30</div>
+        <div class="what">综合应用题 · 为一个具体 AI 应用设计缓存方案</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════ SECTION 10: 焊死清单 ═══════ -->
+  <section>
+    <div class="sec-num">SECTION 10 ─── 需要焊死的口诀</div>
+    <h2>明天再考，不能再忘</h2>
+
+    <div class="card">
+      <p><span class="pill info">口诀 1</span> 语义缓存三类坑 = <strong>质量 · 性能 · 安全</strong></p>
+      <p style="margin-top:4px; padding-left:20px; color:var(--slate-1);">（不准→质量 ｜ 不快/贵→性能 ｜ 出事→安全）</p>
+    </div>
+    <div class="card">
+      <p><span class="pill info">口诀 2</span> context 隐藏来源 = <strong>Claude 自己读文件 + 跑命令的输出</strong></p>
+    </div>
+    <div class="card">
+      <p><span class="pill info">口诀 3</span> 开 Claude Code 前 4 问：<strong>相关？读多？跨几？放哪？</strong></p>
+    </div>
+  </section>
+
+  <!-- ═══════ Footer ═══════ -->
+  <footer>
+    <div class="tags">
+      <div class="tag">缓存</div>
+      <div class="tag">语义缓存</div>
+      <div class="tag">Claude Code</div>
+      <div class="tag">Context Window</div>
+      <div class="tag">间隔检索 D+1</div>
+      <div class="tag">质量·性能·安全</div>
+    </div>
+    <div class="footer-note">2026 / 05 / 13 ─── REVIEW #22</div>
+  </footer>
+
+</div>
+
+<script>
+  /* ─── 鼠标光晕视差 ─── */
+  document.addEventListener("mousemove", (e) => {
+    const x = (e.clientX / window.innerWidth) * 100;
+    const y = (e.clientY / window.innerHeight) * 100;
+    document.body.style.setProperty("--mx", x + "%");
+    document.body.style.setProperty("--my", y + "%");
+  });
+
+  /* ─── 滚动浮现 ─── */
+  const io = new IntersectionObserver((entries) => {
+    entries.forEach((entry) => {
+      if (entry.isIntersecting) {
+        entry.target.classList.add("visible");
+        io.unobserve(entry.target);
+      }
+    });
+  }, { threshold: 0.1 });
+  document.querySelectorAll("section").forEach((s) => io.observe(s));
+</script>
+</body>
+</html>

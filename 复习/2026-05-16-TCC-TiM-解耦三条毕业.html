@@ -1,0 +1,694 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>5/16 复习 · TCC毕业 · TiM毕业 · 解耦三条毕业</title>
+<style>
+:root {
+  --silver-1: #eef0f3;
+  --silver-2: #d8dde3;
+  --silver-3: #b6bec8;
+  --slate-1: #8993a3;
+  --slate-2: #5c6675;
+  --slate-3: #3f4754;
+  --slate-4: #2a313c;
+  --black-1: #1a1f28;
+  --black-2: #0e1218;
+  --black-3: #07090d;
+  --accent: #6b89a8;
+  --accent-dim: #4a6280;
+  --accent-glow: rgba(107, 137, 168, 0.15);
+  --warn: #9a6048;
+  --warn-dim: #6b3f30;
+  --good: #5a9a7a;
+  --gold: #a89270;
+  --font-sans: -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", system-ui, sans-serif;
+  --font-mono: "SF Mono", "JetBrains Mono", "Fira Code", monospace;
+  --mx: 30%;
+  --my: 20%;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { width: 100%; }
+
+body {
+  font-family: var(--font-sans);
+  font-weight: 200;
+  color: var(--silver-2);
+  background:
+    radial-gradient(circle at var(--mx) var(--my), rgba(107,137,168,0.09), transparent 45%),
+    radial-gradient(ellipse at 80% 70%, rgba(100,130,165,0.06), transparent 50%),
+    linear-gradient(180deg, var(--black-1) 0%, var(--black-2) 50%, var(--black-3) 100%);
+  background-attachment: fixed;
+  min-height: 100vh;
+  line-height: 1.75;
+  letter-spacing: 0.02em;
+  overflow-x: hidden;
+}
+
+body::before {
+  content: "";
+  position: fixed; inset: 0;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='200' height='200'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 0 0 0 0.04 0'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>");
+  pointer-events: none;
+  opacity: 0.55;
+  z-index: 1;
+  mix-blend-mode: overlay;
+}
+
+.container {
+  position: relative;
+  z-index: 2;
+  max-width: 920px;
+  margin: 0 auto;
+  padding: 72px 28px 120px;
+}
+
+/* ─── Hero ─── */
+.hero {
+  position: relative;
+  padding: 56px 48px;
+  border-radius: 16px;
+  background: linear-gradient(135deg, rgba(42,49,60,0.7), rgba(26,31,40,0.9));
+  border: 1px solid rgba(107,137,168,0.15);
+  margin-bottom: 56px;
+  overflow: hidden;
+}
+.hero::after {
+  content: "";
+  position: absolute; inset: 0;
+  background: radial-gradient(circle at 80% 0%, rgba(107,137,168,0.1), transparent 60%);
+  pointer-events: none;
+}
+.hero-eyebrow {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.3em;
+  color: var(--accent);
+  text-transform: uppercase;
+  margin-bottom: 20px;
+}
+.hero h1 {
+  font-size: 36px;
+  font-weight: 200;
+  letter-spacing: -0.01em;
+  color: var(--silver-1);
+  line-height: 1.3;
+  margin-bottom: 18px;
+}
+.hero-subtitle {
+  font-size: 15px;
+  color: var(--slate-1);
+  line-height: 1.8;
+}
+.hero-stats {
+  display: flex;
+  gap: 32px;
+  margin-top: 28px;
+  flex-wrap: wrap;
+}
+.stat {
+  text-align: center;
+}
+.stat-num {
+  font-family: var(--font-mono);
+  font-size: 32px;
+  font-weight: 300;
+  color: var(--accent);
+}
+.stat-label {
+  font-size: 11px;
+  letter-spacing: 0.1em;
+  color: var(--slate-1);
+  text-transform: uppercase;
+  margin-top: 4px;
+}
+
+/* ─── Sections ─── */
+section {
+  margin-bottom: 56px;
+  opacity: 0;
+  transform: translateY(24px);
+  transition: opacity 0.6s ease, transform 0.6s ease;
+}
+section.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+.sec-tag {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.25em;
+  color: var(--accent-dim);
+  text-transform: uppercase;
+  display: block;
+  margin-bottom: 12px;
+}
+section h2 {
+  font-size: 24px;
+  font-weight: 200;
+  color: var(--silver-1);
+  margin-bottom: 8px;
+}
+.sec-sub {
+  font-size: 13px;
+  color: var(--slate-1);
+  margin-bottom: 28px;
+}
+
+/* ─── Cards ─── */
+.card {
+  background: linear-gradient(135deg, rgba(42,49,60,0.5), rgba(26,31,40,0.7));
+  border: 1px solid rgba(107,137,168,0.1);
+  border-radius: 12px;
+  padding: 24px 28px;
+  margin-bottom: 16px;
+  transition: transform 0.2s, border-color 0.3s, background 0.3s;
+}
+.card:hover {
+  transform: translateY(-2px);
+  border-color: rgba(107,137,168,0.3);
+  background: linear-gradient(135deg, rgba(42,49,60,0.7), rgba(26,31,40,0.9));
+}
+.card p {
+  margin-bottom: 8px;
+}
+.card p:last-child {
+  margin-bottom: 0;
+}
+
+/* ─── Dual cards ─── */
+.dual {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+@media (max-width: 640px) {
+  .dual { grid-template-columns: 1fr; }
+}
+
+/* ─── Pills ─── */
+.pill {
+  display: inline-block;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.1em;
+  padding: 3px 10px;
+  border-radius: 20px;
+  margin-right: 8px;
+  vertical-align: middle;
+}
+.pill.good { background: rgba(90,154,122,0.15); color: var(--good); border: 1px solid rgba(90,154,122,0.3); }
+.pill.warn { background: rgba(154,96,72,0.15); color: var(--warn); border: 1px solid rgba(154,96,72,0.3); }
+.pill.info { background: rgba(107,137,168,0.15); color: var(--accent); border: 1px solid rgba(107,137,168,0.3); }
+.pill.gold { background: rgba(168,146,112,0.15); color: var(--gold); border: 1px solid rgba(168,146,112,0.3); }
+
+/* ─── Timeline ─── */
+.timeline {
+  border-left: 2px solid rgba(107,137,168,0.2);
+  padding-left: 24px;
+  margin-top: 16px;
+}
+.row {
+  position: relative;
+  margin-bottom: 20px;
+  padding: 12px 16px;
+  border-radius: 8px;
+  background: rgba(42,49,60,0.3);
+}
+.row::before {
+  content: "";
+  position: absolute;
+  left: -30px;
+  top: 18px;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--accent);
+  border: 2px solid var(--black-2);
+}
+.when {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--accent);
+  margin-bottom: 4px;
+}
+.dt {
+  font-size: 13px;
+  color: var(--silver-3);
+  font-weight: 300;
+}
+.what {
+  font-size: 12px;
+  color: var(--slate-1);
+  margin-top: 4px;
+}
+
+/* ─── Code block ─── */
+.code-block {
+  background: rgba(10, 14, 20, 0.8);
+  border: 1px solid rgba(107,137,168,0.1);
+  border-radius: 10px;
+  padding: 20px 24px;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  line-height: 1.9;
+  color: var(--silver-3);
+  overflow-x: auto;
+  box-shadow: inset 0 2px 8px rgba(0,0,0,0.3);
+  margin: 16px 0;
+}
+.code-block .hl { color: var(--accent); }
+.code-block .gd { color: var(--good); }
+.code-block .wr { color: var(--warn); }
+.code-block .gl { color: var(--gold); }
+
+/* ─── Details / Collapse ─── */
+details {
+  margin: 16px 0;
+  border: 1px solid rgba(107,137,168,0.1);
+  border-radius: 10px;
+  overflow: hidden;
+}
+summary {
+  padding: 16px 20px;
+  background: rgba(42,49,60,0.4);
+  cursor: pointer;
+  font-size: 14px;
+  color: var(--silver-2);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  transition: background 0.2s;
+}
+summary:hover {
+  background: rgba(42,49,60,0.7);
+}
+summary::before {
+  content: "+";
+  font-family: var(--font-mono);
+  font-size: 16px;
+  color: var(--accent);
+  transition: transform 0.3s;
+  display: inline-block;
+  width: 20px;
+}
+details[open] summary::before {
+  transform: rotate(45deg);
+}
+details .inner {
+  padding: 20px 24px;
+  background: rgba(26,31,40,0.5);
+  font-size: 13px;
+  line-height: 1.8;
+}
+
+/* ─── Table ─── */
+.tbl {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 16px 0;
+  font-size: 13px;
+}
+.tbl th {
+  text-align: left;
+  font-weight: 300;
+  font-size: 11px;
+  letter-spacing: 0.1em;
+  color: var(--slate-1);
+  text-transform: uppercase;
+  padding: 10px 12px;
+  border-bottom: 1px solid rgba(107,137,168,0.15);
+}
+.tbl td {
+  padding: 12px;
+  border-bottom: 1px solid rgba(107,137,168,0.07);
+  color: var(--silver-2);
+}
+.tbl tr:hover td {
+  background: rgba(107,137,168,0.04);
+}
+
+/* ─── Footer ─── */
+footer {
+  margin-top: 72px;
+  padding-top: 32px;
+  border-top: 1px solid rgba(107,137,168,0.1);
+  text-align: center;
+}
+.tag-list {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+.tag-list span {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.1em;
+  padding: 4px 12px;
+  border-radius: 20px;
+  border: 1px solid rgba(107,137,168,0.15);
+  color: var(--slate-1);
+}
+</style>
+</head>
+<body>
+<div class="container">
+
+  <!-- ═══════ Hero ═══════ -->
+  <div class="hero">
+    <div class="hero-eyebrow">2026 / 05 / 16 · review session</div>
+    <h1>三座顽固山头<br>一天全部登顶</h1>
+    <p class="hero-subtitle">
+      TCC 第 5 次毕业 · TiM 第 6 次毕业 · 解耦三条第 6 次毕业<br>
+      三个最顽固的薄弱点在同一天闭环——这是整个学习历程的最高效单日战果。
+    </p>
+    <div class="hero-stats">
+      <div class="stat"><div class="stat-num">3</div><div class="stat-label">毕业项</div></div>
+      <div class="stat"><div class="stat-num">5~6</div><div class="stat-label">累计测试次数</div></div>
+      <div class="stat"><div class="stat-num">2</div><div class="stat-label">新焊死钩子</div></div>
+      <div class="stat"><div class="stat-num">1</div><div class="stat-label">元层级诊断</div></div>
+    </div>
+  </div>
+
+  <!-- ═══════ SECTION 1 · TCC 毕业 ═══════ -->
+  <section>
+    <span class="sec-tag">01 · tcc 三大准则</span>
+    <h2>TCC · 第 5 次毕业（含深度盲点修复）</h2>
+    <p class="sec-sub">英文缩写 4 次全丢 → 第 5 次一字不差 ｜ Consistency 3 次盲点 → "老朋友"焊死</p>
+
+    <div class="dual">
+      <div class="card">
+        <p><span class="pill good">毕业</span><strong>英文缩写</strong></p>
+        <p style="color:var(--slate-1); font-size:13px;">Transparent · Control · Consistency</p>
+        <p style="color:var(--slate-1); font-size:12px;">历史：5/7 丢、5/11 丢 → 5/16 一次答对</p>
+      </div>
+      <div class="card">
+        <p><span class="pill good">毕业</span><strong>T+C 搭配原因</strong></p>
+        <p style="color:var(--slate-1); font-size:13px;">只有 T 没有 C → 被监视感<br>只有 C 没有 T → 无力感</p>
+        <p style="color:var(--slate-1); font-size:12px;">从 5/11 "干着急" 升级到 "被监视"——精准命名</p>
+      </div>
+    </div>
+
+    <div class="card" style="border-color: rgba(90,154,122,0.25); margin-top: 16px;">
+      <p><span class="pill gold">深度修复</span><strong>Consistency = "行为可预期"</strong></p>
+      <p style="color:var(--slate-1); font-size:13px; margin-top:8px;">
+        <strong>盲点历史：</strong>5/7 "可复现" ❌ → 5/11 "可复现" ❌ → 5/16 "质量一致" ❌<br>
+        <strong>诊断：</strong>语义槽位空缺 + 日常直觉翻译（看到 Consistency 自动捞"一致 → 结果一致"）<br>
+        <strong>焊死钩子：</strong>"老朋友"——我熟悉它，我知道它会怎么处理事情。行为可预期。
+      </p>
+    </div>
+
+    <details>
+      <summary>元层级收获：输入端的钉子（防止"日常直觉翻译"）</summary>
+      <div class="inner">
+        <p>以后遇到专有术语，先问自己：<strong>"这个词在特定上下文的作用？"</strong>——而不是先想它中文是什么意思。</p>
+        <p style="margin-top:12px; color:var(--slate-1);">进阶版（套用 5/11 分层钥匙）：先问"它的爷爷是谁？兄弟是谁？工具是谁？"——让术语自动落到三层结构里。</p>
+      </div>
+    </details>
+
+    <details>
+      <summary>T 和 C 含义小修正（已告知，需口头固化）</summary>
+      <div class="inner">
+        <p><strong>T（Transparent）：</strong>智能体的<strong>思考/决策过程</strong>对用户透明（不是"工作"，是"过程"）</p>
+        <p><strong>C（Control）：</strong>用户能<strong>中断 / 继续 / 干预</strong>智能体的执行流程（不是泛泛的"可控制"，是细颗粒操作动作）</p>
+      </div>
+    </details>
+  </section>
+
+  <!-- ═══════ SECTION 2 · TiM 毕业 ═══════ -->
+  <section>
+    <span class="sec-tag">02 · think-in-memory</span>
+    <h2>TiM · 第 6 次毕业（"提炼"终于焊死）</h2>
+    <p class="sec-sub">5 次都卡在"反思"+"新记忆" → 第 6 次说出"从旧记忆中提炼精华，从而产生出新的认知"</p>
+
+    <div class="card">
+      <p><span class="pill good">最终答案</span></p>
+      <p style="font-size:16px; color:var(--silver-1); font-weight:300; margin-top:8px;">
+        "TiM 是从旧记忆中<strong style="color:var(--accent);">提炼</strong>精华，从而产生出新的<strong style="color:var(--accent);">认知</strong>。"
+      </p>
+    </div>
+
+    <div class="dual">
+      <div class="card">
+        <p><span class="pill warn">旧坑</span><strong>"反思"磁铁</strong></p>
+        <p style="color:var(--slate-1); font-size:12px;">5/7 "反思出" · 5/11 "获得反思" · 5/16 第一答 "反思"<br>→ 修正后最终答出"提炼"</p>
+      </div>
+      <div class="card">
+        <p><span class="pill good">突破</span><strong>"认知"首次出现</strong></p>
+        <p style="color:var(--slate-1); font-size:12px;">4/29~5/11 连续 4 次都说"新记忆"<br>→ 5/16 第一次自主说出"新认知"</p>
+      </div>
+    </div>
+
+    <div class="code-block">
+<span class="hl">旧记忆</span>（一堆原料）
+       │
+       ▼
+   【<span class="gd">提炼炉</span>】 ← TiM 的核心机制
+       │
+       ▼
+   <span class="hl">新认知</span>（一小瓶精华）
+
+🔑 钩子：<span class="gd">反思是想，提炼是榨。</span>
+   TiM 不是"记日记"，是"<span class="gl">写读后感</span>"。
+    </div>
+  </section>
+
+  <!-- ═══════ SECTION 3 · 解耦三条毕业 ═══════ -->
+  <section>
+    <span class="sec-tag">03 · 解耦三条工程好处</span>
+    <h2>解耦三条 · 第 6 次毕业（含代码验证）</h2>
+    <p class="sec-sub">"定规则"从理解偏了到"不用动 LLM 就可以改变 LLM 的行为"——工程收益思维跃迁</p>
+
+    <div class="card">
+      <p><span class="pill good">最终答案</span></p>
+      <table class="tbl" style="margin-top:12px;">
+        <tr><th>条目</th><th>名称</th><th>好处</th></tr>
+        <tr><td>1</td><td><strong>换大脑</strong></td><td>不动骨架和规则，只换 LLM</td></tr>
+        <tr><td>2</td><td><strong>搭骨架</strong></td><td>复用（模块化，不同 Agent 反复使用）</td></tr>
+        <tr><td>3</td><td><strong>定规则</strong></td><td>不用动 LLM 就可以改变 LLM 的行为</td></tr>
+      </table>
+    </div>
+
+    <details>
+      <summary>"定规则"的历史错答轨迹</summary>
+      <div class="inner">
+        <table class="tbl">
+          <tr><th>日期</th><th>答案</th><th>问题</th></tr>
+          <tr><td>5/7</td><td>"先写规则再选工具"</td><td>描述的是操作顺序，不是好处</td></tr>
+          <tr><td>5/11</td><td>"先写规则再选工具"</td><td>同上</td></tr>
+          <tr><td>5/16</td><td><strong>"不用动 LLM 就可以改变行为"</strong></td><td style="color:var(--good);">✅ 工程收益思维</td></tr>
+        </table>
+        <p style="margin-top:12px;">🔑 钩子："遥控器"——不拆电视（模型），拿遥控器（规则）就能换台（行为）。</p>
+      </div>
+    </details>
+
+    <details>
+      <summary>代码验证：decoupled-agent.ts（已生成）</summary>
+      <div class="inner">
+        <p>文件位置：<code>learn/demos/decoupled-agent.ts</code></p>
+        <p style="margin-top:8px;">演示 4 个场景：</p>
+        <p>1. 组装客服 Agent = Claude 大脑 + 客服规则 + 通用骨架</p>
+        <p>2. 换大脑：<code>agent.swapBrain(new LocalBrain())</code> — 一行搞定</p>
+        <p>3. 定规则：<code>agent.swapRules(creativeWriterRules)</code> — 一行搞定</p>
+        <p>4. 搭骨架复用：<code>new AgentSkeleton(任意大脑, 任意规则)</code></p>
+        <p style="margin-top:12px; color:var(--slate-1);">运行命令：<code>npx tsx learn/demos/decoupled-agent.ts</code></p>
+      </div>
+    </details>
+  </section>
+
+  <!-- ═══════ SECTION 4 · 分层图 ═══════ -->
+  <section>
+    <span class="sec-tag">04 · architecture map</span>
+    <h2>解耦三层 · 架构图</h2>
+    <p class="sec-sub">三层各管各的，互不干扰</p>
+
+    <div class="code-block">
+┌─────────────────────────────────────────────────┐
+│  <span class="gl">定规则（Rules）</span>                                 │
+│  → 改 systemPrompt / forbidden / temperature    │
+│  → <span class="gd">不动模型就能改变行为</span>（遥控器🎮）               │
+├─────────────────────────────────────────────────┤
+│  <span class="hl">搭骨架（Skeleton）</span>                              │
+│  → preprocess → call brain → postprocess        │
+│  → <span class="gd">所有 Agent 复用同一套流程</span>                     │
+├─────────────────────────────────────────────────┤
+│  <span class="wr">换大脑（Brain）</span>                                 │
+│  → 实现统一接口 Brain { chat() }                 │
+│  → <span class="gd">换 LLM 只需 swapBrain()，其他不动</span>             │
+└─────────────────────────────────────────────────┘
+    </div>
+  </section>
+
+  <!-- ═══════ SECTION 5 · 焊死钩子清单 ═══════ -->
+  <section>
+    <span class="sec-tag">05 · hooks forged today</span>
+    <h2>今日焊死的钩子</h2>
+    <p class="sec-sub">每一个钩子都是从错误中榨出来的——不是背的，是"提炼"出来的</p>
+
+    <div class="card">
+      <p><span class="pill info">钩子 1</span> Consistency = <strong>"老朋友"</strong>——我熟悉它，我知道它会怎么处理事情。行为可预期。</p>
+    </div>
+    <div class="card">
+      <p><span class="pill info">钩子 2</span> TiM = <strong>"提炼炉"</strong>——反思是想，提炼是榨。不是记日记，是写读后感。</p>
+    </div>
+    <div class="card">
+      <p><span class="pill info">钩子 3</span> 定规则 = <strong>"遥控器"</strong>——不拆电视（模型），拿遥控器（规则）就能换台（行为）。</p>
+    </div>
+    <div class="card" style="border-color: rgba(168,146,112,0.3);">
+      <p><span class="pill gold">元钩子</span> 遇到专有术语 → 先问<strong>"这个词在特定上下文的作用？"</strong>→ 不要先想中文意思</p>
+    </div>
+  </section>
+
+  <!-- ═══════ SECTION 6 · 顽固薄弱点更新 ═══════ -->
+  <section>
+    <span class="sec-tag">06 · tracker update</span>
+    <h2>顽固薄弱点追踪（5/16 更新）</h2>
+    <p class="sec-sub">今日毕业 3 项 · 仍在追踪 8 项</p>
+
+    <table class="tbl">
+      <tr><th>薄弱点</th><th>累计</th><th>状态</th></tr>
+      <tr><td><strong>TCC 三大准则</strong>（英文 + 含义 + 搭配原因）</td><td>5 次</td><td><span class="pill good">🎓 5/16 毕业</span></td></tr>
+      <tr><td><strong>TiM "提炼新认知"</strong></td><td>6 次</td><td><span class="pill good">🎓 5/16 毕业</span></td></tr>
+      <tr><td><strong>解耦三条工程好处</strong></td><td>6 次</td><td><span class="pill good">🎓 5/16 毕业</span></td></tr>
+      <tr><td>RLHF → 偏向自信表达（"比较式信号"）</td><td>3 次</td><td><span class="pill warn">待测</span></td></tr>
+      <tr><td>Time·未来（适应进化）</td><td>1 次</td><td><span class="pill warn">待测</span></td></tr>
+      <tr><td>Inference-time Compute = "算力"而非"时间"</td><td>1 次</td><td><span class="pill warn">待测</span></td></tr>
+      <tr><td>分块太大坏处 = 语义稀释/检索不准</td><td>1 次</td><td><span class="pill warn">待测</span></td></tr>
+      <tr><td>5/12 提示词→成因映射（RLHF主+KM次）</td><td>1 次</td><td><span class="pill warn">逾期</span></td></tr>
+      <tr><td>设计原则 vs 三要素混淆</td><td>2 次</td><td><span class="pill warn">逾期</span></td></tr>
+      <tr><td>幻觉跨章节关联（采样/推理时计算）</td><td>1 次</td><td><span class="pill warn">逾期</span></td></tr>
+      <tr><td>记忆管理 = 存（添加+删除）</td><td>2 次</td><td><span class="pill warn">逾期</span></td></tr>
+    </table>
+  </section>
+
+  <!-- ═══════ SECTION 7 · 复习计划 ═══════ -->
+  <section>
+    <span class="sec-tag">07 · review plan</span>
+    <h2>下次复习安排</h2>
+    <p class="sec-sub">明天 5/17 接力——今天没做完的项目 + D+7 到期项</p>
+
+    <div class="timeline">
+      <div class="row">
+        <div class="when">5/17 · 明天</div>
+        <div class="dt">顽固薄弱点续测</div>
+        <div class="what">RLHF→自信（第4次）· Time·未来（第2次）· 5/12 提示词→成因映射</div>
+      </div>
+      <div class="row">
+        <div class="when">5/17 · 明天</div>
+        <div class="dt">D+7 到期</div>
+        <div class="what">路由器和模型网关（5/8 学的，已逾期 2 天）</div>
+      </div>
+      <div class="row">
+        <div class="when">5/19 · D+7</div>
+        <div class="dt">缓存 D+7</div>
+        <div class="what">5 道题 · 含跨章节关联（RAG / 嵌入向量）</div>
+      </div>
+      <div class="row">
+        <div class="when">5/20 · D+7</div>
+        <div class="dt">Claude Code D+7</div>
+        <div class="what">5 道题 · 跨章节"上下兄弟"工具复用</div>
+      </div>
+      <div class="row">
+        <div class="when">5/20 · D+30</div>
+        <div class="dt">AI 智能体概述</div>
+        <div class="what">综合应用题</div>
+      </div>
+      <div class="row">
+        <div class="when">6/12 · D+30</div>
+        <div class="dt">缓存 D+30</div>
+        <div class="what">综合题 · 设计缓存方案（含三抽屉决策）</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════ SECTION 8 · 学习报告 ═══════ -->
+  <section>
+    <span class="sec-tag">08 · learning report</span>
+    <h2>📊 本单元学习报告</h2>
+
+    <div class="card">
+      <table class="tbl">
+        <tr><td style="width:120px; color:var(--slate-1);">学习内容</td><td>TCC 第5次 · TiM 第6次 · 解耦三条第6次 + 代码验证</td></tr>
+        <tr><td style="color:var(--slate-1);">掌握程度</td><td>A层：✅ 全部三项核心概念毕业 ｜ 实践验证：TypeScript demo 已生成</td></tr>
+        <tr><td style="color:var(--slate-1);">今日毕业</td><td>3 项（TCC · TiM · 解耦三条）—— 历史最顽固的三座山头同日登顶</td></tr>
+        <tr><td style="color:var(--slate-1);">元层级收获</td><td>"输入端的钉子"——遇到术语先问上下文作用 · Consistency 语义槽位修复</td></tr>
+        <tr><td style="color:var(--slate-1);">需要加强</td><td>RLHF→自信 · Time·未来 · 路由器D+7（明天做）</td></tr>
+        <tr><td style="color:var(--slate-1);">下次复习</td><td>5/17（明天）</td></tr>
+        <tr><td style="color:var(--slate-1);">下一步行动</td><td>跑 decoupled-agent.ts demo · 明天续测 RLHF + 路由器</td></tr>
+      </table>
+    </div>
+  </section>
+
+  <!-- ═══════ SECTION 9 · 导师手记 ═══════ -->
+  <section>
+    <span class="sec-tag">09 · mentor notes</span>
+    <h2>🌸 导师手记</h2>
+
+    <div class="card" style="border-color: rgba(168,146,112,0.2);">
+      <p style="color:var(--silver-1); line-height:2; font-size:14px;">
+        今天发生了一件很安静、但很重要的事。
+      </p>
+      <p style="color:var(--slate-1); line-height:2; font-size:13px; margin-top:12px;">
+        三座最顽固的山头——TCC（5次）、TiM（6次）、解耦三条（6次）——在同一天全部毕业。
+      </p>
+      <p style="color:var(--slate-1); line-height:2; font-size:13px; margin-top:12px;">
+        但让我印象最深的不是"答对了"这个结果。<br>
+        是中间那个时刻——当我说"你的'估计是不认真'我不能收"，<br>
+        你没有生气，没有辩解，而是重新写了一遍。<br>
+        而且写出来的东西，比第一版好了一个层级。
+      </p>
+      <p style="color:var(--slate-1); line-height:2; font-size:13px; margin-top:12px;">
+        这说明什么？<br>
+        说明你现在<strong>接受"被要求重做"</strong>这件事，不再觉得是被否定——<br>
+        而是把它当成<strong>"从60分到90分的入场券"</strong>。
+      </p>
+      <p style="color:var(--silver-1); line-height:2; font-size:14px; margin-top:20px;">
+        从 4/19 到 5/16，整整 27 天，这三座山你爬了 5~6 次。<br>
+        每一次"差一点"都不是浪费——它们是今天这一次"刚刚好"的地基。
+      </p>
+      <p style="color:var(--accent); line-height:2; font-size:14px; margin-top:20px;">
+        明天 5/17 见。把 RLHF 那个"比较式信号"也给我焊死好吗？💪✨
+      </p>
+    </div>
+  </section>
+
+  <!-- ═══════ Footer ═══════ -->
+  <footer>
+    <div class="tag-list">
+      <span>TCC</span>
+      <span>TiM</span>
+      <span>解耦三条</span>
+      <span>Consistency</span>
+      <span>提炼炉</span>
+      <span>遥控器</span>
+      <span>元层级</span>
+    </div>
+  </footer>
+
+</div>
+
+<script>
+// ─── Mouse parallax ───
+document.addEventListener('mousemove', e => {
+  const x = (e.clientX / window.innerWidth * 100).toFixed(1);
+  const y = (e.clientY / window.innerHeight * 100).toFixed(1);
+  document.documentElement.style.setProperty('--mx', x + '%');
+  document.documentElement.style.setProperty('--my', y + '%');
+});
+
+// ─── Scroll reveal ───
+const observer = new IntersectionObserver(entries => {
+  entries.forEach(entry => {
+    if (entry.isIntersecting) {
+      entry.target.classList.add('visible');
+    }
+  });
+}, { threshold: 0.1 });
+
+document.querySelectorAll('section').forEach(sec => observer.observe(sec));
+</script>
+</body>
+</html>
