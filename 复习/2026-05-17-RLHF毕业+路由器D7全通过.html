@@ -1,0 +1,681 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>5/17 复习 · RLHF毕业 · 路由器D+7全通过 · 时间三维钩子</title>
+<style>
+:root {
+  --silver-1: #eef0f3;
+  --silver-2: #d8dde3;
+  --silver-3: #b6bec8;
+  --slate-1: #8993a3;
+  --slate-2: #5c6675;
+  --slate-3: #3f4754;
+  --slate-4: #2a313c;
+  --black-1: #1a1f28;
+  --black-2: #0e1218;
+  --black-3: #07090d;
+  --accent: #6b89a8;
+  --accent-dim: #4a6280;
+  --accent-glow: rgba(107, 137, 168, 0.15);
+  --warn: #9a6048;
+  --warn-dim: #6b3f30;
+  --good: #5a9a7a;
+  --gold: #a89270;
+  --font-sans: -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", system-ui, sans-serif;
+  --font-mono: "SF Mono", "JetBrains Mono", "Fira Code", monospace;
+  --mx: 30%;
+  --my: 20%;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { width: 100%; }
+
+body {
+  font-family: var(--font-sans);
+  font-weight: 200;
+  color: var(--silver-2);
+  background:
+    radial-gradient(circle at var(--mx) var(--my), rgba(107,137,168,0.09), transparent 45%),
+    radial-gradient(ellipse at 80% 70%, rgba(100,130,165,0.06), transparent 50%),
+    linear-gradient(180deg, var(--black-1) 0%, var(--black-2) 50%, var(--black-3) 100%);
+  background-attachment: fixed;
+  min-height: 100vh;
+  line-height: 1.75;
+  letter-spacing: 0.02em;
+  overflow-x: hidden;
+}
+
+body::before {
+  content: "";
+  position: fixed; inset: 0;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='200' height='200'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 0 0 0 0.04 0'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>");
+  pointer-events: none;
+  opacity: 0.55;
+  z-index: 1;
+  mix-blend-mode: overlay;
+}
+
+.container {
+  position: relative;
+  z-index: 2;
+  max-width: 920px;
+  margin: 0 auto;
+  padding: 72px 28px 120px;
+}
+
+/* Hero */
+.hero {
+  position: relative;
+  padding: 56px 48px;
+  border-radius: 16px;
+  background: linear-gradient(135deg, rgba(42,49,60,0.7), rgba(26,31,40,0.9));
+  border: 1px solid rgba(107,137,168,0.15);
+  margin-bottom: 56px;
+  overflow: hidden;
+}
+.hero::after {
+  content: "";
+  position: absolute; inset: 0;
+  background: radial-gradient(ellipse at 20% 50%, rgba(107,137,168,0.08), transparent 60%);
+  pointer-events: none;
+}
+.hero-eyebrow {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: var(--slate-1);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  margin-bottom: 20px;
+}
+.hero h1 {
+  font-weight: 200;
+  font-size: clamp(28px, 5vw, 42px);
+  line-height: 1.3;
+  color: var(--silver-1);
+}
+.hero-subtitle {
+  margin-top: 16px;
+  font-size: 14px;
+  color: var(--slate-1);
+  line-height: 1.8;
+}
+.hero-stats {
+  display: flex;
+  gap: 32px;
+  margin-top: 32px;
+  flex-wrap: wrap;
+}
+.stat { text-align: center; }
+.stat-num {
+  font-family: var(--font-mono);
+  font-size: 28px;
+  font-weight: 300;
+  color: var(--accent);
+}
+.stat-label {
+  font-size: 11px;
+  color: var(--slate-1);
+  letter-spacing: 0.08em;
+  margin-top: 4px;
+}
+
+/* Sections */
+section {
+  margin-bottom: 56px;
+  opacity: 0;
+  transform: translateY(24px);
+  transition: opacity 0.6s ease, transform 0.6s ease;
+}
+section.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+.sec-tag {
+  display: inline-block;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--accent-dim);
+  margin-bottom: 12px;
+}
+section h2 {
+  font-weight: 200;
+  font-size: 22px;
+  color: var(--silver-1);
+  margin-bottom: 8px;
+}
+.sec-sub {
+  font-size: 13px;
+  color: var(--slate-1);
+  margin-bottom: 24px;
+}
+
+/* Cards */
+.card {
+  background: rgba(42,49,60,0.45);
+  border: 1px solid rgba(107,137,168,0.1);
+  border-radius: 12px;
+  padding: 20px 24px;
+  margin-bottom: 16px;
+  transition: transform 0.2s ease, border-color 0.2s ease, background 0.2s ease;
+}
+.card:hover {
+  transform: translateY(-2px);
+  border-color: rgba(107,137,168,0.3);
+  background: rgba(42,49,60,0.65);
+}
+
+.dual {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+@media (max-width: 600px) {
+  .dual { grid-template-columns: 1fr; }
+}
+
+/* Pills */
+.pill {
+  display: inline-block;
+  font-size: 10px;
+  font-family: var(--font-mono);
+  letter-spacing: 0.08em;
+  padding: 3px 10px;
+  border-radius: 10px;
+  margin-right: 8px;
+  vertical-align: middle;
+}
+.pill.good { background: rgba(90,154,122,0.15); color: var(--good); border: 1px solid rgba(90,154,122,0.3); }
+.pill.warn { background: rgba(154,96,72,0.15); color: var(--warn); border: 1px solid rgba(154,96,72,0.3); }
+.pill.info { background: rgba(107,137,168,0.15); color: var(--accent); border: 1px solid rgba(107,137,168,0.3); }
+.pill.gold { background: rgba(168,146,112,0.15); color: var(--gold); border: 1px solid rgba(168,146,112,0.3); }
+
+/* Code block */
+.code-block {
+  background: rgba(14,18,24,0.7);
+  border: 1px solid rgba(107,137,168,0.08);
+  border-radius: 10px;
+  padding: 24px 28px;
+  font-family: var(--font-mono);
+  font-size: 13px;
+  line-height: 1.9;
+  color: var(--silver-3);
+  box-shadow: inset 0 2px 8px rgba(0,0,0,0.3);
+  overflow-x: auto;
+  margin: 16px 0;
+  white-space: pre;
+}
+.code-block .hl { color: var(--accent); font-weight: 400; }
+.code-block .gd { color: var(--good); }
+.code-block .wr { color: var(--warn); }
+.code-block .gl { color: var(--gold); }
+
+/* Table */
+.tbl {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+.tbl th {
+  text-align: left;
+  padding: 10px 12px;
+  border-bottom: 1px solid rgba(107,137,168,0.15);
+  color: var(--slate-1);
+  font-weight: 300;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+.tbl td {
+  padding: 10px 12px;
+  border-bottom: 1px solid rgba(107,137,168,0.06);
+  color: var(--silver-3);
+}
+
+/* Details / Collapse */
+details {
+  margin: 16px 0;
+  border: 1px solid rgba(107,137,168,0.1);
+  border-radius: 10px;
+  overflow: hidden;
+}
+summary {
+  padding: 14px 20px;
+  cursor: pointer;
+  font-size: 14px;
+  color: var(--silver-2);
+  background: rgba(42,49,60,0.3);
+  transition: background 0.2s;
+  list-style: none;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+summary::before {
+  content: "+";
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  border: 1px solid rgba(107,137,168,0.2);
+  font-size: 14px;
+  color: var(--accent);
+  transition: transform 0.3s;
+  flex-shrink: 0;
+}
+details[open] summary::before { transform: rotate(45deg); }
+summary:hover { background: rgba(42,49,60,0.5); }
+.inner {
+  padding: 16px 20px;
+  font-size: 13px;
+  color: var(--slate-1);
+  line-height: 1.8;
+}
+
+/* Timeline */
+.timeline { margin: 16px 0; }
+.timeline .row {
+  display: grid;
+  grid-template-columns: 140px 120px 1fr;
+  gap: 12px;
+  padding: 12px 0;
+  border-bottom: 1px solid rgba(107,137,168,0.06);
+  font-size: 13px;
+  align-items: center;
+}
+.timeline .when {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--accent);
+}
+.timeline .dt {
+  color: var(--slate-1);
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+.timeline .what { color: var(--silver-3); }
+
+/* Footer */
+footer {
+  margin-top: 80px;
+  padding-top: 32px;
+  border-top: 1px solid rgba(107,137,168,0.08);
+  text-align: center;
+}
+.tag-list {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 8px;
+}
+.tag-list span {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  padding: 4px 12px;
+  border-radius: 20px;
+  border: 1px solid rgba(107,137,168,0.15);
+  color: var(--slate-1);
+}
+</style>
+</head>
+<body>
+<div class="container">
+
+  <!-- Hero -->
+  <div class="hero">
+    <div class="hero-eyebrow">2026 / 05 / 17 · review session</div>
+    <h1>RLHF 第 4 次终于毕业<br>路由器 D+7 全对通过</h1>
+    <p class="hero-subtitle">
+      27 天追击的"比较式信号"终于被自己推导出来 · 路由器 5/5 零卡壳<br>
+      时间三维钩子成型 · 提示词→成因映射建立
+    </p>
+    <div class="hero-stats">
+      <div class="stat"><div class="stat-num">1</div><div class="stat-label">毕业项</div></div>
+      <div class="stat"><div class="stat-num">5/5</div><div class="stat-label">路由器全对</div></div>
+      <div class="stat"><div class="stat-num">3</div><div class="stat-label">新钩子</div></div>
+      <div class="stat"><div class="stat-num">27天</div><div class="stat-label">RLHF追击</div></div>
+    </div>
+  </div>
+
+  <!-- SECTION 1 · RLHF 毕业 -->
+  <section>
+    <span class="sec-tag">01 · rlhf bias</span>
+    <h2>RLHF → 偏向自信 · 第 4 次 · 毕业</h2>
+    <p class="sec-sub">从 4/20 第一次考到 5/17——27 天，自己推导出完整因果链</p>
+
+    <div class="card">
+      <p><span class="pill good">毕业答案</span></p>
+      <p style="font-size:16px; color:var(--silver-1); font-weight:300; margin-top:8px;">
+        "RLHF 用的是<strong style="color:var(--accent);">两两对比</strong>信号，在这种对比中，<strong style="color:var(--accent);">自信的回答更容易胜出</strong>，所以模型学会了自信的回答。"
+      </p>
+    </div>
+
+    <div class="code-block">
+<span class="hl">RLHF 比较式（两两对比）信号</span>
+        │
+        ▼
+人类快速对比时，<span class="gd">自信流畅的回答天然胜出</span>
+        │
+        ▼
+模型学会：<span class="wr">不管对不对，先自信再说</span>
+
+补充洞察：只对比，<span class="gl">不给出原因</span> → 粗粒度信号
+    </div>
+
+    <div class="dual">
+      <div class="card">
+        <p><span class="pill warn">历史轨迹</span></p>
+        <p style="color:var(--slate-1); font-size:12px; margin-top:8px;">
+          4/20 · 第1次：没答出<br>
+          5/7 · 第2次：方向对，差关键词<br>
+          5/11 · 第3次：方向对，差"比较式信号"<br>
+          <strong style="color:var(--good);">5/17 · 第4次：自己推导出"两两对比"</strong>
+        </p>
+      </div>
+      <div class="card">
+        <p><span class="pill good">毕业方式</span></p>
+        <p style="color:var(--slate-1); font-size:12px; margin-top:8px;">
+          不是背出来的"比较式信号"四个字<br>
+          而是用自己的话说出"两两对比"<br>
+          并补充了"只对比不给原因"的洞察<br>
+          <strong style="color:var(--good);">自主推导 > 死记硬背</strong>
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <!-- SECTION 2 · Time 三维 -->
+  <section>
+    <span class="sec-tag">02 · time dimension</span>
+    <h2>Time · 未来 · 第 2 次（需提示后答出）</h2>
+    <p class="sec-sub">第一答偏了 → 提示"新员工变老员工"后答出"自我进化" → 下次无提示再测</p>
+
+    <div class="card">
+      <p><span class="pill info">钩子成型</span></p>
+      <p style="font-size:16px; color:var(--silver-1); font-weight:300; margin-top:8px;">
+        时间三维：<strong style="color:var(--accent);">记住</strong>过去 · <strong style="color:var(--accent);">感知</strong>现在 · <strong style="color:var(--accent);">进化</strong>未来
+      </p>
+    </div>
+
+    <div class="dual">
+      <div class="card">
+        <p><span class="pill warn">第一答（偏了）</span></p>
+        <p style="color:var(--slate-1); font-size:12px; margin-top:8px;">
+          "结合用户的实际情况和未来的情况"<br>
+          → 这更像"现在"维度的描述
+        </p>
+      </div>
+      <div class="card">
+        <p><span class="pill good">修正后</span></p>
+        <p style="color:var(--slate-1); font-size:12px; margin-top:8px;">
+          "AI代理应该具备自我进化能力"<br>
+          → 核心到位，补上"适应"更完整
+        </p>
+      </div>
+    </div>
+
+    <details>
+      <summary>学习者自组的三维总结（原文）</summary>
+      <div class="inner">
+        <p>过去：从过去的交互中学习/记忆</p>
+        <p>现在：感知环境，并作出决策</p>
+        <p>未来：持续进化</p>
+        <p style="margin-top:12px; color:var(--accent);">极速钩子：记住过去 · 感知现在 · 进化未来</p>
+      </div>
+    </details>
+  </section>
+
+  <!-- SECTION 3 · 提示词→成因 -->
+  <section>
+    <span class="sec-tag">03 · prompt vs hallucination</span>
+    <h2>提示词 → 成因映射 · 基本通过</h2>
+    <p class="sec-sub">主因（RLHF）脱口而出 · 次因（KM）需解释后理解</p>
+
+    <div class="card">
+      <p><span class="pill good">主因 · RLHF</span> 脱口而出 ✅</p>
+      <p style="color:var(--slate-1); font-size:13px; margin-top:8px;">
+        "告诉 AI 你不会就是不会，要说实话" —— 精准描述了提示词如何对抗 RLHF 的自信倾向
+      </p>
+    </div>
+    <div class="card">
+      <p><span class="pill warn">次因 · KM（知识边界）</span> 需提示</p>
+      <p style="color:var(--slate-1); font-size:13px; margin-top:8px;">
+        学习者答了"给文档"（RAG）和"上网搜索"（工具调用）—— 方向偏了一层<br>
+        正确理解：提示词让模型对自己知识边界有自觉，主动承认不确定
+      </p>
+    </div>
+
+    <div class="code-block">
+<span class="hl">提示词缓解幻觉</span> = 一句话治两种病
+
+主打 → <span class="gd">RLHF</span>（压制自信倾向）
+次打 → <span class="gl">KM 知识边界</span>（逼它承认不知道）
+
+共同药方："<span class="wr">你不会就说不会</span>"
+    </div>
+  </section>
+
+  <!-- SECTION 4 · 路由器 D+7 -->
+  <section>
+    <span class="sec-tag">04 · router &amp; gateway d+7</span>
+    <h2>路由器和模型网关 · D+7 · 5/5 全对</h2>
+    <p class="sec-sub">5/8 学的内容，逾期 3 天，今天一气呵成全部通过</p>
+
+    <table class="tbl">
+      <tr><th>题号</th><th>内容</th><th>表现</th><th>判定</th></tr>
+      <tr><td>4-1</td><td>路由器核心思想</td><td>"根据任务复杂程度分配不同模型，解决成本和速度"</td><td style="color:var(--good);">✅</td></tr>
+      <tr><td>4-2</td><td>意图分类器防守功能</td><td>"不相关→友好提示" ✅ · "不清楚→询问用户" ✅（第二答修正）</td><td style="color:var(--good);">✅</td></tr>
+      <tr><td>4-3</td><td>路由器模型要求</td><td>"快" 先出 → 追问后补出"便宜"</td><td style="color:var(--good);">✅</td></tr>
+      <tr><td>4-4</td><td>模型网关核心价值</td><td>"统一API + 封装各模型 + 重试/切换"——一次答全</td><td style="color:var(--good);">✅</td></tr>
+      <tr><td>4-5</td><td>跨章节关联（解耦三条）</td><td>"换大脑 · 因为可以随便替换LLM不影响功能"</td><td style="color:var(--good);">✅</td></tr>
+    </table>
+
+    <details>
+      <summary>跨章节关联亮点：主动识别"换大脑"设计模式</summary>
+      <div class="inner">
+        <p>昨天刚在解耦三条中毕业的"换大脑"概念，今天在一个全新场景（模型网关）里被<strong>主动识别</strong>出来。</p>
+        <p style="margin-top:8px;">这不是死记硬背能做到的——说明"解耦"这个设计思想已经内化为一种<strong>工程直觉</strong>。</p>
+        <p style="margin-top:12px; color:var(--accent);">模型网关 = "换大脑"的架构级实现：统一接口在上，底下换 OpenAI / Claude / 本地模型，应用层完全不用动。</p>
+      </div>
+    </details>
+  </section>
+
+  <!-- SECTION 5 · 路由器架构图 -->
+  <section>
+    <span class="sec-tag">05 · architecture</span>
+    <h2>路由器 + 模型网关 · 架构图</h2>
+    <p class="sec-sub">完整知识结构一览</p>
+
+    <div class="code-block">
+┌─────────────────────────────────────────────────────┐
+│  <span class="gl">模型网关（Model Gateway）</span>                         │
+│  = 统一 API + 解耦（应用 ↔ 模型供应商的中间层）       │
+│                                                     │
+│  附加能力：访问控制 · 成本管理 · 回退策略 · 负载均衡   │
+├─────────────────────────────────────────────────────┤
+│  <span class="hl">路由器（Router）</span>                                   │
+│  = 针对不同查询，差异化处理（不用大炮打蚊子）          │
+│                                                     │
+│  ┌─────────────────┐  ┌──────────────────────┐      │
+│  │ <span class="gd">意图分类器</span>       │  │ <span class="gd">下一步动作预测器</span>    │      │
+│  │ · 分流到对应方案 │  │ · 决策下一步动作     │      │
+│  │ · 拒绝超范围    │  │ · 调用哪个工具       │      │
+│  │ · 追问模糊查询  │  │                      │      │
+│  └─────────────────┘  └──────────────────────┘      │
+│                                                     │
+│  模型要求：<span class="wr">快 + 便宜</span>（小模型，不能成为瓶颈）         │
+├─────────────────────────────────────────────────────┤
+│  路由 → 生成 → 评分 → (不合格则重新路由)             │
+└─────────────────────────────────────────────────────┘
+    </div>
+  </section>
+
+  <!-- SECTION 6 · 今日钩子 -->
+  <section>
+    <span class="sec-tag">06 · hooks forged today</span>
+    <h2>今日焊死的钩子</h2>
+    <p class="sec-sub">三个新钩子入库</p>
+
+    <div class="card">
+      <p><span class="pill good">钩子 1</span> RLHF → 自信 = <strong>比较式（两两对比）信号 → 自信天然胜出 → 模型学自信</strong></p>
+    </div>
+    <div class="card">
+      <p><span class="pill info">钩子 2</span> 时间三维 = <strong>记住过去 · 感知现在 · 进化未来</strong></p>
+    </div>
+    <div class="card">
+      <p><span class="pill info">钩子 3</span> 提示词治幻觉 = <strong>主打 RLHF（压自信）· 次打 KM（逼承认不知道）</strong></p>
+    </div>
+    <div class="card" style="border-color: rgba(168,146,112,0.3);">
+      <p><span class="pill gold">工程直觉</span> 模型网关 = <strong>"换大脑"的架构级实现</strong>（统一接口屏蔽底层差异）</p>
+    </div>
+  </section>
+
+  <!-- SECTION 7 · 顽固薄弱点更新 -->
+  <section>
+    <span class="sec-tag">07 · tracker update</span>
+    <h2>顽固薄弱点追踪（5/17 更新）</h2>
+    <p class="sec-sub">今日毕业 1 项 · 仍在追踪 7 项</p>
+
+    <table class="tbl">
+      <tr><th>薄弱点</th><th>累计</th><th>状态</th></tr>
+      <tr><td><strong>RLHF → 偏向自信表达（比较式信号）</strong></td><td>4 次</td><td><span class="pill good">5/17 毕业</span></td></tr>
+      <tr><td>Time · 未来（适应进化）</td><td>2 次</td><td><span class="pill warn">需提示，下次无提示测</span></td></tr>
+      <tr><td>提示词→成因映射（RLHF主+KM次）</td><td>2 次</td><td><span class="pill warn">主通过，次需巩固</span></td></tr>
+      <tr><td>Inference-time Compute = "算力"而非"时间"</td><td>1 次</td><td><span class="pill warn">待测</span></td></tr>
+      <tr><td>分块太大坏处 = 语义稀释/检索不准</td><td>1 次</td><td><span class="pill warn">待测</span></td></tr>
+      <tr><td>设计原则 vs 三要素混淆</td><td>2 次</td><td><span class="pill warn">逾期</span></td></tr>
+      <tr><td>幻觉跨章节关联（采样/推理时计算）</td><td>1 次</td><td><span class="pill warn">逾期</span></td></tr>
+      <tr><td>记忆管理 = 存（添加+删除）</td><td>2 次</td><td><span class="pill warn">逾期</span></td></tr>
+    </table>
+  </section>
+
+  <!-- SECTION 8 · 复习计划 -->
+  <section>
+    <span class="sec-tag">08 · review plan</span>
+    <h2>下次复习安排</h2>
+    <p class="sec-sub">5/19 缓存 D+7 重头戏 · Time 再验证</p>
+
+    <div class="timeline">
+      <div class="row">
+        <div class="when">5/19</div>
+        <div class="dt">缓存 D+7</div>
+        <div class="what">5 道题 · 含跨章节关联（RAG / 嵌入向量 / 三抽屉决策）</div>
+      </div>
+      <div class="row">
+        <div class="when">5/19</div>
+        <div class="dt">Time · 未来 第3次</div>
+        <div class="what">无提示脱口而出"适应+进化"才算毕业</div>
+      </div>
+      <div class="row">
+        <div class="when">5/20</div>
+        <div class="dt">Claude Code D+7</div>
+        <div class="what">5 道题 · 跨章节"上下兄弟"工具复用</div>
+      </div>
+      <div class="row">
+        <div class="when">5/20</div>
+        <div class="dt">AI 智能体概述 D+30</div>
+        <div class="what">综合应用题</div>
+      </div>
+      <div class="row">
+        <div class="when">6/12</div>
+        <div class="dt">缓存 D+30</div>
+        <div class="what">综合题 · 设计缓存方案</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- SECTION 9 · 学习报告 -->
+  <section>
+    <span class="sec-tag">09 · learning report</span>
+    <h2>本单元学习报告</h2>
+
+    <div class="card">
+      <table class="tbl">
+        <tr><td style="width:120px; color:var(--slate-1);">学习内容</td><td>RLHF第4次 · Time第2次 · 提示词成因映射 · 路由器D+7（5题）</td></tr>
+        <tr><td style="color:var(--slate-1);">掌握程度</td><td>A层：✅ RLHF因果链毕业 · 路由器全对 ｜ B层：Time三维钩子成型</td></tr>
+        <tr><td style="color:var(--slate-1);">今日毕业</td><td>1 项（RLHF → 比较式信号 → 偏向自信）—— 27 天追击终结</td></tr>
+        <tr><td style="color:var(--slate-1);">跨章节</td><td>模型网关主动识别"换大脑"设计模式 —— 工程直觉内化</td></tr>
+        <tr><td style="color:var(--slate-1);">需要加强</td><td>Time·未来（无提示再测）· 提示词次因KM · 逾期薄弱点 3 项</td></tr>
+        <tr><td style="color:var(--slate-1);">下次复习</td><td>5/19（后天）</td></tr>
+        <tr><td style="color:var(--slate-1);">下一步行动</td><td>5/19 缓存 D+7 五题 + Time 第3次验证</td></tr>
+      </table>
+    </div>
+  </section>
+
+  <!-- SECTION 10 · 导师手记 -->
+  <section>
+    <span class="sec-tag">10 · mentor notes</span>
+    <h2>导师手记</h2>
+
+    <div class="card" style="border-color: rgba(168,146,112,0.2);">
+      <p style="color:var(--silver-1); line-height:2; font-size:14px;">
+        今天有一个小细节让我很开心。
+      </p>
+      <p style="color:var(--slate-1); line-height:2; font-size:13px; margin-top:12px;">
+        RLHF 那道题——你没有"背出"比较式信号这四个字。<br>
+        你是重新走了一遍推导链路：<br>
+        "两两对比 → 只对比不给原因 → 自信的更容易胜出"<br>
+        然后自己组出了完整的因果句。
+      </p>
+      <p style="color:var(--slate-1); line-height:2; font-size:13px; margin-top:12px;">
+        这比背出一个术语有价值得多。<br>
+        因为术语会忘，但<strong>推导能力不会忘</strong>。<br>
+        下次就算你忘了"比较式信号"这个词，<br>
+        你也能再推一遍——因为逻辑链已经在你脑子里了。
+      </p>
+      <p style="color:var(--slate-1); line-height:2; font-size:13px; margin-top:12px;">
+        还有路由器——5 道题一气呵成，最后那道跨章节题你秒答"换大脑"。<br>
+        说明"解耦"这个设计思想已经从"一个知识点"变成了你观察系统架构的"镜片"。<br>
+        这就是我最想看到的：<strong>知识变成直觉</strong>。
+      </p>
+      <p style="color:var(--accent); line-height:2; font-size:14px; margin-top:20px;">
+        5/19 见～ 缓存那个"三抽屉"是个有意思的题，提前在脑子里过一遍会轻松很多。💪✨
+      </p>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer>
+    <div class="tag-list">
+      <span>RLHF</span>
+      <span>比较式信号</span>
+      <span>路由器</span>
+      <span>模型网关</span>
+      <span>换大脑</span>
+      <span>时间三维</span>
+      <span>提示词</span>
+      <span>KM</span>
+    </div>
+  </footer>
+
+</div>
+
+<script>
+// Mouse parallax
+document.addEventListener('mousemove', e => {
+  const x = (e.clientX / window.innerWidth * 100).toFixed(1);
+  const y = (e.clientY / window.innerHeight * 100).toFixed(1);
+  document.documentElement.style.setProperty('--mx', x + '%');
+  document.documentElement.style.setProperty('--my', y + '%');
+});
+
+// Scroll reveal
+const observer = new IntersectionObserver(entries => {
+  entries.forEach(entry => {
+    if (entry.isIntersecting) {
+      entry.target.classList.add('visible');
+    }
+  });
+}, { threshold: 0.1 });
+
+document.querySelectorAll('section').forEach(sec => observer.observe(sec));
+</script>
+</body>
+</html>

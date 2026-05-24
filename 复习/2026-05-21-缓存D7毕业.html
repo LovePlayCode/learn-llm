@@ -1,0 +1,927 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>5/21 复习 · 缓存 D+7 毕业 · 12 轮淬炼</title>
+<style>
+:root {
+  --silver-1: #eef0f3;
+  --silver-2: #d8dde3;
+  --silver-3: #b6bec8;
+  --slate-1: #8993a3;
+  --slate-2: #5c6675;
+  --slate-3: #3f4754;
+  --slate-4: #2a313c;
+  --black-1: #1a1f28;
+  --black-2: #0e1218;
+  --black-3: #07090d;
+  --accent: #6b89a8;
+  --accent-dim: #4a6280;
+  --accent-glow: rgba(107, 137, 168, 0.15);
+  --warn: #9a6048;
+  --warn-dim: #6b3f30;
+  --good: #5a9a7a;
+  --gold: #a89270;
+  --font-sans: -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", system-ui, sans-serif;
+  --font-mono: "SF Mono", "JetBrains Mono", "Fira Code", monospace;
+  --mx: 30%;
+  --my: 20%;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { width: 100%; }
+
+body {
+  font-family: var(--font-sans);
+  font-weight: 200;
+  color: var(--silver-2);
+  background:
+    radial-gradient(circle at var(--mx) var(--my), rgba(107,137,168,0.10), transparent 45%),
+    radial-gradient(ellipse at 80% 70%, rgba(100,130,165,0.06), transparent 50%),
+    linear-gradient(180deg, var(--black-1) 0%, var(--black-2) 50%, var(--black-3) 100%);
+  background-attachment: fixed;
+  min-height: 100vh;
+  line-height: 1.75;
+  letter-spacing: 0.02em;
+  overflow-x: hidden;
+}
+
+body::before {
+  content: "";
+  position: fixed; inset: 0;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='200' height='200'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 0 0 0 0.04 0'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>");
+  pointer-events: none;
+  opacity: 0.55;
+  z-index: 1;
+  mix-blend-mode: overlay;
+}
+
+.container {
+  position: relative;
+  z-index: 2;
+  max-width: 940px;
+  margin: 0 auto;
+  padding: 72px 28px 120px;
+}
+
+/* ─── Hero ─── */
+.hero {
+  position: relative;
+  padding: 56px 48px;
+  border-radius: 16px;
+  background: linear-gradient(135deg, rgba(42,49,60,0.7), rgba(26,31,40,0.9));
+  border: 1px solid rgba(107,137,168,0.15);
+  margin-bottom: 56px;
+  overflow: hidden;
+  transition: border 0.4s, transform 0.4s;
+}
+.hero:hover {
+  border-color: rgba(107,137,168,0.35);
+  transform: translateY(-2px);
+}
+.hero::after {
+  content: "";
+  position: absolute; inset: 0;
+  background: radial-gradient(ellipse at 20% 50%, rgba(107,137,168,0.10), transparent 60%);
+  pointer-events: none;
+}
+.hero-eyebrow {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.3em;
+  color: var(--accent);
+  text-transform: uppercase;
+  margin-bottom: 20px;
+}
+.hero h1 {
+  font-weight: 200;
+  font-size: clamp(28px, 5vw, 42px);
+  line-height: 1.3;
+  color: var(--silver-1);
+  letter-spacing: -0.01em;
+  margin-bottom: 18px;
+}
+.hero-subtitle {
+  font-size: 15px;
+  color: var(--slate-1);
+  max-width: 640px;
+  font-weight: 300;
+}
+.hero-stats {
+  margin-top: 36px;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 18px;
+  position: relative;
+  z-index: 2;
+}
+.stat {
+  padding: 18px 16px;
+  border-radius: 10px;
+  background: rgba(14,18,24,0.45);
+  border: 1px solid rgba(107,137,168,0.1);
+  transition: all 0.3s;
+}
+.stat:hover {
+  border-color: rgba(107,137,168,0.3);
+  background: rgba(14,18,24,0.65);
+}
+.stat-num {
+  font-family: var(--font-mono);
+  font-size: 28px;
+  font-weight: 200;
+  color: var(--silver-1);
+  letter-spacing: -0.02em;
+  display: block;
+}
+.stat-label {
+  font-size: 11px;
+  color: var(--slate-1);
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  margin-top: 6px;
+}
+
+@media (max-width: 720px) {
+  .hero-stats { grid-template-columns: repeat(2, 1fr); }
+}
+
+/* ─── Sections ─── */
+section {
+  margin-bottom: 56px;
+  opacity: 0;
+  transform: translateY(20px);
+  transition: opacity 0.8s ease-out, transform 0.8s ease-out;
+}
+section.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+h2 {
+  font-size: 24px;
+  font-weight: 200;
+  color: var(--silver-1);
+  margin-bottom: 8px;
+  letter-spacing: -0.005em;
+}
+.section-eyebrow {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.25em;
+  color: var(--accent);
+  text-transform: uppercase;
+  margin-bottom: 8px;
+}
+.section-lead {
+  color: var(--slate-1);
+  font-size: 14px;
+  margin-bottom: 28px;
+  font-weight: 300;
+  max-width: 720px;
+}
+
+/* ─── Cards ─── */
+.card {
+  padding: 28px 28px;
+  border-radius: 12px;
+  background: linear-gradient(140deg, rgba(42,49,60,0.5), rgba(26,31,40,0.7));
+  border: 1px solid rgba(107,137,168,0.1);
+  transition: all 0.4s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+.card:hover {
+  transform: translateY(-3px);
+  border-color: rgba(107,137,168,0.32);
+  background: linear-gradient(140deg, rgba(50,58,72,0.65), rgba(30,36,46,0.85));
+  box-shadow: 0 8px 30px rgba(0,0,0,0.3), inset 0 1px 0 rgba(107,137,168,0.15);
+}
+
+/* ─── Two-card compare ─── */
+.compare-2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 18px;
+}
+.compare-3 {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 18px;
+}
+@media (max-width: 720px) {
+  .compare-2, .compare-3 { grid-template-columns: 1fr; }
+}
+
+.card h3 {
+  font-size: 14px;
+  font-weight: 400;
+  color: var(--silver-1);
+  letter-spacing: 0.05em;
+  margin-bottom: 12px;
+  font-family: var(--font-mono);
+}
+.card p {
+  font-size: 13.5px;
+  color: var(--silver-3);
+  font-weight: 300;
+}
+.card .meta {
+  font-size: 11px;
+  color: var(--slate-1);
+  font-family: var(--font-mono);
+  margin-top: 14px;
+  padding-top: 14px;
+  border-top: 1px dashed rgba(107,137,168,0.18);
+  letter-spacing: 0.04em;
+}
+
+/* Layered tone variants for hierarchy */
+.tone-1 {
+  background: linear-gradient(140deg, rgba(60,68,82,0.55), rgba(40,46,58,0.75));
+}
+.tone-2 {
+  background: linear-gradient(140deg, rgba(48,55,67,0.55), rgba(30,36,46,0.75));
+}
+.tone-3 {
+  background: linear-gradient(140deg, rgba(36,42,52,0.55), rgba(20,25,32,0.78));
+}
+
+/* ─── ASCII code block ─── */
+.ascii {
+  font-family: var(--font-mono);
+  font-size: 12.5px;
+  line-height: 1.65;
+  color: var(--silver-3);
+  background: linear-gradient(180deg, rgba(7,9,13,0.85), rgba(14,18,24,0.85));
+  padding: 24px 28px;
+  border-radius: 10px;
+  overflow-x: auto;
+  border: 1px solid rgba(107,137,168,0.08);
+  box-shadow: inset 0 2px 12px rgba(0,0,0,0.4);
+  white-space: pre;
+  letter-spacing: 0.01em;
+}
+.ascii .hi { color: var(--accent); }
+.ascii .ok { color: var(--good); }
+.ascii .no { color: var(--warn); }
+.ascii .dim { color: var(--slate-2); }
+
+/* ─── Details / Summary ─── */
+details {
+  margin-bottom: 14px;
+  border-radius: 10px;
+  background: linear-gradient(140deg, rgba(42,49,60,0.5), rgba(26,31,40,0.7));
+  border: 1px solid rgba(107,137,168,0.1);
+  overflow: hidden;
+  transition: border 0.3s;
+}
+details:hover { border-color: rgba(107,137,168,0.25); }
+details summary {
+  cursor: pointer;
+  padding: 18px 24px;
+  list-style: none;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  color: var(--silver-2);
+  font-size: 14px;
+  font-weight: 300;
+  user-select: none;
+}
+details summary::-webkit-details-marker { display: none; }
+details summary::after {
+  content: "+";
+  font-family: var(--font-mono);
+  font-size: 18px;
+  color: var(--accent);
+  font-weight: 200;
+  transition: transform 0.3s ease;
+}
+details[open] summary::after { transform: rotate(45deg); }
+details .body {
+  padding: 0 24px 22px;
+  color: var(--silver-3);
+  font-size: 13.5px;
+  font-weight: 300;
+}
+
+/* ─── Action list ─── */
+.action-list {
+  counter-reset: step;
+  list-style: none;
+}
+.action-list li {
+  counter-increment: step;
+  position: relative;
+  padding: 18px 24px 18px 64px;
+  margin-bottom: 12px;
+  border-radius: 10px;
+  background: linear-gradient(140deg, rgba(42,49,60,0.45), rgba(26,31,40,0.7));
+  border: 1px solid rgba(107,137,168,0.08);
+  font-size: 14px;
+  color: var(--silver-3);
+  font-weight: 300;
+  transition: all 0.3s;
+}
+.action-list li::before {
+  content: counter(step, decimal-leading-zero);
+  position: absolute;
+  left: 22px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-family: var(--font-mono);
+  font-size: 13px;
+  color: var(--accent);
+  letter-spacing: 0.05em;
+}
+.action-list li:hover {
+  border-color: rgba(107,137,168,0.32);
+  transform: translateX(4px);
+  background: linear-gradient(140deg, rgba(50,58,72,0.55), rgba(30,36,46,0.78));
+}
+
+/* ─── Tag chip ─── */
+.chip {
+  display: inline-block;
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  letter-spacing: 0.1em;
+  padding: 4px 10px;
+  border-radius: 4px;
+  margin-right: 8px;
+  margin-bottom: 6px;
+  text-transform: uppercase;
+}
+.chip-good {
+  background: rgba(90,154,122,0.12);
+  color: var(--good);
+  border: 1px solid rgba(90,154,122,0.25);
+}
+.chip-warn {
+  background: rgba(154,96,72,0.12);
+  color: var(--warn);
+  border: 1px solid rgba(154,96,72,0.25);
+}
+.chip-acc {
+  background: rgba(107,137,168,0.10);
+  color: var(--accent);
+  border: 1px solid rgba(107,137,168,0.22);
+}
+
+/* ─── Pit table (rich pit cards) ─── */
+.pit {
+  padding: 26px;
+  border-radius: 12px;
+  background: linear-gradient(140deg, rgba(42,49,60,0.55), rgba(26,31,40,0.75));
+  border: 1px solid rgba(107,137,168,0.1);
+  transition: all 0.4s cubic-bezier(0.2,0.8,0.2,1);
+}
+.pit:hover {
+  transform: translateY(-3px);
+  border-color: var(--warn);
+  box-shadow: 0 8px 30px rgba(0,0,0,0.3), inset 0 1px 0 rgba(107,137,168,0.15);
+}
+.pit-axis {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  color: var(--accent);
+  margin-bottom: 10px;
+}
+.pit-name {
+  font-size: 18px;
+  color: var(--silver-1);
+  font-weight: 300;
+  margin-bottom: 14px;
+}
+.pit-mech {
+  font-size: 13px;
+  color: var(--silver-3);
+  font-weight: 300;
+  margin-bottom: 14px;
+  line-height: 1.7;
+}
+.pit-egg {
+  padding: 12px 14px;
+  border-radius: 6px;
+  background: rgba(7,9,13,0.5);
+  border-left: 2px solid var(--gold);
+  font-size: 12.5px;
+  color: var(--silver-3);
+  font-style: italic;
+  font-weight: 300;
+}
+
+/* ─── Report grid ─── */
+.report-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 16px;
+}
+@media (max-width: 720px) {
+  .report-grid { grid-template-columns: 1fr; }
+}
+.report-cell {
+  padding: 22px 22px;
+  border-radius: 10px;
+  background: linear-gradient(140deg, rgba(42,49,60,0.5), rgba(26,31,40,0.7));
+  border: 1px solid rgba(107,137,168,0.1);
+  transition: all 0.3s;
+}
+.report-cell:hover {
+  border-color: rgba(107,137,168,0.3);
+  transform: translateY(-2px);
+}
+.report-cell .label {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.25em;
+  color: var(--accent);
+  text-transform: uppercase;
+  margin-bottom: 10px;
+}
+.report-cell .value {
+  font-size: 14px;
+  color: var(--silver-2);
+  font-weight: 300;
+  line-height: 1.6;
+}
+
+/* ─── Schedule timeline ─── */
+.timeline {
+  position: relative;
+  padding-left: 24px;
+  border-left: 1px dashed rgba(107,137,168,0.25);
+}
+.timeline-item {
+  position: relative;
+  padding: 8px 0 22px 18px;
+}
+.timeline-item::before {
+  content: "";
+  position: absolute;
+  left: -29px;
+  top: 14px;
+  width: 9px; height: 9px;
+  border-radius: 50%;
+  background: var(--slate-2);
+  border: 2px solid var(--black-1);
+}
+.timeline-item.done::before { background: var(--good); }
+.timeline-item.next::before { background: var(--accent); box-shadow: 0 0 10px var(--accent); }
+.timeline-date {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.15em;
+  color: var(--accent);
+  margin-bottom: 4px;
+}
+.timeline-title {
+  color: var(--silver-2);
+  font-size: 14px;
+  font-weight: 300;
+}
+.timeline-desc {
+  color: var(--slate-1);
+  font-size: 12px;
+  margin-top: 4px;
+}
+
+/* ─── Growth curve (meta-learning) ─── */
+.growth {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 14px;
+  position: relative;
+}
+@media (max-width: 720px) {
+  .growth { grid-template-columns: 1fr; }
+}
+.growth-step {
+  padding: 18px 18px;
+  border-radius: 10px;
+  background: linear-gradient(180deg, rgba(42,49,60,0.5), rgba(26,31,40,0.7));
+  border: 1px solid rgba(107,137,168,0.1);
+  transition: all 0.4s;
+}
+.growth-step:hover {
+  border-color: var(--accent);
+  background: linear-gradient(180deg, rgba(50,58,72,0.65), rgba(30,36,46,0.82));
+}
+.growth-step .num {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.2em;
+  color: var(--accent);
+  margin-bottom: 8px;
+}
+.growth-step .stage {
+  font-size: 13px;
+  color: var(--silver-1);
+  font-weight: 300;
+  margin-bottom: 6px;
+}
+.growth-step .quote {
+  font-size: 12px;
+  color: var(--slate-1);
+  font-style: italic;
+  font-family: var(--font-mono);
+}
+
+/* ─── Footer ─── */
+footer {
+  margin-top: 80px;
+  padding-top: 32px;
+  border-top: 1px dashed rgba(107,137,168,0.18);
+  text-align: center;
+  color: var(--slate-2);
+  font-size: 11px;
+  letter-spacing: 0.15em;
+  font-family: var(--font-mono);
+  text-transform: uppercase;
+}
+footer .tags {
+  margin-top: 16px;
+}
+</style>
+</head>
+<body>
+<div class="container">
+
+  <!-- ═════ HERO ═════ -->
+  <div class="hero">
+    <div class="hero-eyebrow">2026 · 05 · 21 · CACHE D+7 GRADUATION</div>
+    <h1>缓存 D+7 毕业<br>12 轮淬炼 · 三个自创钩子入库</h1>
+    <p class="hero-subtitle">
+      从"应该没有吧"到"知识/结论分流防御"——
+      D+1 焊主线，D+7 抛术语精度。今日完成法律咨询助手缓存方案的端到端设计，
+      把 Q1 的兄弟图、Q2 的家族关系、Q3 的两道生死题、Q4 的三类坑、Q5 的护栏策略
+      串成了一张工业级决策网。
+    </p>
+    <div class="hero-stats">
+      <div class="stat"><span class="stat-num">12</span><div class="stat-label">答题轮次</div></div>
+      <div class="stat"><span class="stat-num">5/5</span><div class="stat-label">题目过关</div></div>
+      <div class="stat"><span class="stat-num">3</span><div class="stat-label">自创钩子入库</div></div>
+      <div class="stat"><span class="stat-num">2</span><div class="stat-label">跨章节焊接</div></div>
+    </div>
+  </div>
+
+  <!-- ═════ 1 · 缓存家族三兄弟 ═════ -->
+  <section>
+    <div class="section-eyebrow">01 · BROTHERHOOD</div>
+    <h2>缓存家族 · 三兄弟分层图</h2>
+    <p class="section-lead">
+      Q1 4 轮才焊死的核心——三个兄弟"看起来都是缓存"，但命中机制和复用对象在两个层级上分裂：output 级 vs computation 级。
+    </p>
+    <div class="compare-3">
+      <div class="card tone-1">
+        <h3>// 精确缓存</h3>
+        <p><span class="chip chip-acc">匹配</span> 整段字符一致</p>
+        <p><span class="chip chip-acc">复用</span> 模型回答（output）</p>
+        <p><span class="chip chip-good">命中场景</span> 完全相同的 query</p>
+        <div class="meta">OUTPUT 级 · 跳过整个推理</div>
+      </div>
+      <div class="card tone-2">
+        <h3>// 语义缓存</h3>
+        <p><span class="chip chip-acc">匹配</span> 嵌入模型 + 余弦相似度 ≥ 阈值</p>
+        <p><span class="chip chip-acc">复用</span> 模型回答（output）</p>
+        <p><span class="chip chip-good">命中场景</span> 表达多样 + 答案稳定</p>
+        <div class="meta">OUTPUT 级 · 跳过整个推理</div>
+      </div>
+      <div class="card tone-3">
+        <h3>// 提示词缓存</h3>
+        <p><span class="chip chip-acc">匹配</span> token 级前缀完全一致</p>
+        <p><span class="chip chip-acc">复用</span> KV Cache（中间状态）</p>
+        <p><span class="chip chip-good">命中场景</span> 长前缀不变 + 后缀变化</p>
+        <div class="meta">COMPUTATION 级 · 仅省前缀计算</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═════ 2 · 法律助手缓存设计 ASCII ═════ -->
+  <section>
+    <div class="section-eyebrow">02 · DECISION FLOW</div>
+    <h2>法律咨询助手 · 缓存决策流图</h2>
+    <p class="section-lead">
+      Q5 的毕业大作。从 query 进入到分配抽屉的完整决策链——两道生死题先过滤，
+      再做三抽屉分发，边界陷阱用"知识 vs 结论"分流策略防御。
+    </p>
+<div class="ascii">
+                     <span class="hi">USER QUERY 进入</span>
+                            │
+              ┌─────────────┴──────────────┐
+              │  <span class="hi">FILTER 1 · 两道生死题</span>     │
+              │  ① 输出会随时间变化吗？      │
+              │  ② 输出依赖私人上下文吗？    │
+              └─────────────┬──────────────┘
+                            │
+        ┌───────────────────┼───────────────────┐
+        │                   │                   │
+   <span class="dim">类型 ① 事实型</span>      <span class="dim">类型 ② 半个性化</span>     <span class="dim">类型 ③ 强个性化</span>
+   "劳动法 36 条"      "我能告他吗"        "分析我合同"
+        │                   │                   │
+        │                   │                   ▼
+        │                   │       <span class="no">✗ 生死题 ② 拦下</span>
+        │                   │           不进语义缓存
+        │                   ▼              │
+        │           <span class="hi">边界陷阱判定</span>          │
+        │           看似可缓存             ▼
+        │           实为鱼香水煮坑    会话内 OK 用
+        │                   │       <span class="ok">✓ 提示词缓存</span>
+        │                   ▼       （合同作前缀）
+        │           <span class="no">✗ 不缓存（结论性）</span>
+        │           或仅缓存"知识性"
+        │           片段，不缓存结论
+        ▼
+   <span class="ok">✓ 语义缓存</span>
+   理由：表达多样 + 答案稳定
+   高命中率 + 低事故率
+
+   <span class="dim">▲ 防御护栏：</span>
+   <span class="dim">  · 结论性 query（建议/判断）→ 不缓存</span>
+   <span class="dim">  · 知识性 query（事实/定义）→ 可缓存</span>
+   <span class="dim">  · 阈值压测 → 防止打车空载坑</span>
+</div>
+  </section>
+
+  <!-- ═════ 3 · 三类坑 + 自创钩子 ═════ -->
+  <section>
+    <div class="section-eyebrow">03 · THREE PITS</div>
+    <h2>三类坑 · 你的个人钩子库</h2>
+    <p class="section-lead">
+      Q4 的核心遗产——三个名字都是从你今日自造的具体例子里抽象出来的，
+      所以 D+30 的调取速度会比抄书快 5 倍。
+    </p>
+    <div class="compare-3">
+      <div class="pit">
+        <div class="pit-axis">// 性能轴</div>
+        <div class="pit-name">打车空载坑</div>
+        <div class="pit-mech">
+          没命中时 = embedding + 余弦搜索 + LLM 推理 = 双重成本，比裸跑 LLM 还慢、还贵。
+          命中率压测不到阈值就上线 = 负收益事故。
+        </div>
+        <div class="pit-egg">
+          原型：5/14 自创"打车比喻"——叫不到车反而比走路还慢。
+        </div>
+      </div>
+      <div class="pit">
+        <div class="pit-axis">// 质量轴</div>
+        <div class="pit-name">鱼香水煮坑</div>
+        <div class="pit-mech">
+          余弦相似度看不出"鱼香 vs 水煮"是两种味型——它只看到"X 肉 Y"语义结构相似。
+          法律领域加强版："我能告他吗"语义近，但答案该完全不同。
+        </div>
+        <div class="pit-egg">
+          原型：5/14 自创"点菜比喻" + 5/21 自造菜名例子。
+        </div>
+      </div>
+      <div class="pit">
+        <div class="pit-axis">// 安全轴</div>
+        <div class="pit-name">银行存款坑</div>
+        <div class="pit-mech">
+          "我银行存款多少"——千万用户问出来语义几乎一致，余弦 ≈ 0.99，
+          百分百命中 → 跨用户串答案 → 数据泄漏 + 法律事故。
+        </div>
+        <div class="pit-egg">
+          原型：5/21 自造金融场景，比合同事故更具普遍性。
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═════ 4 · 两道生死题决策清单 ═════ -->
+  <section>
+    <div class="section-eyebrow">04 · LIFE / DEATH CHECKLIST</div>
+    <h2>两道生死题 · 缓存设计前置过滤</h2>
+    <p class="section-lead">
+      5/13 焊的钩子，5/21 在 Q5 中用判断式句式调取——按顺序问，任何一道 NO 就拦下。
+    </p>
+    <ol class="action-list">
+      <li><strong>输出会不会随时间变化？</strong>　→　拦下：天气 / 新闻 / 汇率 / 法律修订</li>
+      <li><strong>输出会不会依赖于"用户私人 / 会话上下文"？</strong>　→　拦下：上传的合同 / 个人数据 / 账户余额</li>
+      <li>通过两道题后再算经济账：估算命中率，命中率 &lt; 阈值就别上语义缓存（防打车空载坑）。</li>
+      <li>若可缓存：再做"知识 vs 结论"分流——只缓存知识性 query，结论性 query 一律不缓存（防鱼香水煮坑）。</li>
+      <li>对涉及私人上下文的 query：单用户会话内可用提示词缓存优化（前缀复用 KV Cache），但绝不进跨用户语义缓存（防银行存款坑）。</li>
+    </ol>
+  </section>
+
+  <!-- ═════ 5 · 横向连接 · 折叠面板 ═════ -->
+  <section>
+    <div class="section-eyebrow">05 · LATERAL CONNECTIONS</div>
+    <h2>横向连接 · 跨章节焊接点</h2>
+    <p class="section-lead">
+      D+7 的真正能力——主动从其他章节拽内容补完当前知识网。今日命中两次，漏接一次。
+    </p>
+
+    <details>
+      <summary>① 4/13 KV Cache　→　5/12 提示词缓存（焊接成功）</summary>
+      <div class="body">
+        Q1 第三轮你被问到"提示词缓存复用什么"时，主动调取了 4/13 学的 KV Cache 概念——
+        把"transformer 推理时存储 K 和 V 向量的地方"和"提示词缓存命中后复用的对象"
+        焊在一起。这是跨章节 7 天后仍然活跃的钩子，标志元学习意识在线。
+      </div>
+    </details>
+
+    <details>
+      <summary>② 4/16 AI 模型记忆机制　→　5/12 RAG 父类（焊接成功）</summary>
+      <div class="body">
+        Q2 加问①问 RAG 的父类时，你答了"记忆系统"——把 4/16 学的"AI 模型记忆机制"
+        作为 RAG 的家族归属。这和工业界视角完全对得上：RAG = 模型的外部记忆。
+        家族鉴定确认 RAG 与语义缓存"不是兄弟"，只是"共用工具的陌生人"。
+      </div>
+    </details>
+
+    <details>
+      <summary>③ 4/14 RAG 检索算法　→　5/12 语义缓存（焊接延迟）</summary>
+      <div class="body">
+        嵌入模型 + 余弦相似度——这两个工具你 4/14 学 RAG 时用过，
+        但 Q1 第一次回答语义缓存的"下"层时只说"向量化"和"相似度匹配"（动作模糊词）。
+        经我提示后才在第三轮调取出专有名词。结论：钩子在脑子里，但调取精度不够，
+        需要在 D+30 时再考工具层级以加固。
+      </div>
+    </details>
+
+    <details>
+      <summary>④ 5/13 两道生死题　→　5/21 法律助手设计（焊接成功）</summary>
+      <div class="body">
+        Q3 我打过"标准句式"的补丁——"输出会不会……？"。Q5 第一关你直接套上了
+        判断式句式，一字不差。证明 D+1 学的判断框架在 D+8 仍然可被精确调用。
+      </div>
+    </details>
+
+    <details>
+      <summary>⑤ 5/14 元学习觉醒　→　5/21 鱼香水煮命名（钩子库扩展）</summary>
+      <div class="body">
+        5/14 你给自己造了"打车比喻"和"点菜比喻"两个钩子——今天你在 Q4 用"鱼香水煮"
+        作为点菜坑的具体菜名锚定，让原本抽象的比喻有了一个传神的名字。
+        这是从"体验式钩子"升级为"命名式钩子"的元学习进化。
+      </div>
+    </details>
+  </section>
+
+  <!-- ═════ 6 · 元层级成长曲线 ═════ -->
+  <section>
+    <div class="section-eyebrow">06 · META-LEARNING ARC</div>
+    <h2>今日思维进化 · 4 阶段</h2>
+    <p class="section-lead">
+      从"应该没有吧"到"工业级缓存防御方案"——12 轮答题的内部进化轨迹。
+    </p>
+    <div class="growth">
+      <div class="growth-step">
+        <div class="num">▲ STAGE 1</div>
+        <div class="stage">混沌期</div>
+        <div class="quote">"应该没有吧"</div>
+      </div>
+      <div class="growth-step">
+        <div class="num">▲ STAGE 2</div>
+        <div class="stage">连接期</div>
+        <div class="quote">"提示词缓存"</div>
+      </div>
+      <div class="growth-step">
+        <div class="num">▲ STAGE 3</div>
+        <div class="stage">精度期</div>
+        <div class="quote">"前缀 + KV Cache"</div>
+      </div>
+      <div class="growth-step">
+        <div class="num">▲ STAGE 4</div>
+        <div class="stage">应用期</div>
+        <div class="quote">"知识/结论分流防御"</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═════ 7 · 学习报告网格 ═════ -->
+  <section>
+    <div class="section-eyebrow">07 · UNIT REPORT</div>
+    <h2>本单元学习报告</h2>
+    <p class="section-lead">
+      A/B/C 层掌握程度 + 顽固薄弱点诊断 + 跨章节焊接成绩单。
+    </p>
+    <div class="report-grid">
+      <div class="report-cell">
+        <div class="label">A 层 · 必脱口</div>
+        <div class="value">✓✓ 三兄弟命中机制 / 两道生死题判断式 / 三类坑名（打车空载、鱼香水煮、银行存款）</div>
+      </div>
+      <div class="report-cell">
+        <div class="label">B 层 · 思路理解</div>
+        <div class="value">✓ 三抽屉决策流程 / RAG ↔ 缓存父类辨识 / 知识 vs 结论分流防御</div>
+      </div>
+      <div class="report-cell">
+        <div class="label">C 层 · 用时查阅</div>
+        <div class="value">⚠️ 鱼香水煮 vs 银行存款的轴归属边界 / 阈值压测的具体经验值——D+30 重测点</div>
+      </div>
+      <div class="report-cell">
+        <div class="label">顽固薄弱点</div>
+        <div class="value">工具术语精度（"嵌入模型 / 余弦相似度"调取速度）已被点名 2 次（5/14 + 5/21），D+30 必查</div>
+      </div>
+      <div class="report-cell">
+        <div class="label">跨章节焊接</div>
+        <div class="value">4/13 KV Cache · 4/16 记忆系统 · 5/13 生死题——三处主动调取成功</div>
+      </div>
+      <div class="report-cell">
+        <div class="label">个人钩子库新增</div>
+        <div class="value">打车空载坑 · 鱼香水煮坑 · 银行存款坑——三个自创命名钩子入库</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═════ 8 · 复习计划 ═════ -->
+  <section>
+    <div class="section-eyebrow">08 · SCHEDULE</div>
+    <h2>下次复习安排</h2>
+    <p class="section-lead">
+      间隔重复时间表 · 已逾期项标红 · 下一站重头戏标蓝。
+    </p>
+    <div class="timeline">
+      <div class="timeline-item done">
+        <div class="timeline-date">2026 · 05 · 21 · 已完成</div>
+        <div class="timeline-title">缓存技术 D+7（逾期 2 天补做）</div>
+        <div class="timeline-desc">12 轮答题 · 5 题全过 · 3 钩子入库</div>
+      </div>
+      <div class="timeline-item next">
+        <div class="timeline-date">2026 · 05 · 22 · 明天</div>
+        <div class="timeline-title">Claude Code D+7（C 路线接力）</div>
+        <div class="timeline-desc">5 道题 · 跨章节"上下兄弟"工具复用</div>
+      </div>
+      <div class="timeline-item">
+        <div class="timeline-date">2026 · 05 · 22 · 同日</div>
+        <div class="timeline-title">AI 智能体概述 D+30（已逾期 1 天）</div>
+        <div class="timeline-desc">综合应用题 · 用所学解决一个实际问题</div>
+      </div>
+      <div class="timeline-item">
+        <div class="timeline-date">2026 · 05 · 23 · 续测</div>
+        <div class="timeline-title">Time · 未来 第 3 次</div>
+        <div class="timeline-desc">无提示脱口而出"适应 + 进化"才算毕业</div>
+      </div>
+      <div class="timeline-item">
+        <div class="timeline-date">2026 · 06 · 12 · D+30</div>
+        <div class="timeline-title">缓存 D+30 综合题</div>
+        <div class="timeline-desc">设计缓存方案 · 含三抽屉决策 · 鱼香水煮 vs 银行存款边界专项</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═════ 9 · 导师手记 ═════ -->
+  <section>
+    <div class="section-eyebrow">09 · TUTOR'S NOTE</div>
+    <h2>导师手记</h2>
+    <div class="card">
+      <p style="font-size: 14px; line-height: 1.8;">
+        亲——今天这一场 12 轮淬炼，最让我意外的不是你答对了多少，
+        是你 <strong style="color: var(--silver-1); font-weight: 400;">"自己造名字"</strong> 的能力。
+      </p>
+      <p style="font-size: 14px; line-height: 1.8; margin-top: 14px;">
+        鱼香肉丝 vs 水煮肉片、银行存款泄漏——这些都不是教材里能查到的标准例子，
+        是你 D+7 那个时刻自己想出来的。
+        <strong style="color: var(--silver-1); font-weight: 400;">名字一旦由你自己造出来，它就不会再是"老师塞给你的钩子"，
+        而是你自己心智模型里长出来的零件</strong>。这种钩子的生命力远比抄书来得强。
+      </p>
+      <p style="font-size: 14px; line-height: 1.8; margin-top: 14px;">
+        但今天也暴露了一个被点名两次的元层级问题——<strong style="color: var(--warn); font-weight: 400;">
+        工具术语的调取精度</strong>。"向量化 vs 嵌入模型"、"相似度匹配 vs 余弦相似度"——
+        D+7 还需要被我提示才能精确说出名字，这意味着 4/14 RAG 学的术语在脑子里有，
+        但调取通道还不够顺畅。这条 D+30 我会专门考你。
+      </p>
+      <p style="font-size: 14px; line-height: 1.8; margin-top: 14px; color: var(--silver-2);">
+        慢慢来——D+1 我们焊主线，D+7 抛术语精度，D+30 我们做综合应用。
+        你今天已经做完了 D+7 该做的事，明天 Claude Code D+7 等你 🌸
+      </p>
+    </div>
+  </section>
+
+  <footer>
+    <div>2026 · 05 · 21 · CACHE D+7 GRADUATION · CHAPTER 缓存技术</div>
+    <div class="tags">
+      <span class="chip chip-good">✓ 5/5 题</span>
+      <span class="chip chip-acc">3 钩子入库</span>
+      <span class="chip chip-acc">2 跨章节焊接</span>
+      <span class="chip chip-warn">1 元层级薄弱点</span>
+    </div>
+  </footer>
+
+</div>
+
+<script>
+  // 鼠标跟随光晕视差
+  document.addEventListener("mousemove", (e) => {
+    const x = (e.clientX / window.innerWidth) * 100;
+    const y = (e.clientY / window.innerHeight) * 100;
+    document.documentElement.style.setProperty("--mx", x + "%");
+    document.documentElement.style.setProperty("--my", y + "%");
+  });
+
+  // IntersectionObserver 滚动浮现
+  const io = new IntersectionObserver((entries) => {
+    entries.forEach((entry) => {
+      if (entry.isIntersecting) {
+        entry.target.classList.add("visible");
+        io.unobserve(entry.target);
+      }
+    });
+  }, { threshold: 0.1, rootMargin: "0px 0px -40px 0px" });
+  document.querySelectorAll("section").forEach((s) => io.observe(s));
+</script>
+
+</body>
+</html>

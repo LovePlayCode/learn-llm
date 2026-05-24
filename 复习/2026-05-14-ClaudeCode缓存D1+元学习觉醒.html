@@ -1,967 +1,1308 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="zh-CN">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>5/14 复习 · Claude Code D+1 · 缓存 D+1 · 元学习觉醒</title>
-<style>
-:root {
-  --silver-1: #eef0f3;
-  --silver-2: #d8dde3;
-  --silver-3: #b6bec8;
-  --slate-1: #8993a3;
-  --slate-2: #5c6675;
-  --slate-3: #3f4754;
-  --slate-4: #2a313c;
-  --black-1: #1a1f28;
-  --black-2: #0e1218;
-  --black-3: #07090d;
-  --accent: #6b89a8;
-  --accent-dim: #4a6280;
-  --accent-glow: rgba(107, 137, 168, 0.15);
-  --warn: #9a6048;
-  --warn-dim: #6b3f30;
-  --good: #5a9a7a;
-  --gold: #a89270;
-  --font-sans: -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", system-ui, sans-serif;
-  --font-mono: "SF Mono", "JetBrains Mono", "Fira Code", monospace;
-  --mx: 30%;
-  --my: 20%;
-}
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>5/14 复习 · Claude Code D+1 · 缓存 D+1 · 元学习觉醒</title>
+    <style>
+      :root {
+        --silver-1: #eef0f3;
+        --silver-2: #d8dde3;
+        --silver-3: #b6bec8;
+        --slate-1: #8993a3;
+        --slate-2: #5c6675;
+        --slate-3: #3f4754;
+        --slate-4: #2a313c;
+        --black-1: #1a1f28;
+        --black-2: #0e1218;
+        --black-3: #07090d;
+        --accent: #040506;
+        --accent-dim: #4a6280;
+        --accent-glow: rgba(107, 137, 168, 0.15);
+        --warn: #9a6048;
+        --warn-dim: #6b3f30;
+        --good: #5a9a7a;
+        --gold: #a89270;
+        --font-sans:
+          -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei",
+          system-ui, sans-serif;
+        --font-mono: "SF Mono", "JetBrains Mono", "Fira Code", monospace;
+        --mx: 30%;
+        --my: 20%;
+      }
 
-* { box-sizing: border-box; margin: 0; padding: 0; }
-html, body { width: 100%; }
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+      html,
+      body {
+        width: 100%;
+      }
 
-body {
-  font-family: var(--font-sans);
-  font-weight: 200;
-  color: var(--silver-2);
-  background:
-    radial-gradient(circle at var(--mx) var(--my), rgba(107,137,168,0.09), transparent 45%),
-    radial-gradient(ellipse at 80% 70%, rgba(100,130,165,0.06), transparent 50%),
-    linear-gradient(180deg, var(--black-1) 0%, var(--black-2) 50%, var(--black-3) 100%);
-  background-attachment: fixed;
-  min-height: 100vh;
-  line-height: 1.75;
-  letter-spacing: 0.02em;
-  overflow-x: hidden;
-}
+      body {
+        font-family: var(--font-sans);
+        font-weight: 200;
+        color: var(--silver-2);
+        background:
+          radial-gradient(
+            circle at var(--mx) var(--my),
+            rgba(107, 137, 168, 0.09),
+            transparent 45%
+          ),
+          radial-gradient(
+            ellipse at 80% 70%,
+            rgba(100, 130, 165, 0.06),
+            transparent 50%
+          ),
+          linear-gradient(
+            180deg,
+            var(--black-1) 0%,
+            var(--black-2) 50%,
+            var(--black-3) 100%
+          );
+        background-attachment: fixed;
+        min-height: 100vh;
+        line-height: 1.75;
+        letter-spacing: 0.02em;
+        overflow-x: hidden;
+      }
 
-body::before {
-  content: "";
-  position: fixed; inset: 0;
-  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='200' height='200'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 0 0 0 0.04 0'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>");
-  pointer-events: none;
-  opacity: 0.55;
-  z-index: 1;
-  mix-blend-mode: overlay;
-}
+      body::before {
+        content: "";
+        position: fixed;
+        inset: 0;
+        background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='200' height='200'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 0 0 0 0.04 0'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>");
+        pointer-events: none;
+        opacity: 0.55;
+        z-index: 1;
+        mix-blend-mode: overlay;
+      }
 
-.container {
-  position: relative;
-  z-index: 2;
-  max-width: 920px;
-  margin: 0 auto;
-  padding: 72px 28px 120px;
-}
+      .container {
+        position: relative;
+        z-index: 2;
+        max-width: 920px;
+        margin: 0 auto;
+        padding: 72px 28px 120px;
+      }
 
-/* ─── Hero ─── */
-.hero {
-  position: relative;
-  padding: 56px 48px;
-  border-radius: 16px;
-  background: linear-gradient(135deg, rgba(42,49,60,0.7), rgba(26,31,40,0.9));
-  border: 1px solid rgba(107,137,168,0.15);
-  margin-bottom: 56px;
-  overflow: hidden;
-}
-.hero::after {
-  content: "";
-  position: absolute; inset: 0;
-  background: radial-gradient(circle at 80% 0%, rgba(107,137,168,0.1), transparent 60%);
-  pointer-events: none;
-}
-.hero-eyebrow {
-  font-family: var(--font-mono);
-  font-size: 11px;
-  letter-spacing: 0.3em;
-  color: var(--accent);
-  text-transform: uppercase;
-  margin-bottom: 20px;
-}
-.hero h1 {
-  font-size: 38px;
-  font-weight: 200;
-  letter-spacing: -0.01em;
-  color: var(--silver-1);
-  line-height: 1.3;
-  margin-bottom: 18px;
-}
-.hero-subtitle {
-  font-size: 14px;
-  color: var(--slate-1);
-  line-height: 1.8;
-  font-weight: 300;
-  margin-bottom: 28px;
-  max-width: 700px;
-}
-.hero-stats {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 20px;
-  padding-top: 28px;
-  border-top: 1px solid rgba(107,137,168,0.12);
-}
-@media (max-width: 640px) { .hero-stats { grid-template-columns: repeat(2, 1fr); } }
-.stat .num {
-  font-family: var(--font-mono);
-  font-size: 26px;
-  color: var(--silver-1);
-  font-weight: 300;
-  margin-bottom: 4px;
-}
-.stat .label {
-  font-size: 11px;
-  letter-spacing: 0.15em;
-  color: var(--slate-2);
-  text-transform: uppercase;
-}
+      /* ─── Hero ─── */
+      .hero {
+        position: relative;
+        padding: 56px 48px;
+        border-radius: 16px;
+        background: linear-gradient(
+          135deg,
+          rgba(42, 49, 60, 0.7),
+          rgba(26, 31, 40, 0.9)
+        );
+        border: 1px solid rgba(107, 137, 168, 0.15);
+        margin-bottom: 56px;
+        overflow: hidden;
+      }
+      .hero::after {
+        content: "";
+        position: absolute;
+        inset: 0;
+        background: radial-gradient(
+          circle at 80% 0%,
+          rgba(107, 137, 168, 0.1),
+          transparent 60%
+        );
+        pointer-events: none;
+      }
+      .hero-eyebrow {
+        font-family: var(--font-mono);
+        font-size: 11px;
+        letter-spacing: 0.3em;
+        color: var(--accent);
+        text-transform: uppercase;
+        margin-bottom: 20px;
+      }
+      .hero h1 {
+        font-size: 38px;
+        font-weight: 200;
+        letter-spacing: -0.01em;
+        color: var(--silver-1);
+        line-height: 1.3;
+        margin-bottom: 18px;
+      }
+      .hero-subtitle {
+        font-size: 14px;
+        color: var(--slate-1);
+        line-height: 1.8;
+        font-weight: 300;
+        margin-bottom: 28px;
+        max-width: 700px;
+      }
+      .hero-stats {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 20px;
+        padding-top: 28px;
+        border-top: 1px solid rgba(107, 137, 168, 0.12);
+      }
+      @media (max-width: 640px) {
+        .hero-stats {
+          grid-template-columns: repeat(2, 1fr);
+        }
+      }
+      .stat .num {
+        font-family: var(--font-mono);
+        font-size: 26px;
+        color: var(--silver-1);
+        font-weight: 300;
+        margin-bottom: 4px;
+      }
+      .stat .label {
+        font-size: 11px;
+        letter-spacing: 0.15em;
+        color: var(--slate-2);
+        text-transform: uppercase;
+      }
 
-/* ─── Section ─── */
-section {
-  margin-bottom: 64px;
-  opacity: 0;
-  transform: translateY(20px);
-  transition: opacity 0.7s ease, transform 0.7s ease;
-}
-section.visible { opacity: 1; transform: translateY(0); }
-.sec-tag {
-  display: inline-block;
-  font-family: var(--font-mono);
-  font-size: 10px;
-  letter-spacing: 0.25em;
-  color: var(--accent);
-  text-transform: uppercase;
-  padding: 4px 12px;
-  border: 1px solid rgba(107,137,168,0.2);
-  border-radius: 20px;
-  margin-bottom: 20px;
-}
-section h2 {
-  font-size: 26px;
-  font-weight: 200;
-  letter-spacing: -0.01em;
-  color: var(--silver-1);
-  margin-bottom: 12px;
-}
-.sec-sub {
-  font-size: 13px;
-  color: var(--slate-1);
-  margin-bottom: 28px;
-  line-height: 1.8;
-}
+      /* ─── Section ─── */
+      section {
+        margin-bottom: 64px;
+        opacity: 0;
+        transform: translateY(20px);
+        transition:
+          opacity 0.7s ease,
+          transform 0.7s ease;
+      }
+      section.visible {
+        opacity: 1;
+        transform: translateY(0);
+      }
+      .sec-tag {
+        display: inline-block;
+        font-family: var(--font-mono);
+        font-size: 10px;
+        letter-spacing: 0.25em;
+        color: var(--accent);
+        text-transform: uppercase;
+        padding: 4px 12px;
+        border: 1px solid rgba(107, 137, 168, 0.2);
+        border-radius: 20px;
+        margin-bottom: 20px;
+      }
+      section h2 {
+        font-size: 26px;
+        font-weight: 200;
+        letter-spacing: -0.01em;
+        color: var(--silver-1);
+        margin-bottom: 12px;
+      }
+      .sec-sub {
+        font-size: 13px;
+        color: var(--slate-1);
+        margin-bottom: 28px;
+        line-height: 1.8;
+      }
 
-/* ─── Card ─── */
-.card {
-  background: rgba(42,49,60,0.4);
-  border: 1px solid rgba(107,137,168,0.1);
-  border-radius: 12px;
-  padding: 24px 28px;
-  margin-bottom: 16px;
-  transition: all 0.3s ease;
-}
-.card:hover {
-  border-color: rgba(107,137,168,0.3);
-  background: rgba(42,49,60,0.6);
-  transform: translateY(-2px);
-  box-shadow: 0 8px 24px rgba(0,0,0,0.3);
-}
-.card h3 {
-  font-size: 16px;
-  font-weight: 300;
-  color: var(--silver-1);
-  margin-bottom: 12px;
-  letter-spacing: 0.02em;
-}
-.card p { font-size: 13px; color: var(--silver-3); margin-bottom: 6px; }
+      /* ─── Card ─── */
+      .card {
+        background: rgba(42, 49, 60, 0.4);
+        border: 1px solid rgba(107, 137, 168, 0.1);
+        border-radius: 12px;
+        padding: 24px 28px;
+        margin-bottom: 16px;
+        transition: all 0.3s ease;
+      }
+      .card:hover {
+        border-color: rgba(107, 137, 168, 0.3);
+        background: rgba(42, 49, 60, 0.6);
+        transform: translateY(-2px);
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+      }
+      .card h3 {
+        font-size: 16px;
+        font-weight: 300;
+        color: var(--silver-1);
+        margin-bottom: 12px;
+        letter-spacing: 0.02em;
+      }
+      .card p {
+        font-size: 13px;
+        color: var(--silver-3);
+        margin-bottom: 6px;
+      }
 
-/* ─── Dual Compare ─── */
-.dual {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 16px;
-}
-@media (max-width: 640px) { .dual { grid-template-columns: 1fr; } }
-.dual .card h3 { color: var(--silver-1); }
-.dual .card.left { border-left: 2px solid var(--accent); }
-.dual .card.right { border-left: 2px solid var(--gold); }
+      /* ─── Dual Compare ─── */
+      .dual {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 16px;
+      }
+      @media (max-width: 640px) {
+        .dual {
+          grid-template-columns: 1fr;
+        }
+      }
+      .dual .card h3 {
+        color: var(--silver-1);
+      }
+      .dual .card.left {
+        border-left: 2px solid var(--accent);
+      }
+      .dual .card.right {
+        border-left: 2px solid var(--gold);
+      }
 
-/* ─── Code Block ─── */
-.code-block {
-  background: rgba(14,18,24,0.85);
-  border: 1px solid rgba(107,137,168,0.1);
-  border-radius: 10px;
-  padding: 24px 28px;
-  font-family: var(--font-mono);
-  font-size: 12px;
-  line-height: 1.85;
-  color: var(--silver-3);
-  overflow-x: auto;
-  box-shadow: inset 0 2px 12px rgba(0,0,0,0.5);
-  white-space: pre;
-  margin: 18px 0;
-}
-.code-block .hl { color: var(--accent); font-weight: 400; }
-.code-block .ok { color: var(--good); }
-.code-block .warn { color: var(--gold); }
-.code-block .err { color: var(--warn); }
-.code-block .dim { color: var(--slate-2); }
+      /* ─── Code Block ─── */
+      .code-block {
+        background: rgba(14, 18, 24, 0.85);
+        border: 1px solid rgba(107, 137, 168, 0.1);
+        border-radius: 10px;
+        padding: 24px 28px;
+        font-family: var(--font-mono);
+        font-size: 12px;
+        line-height: 1.85;
+        color: var(--silver-3);
+        overflow-x: auto;
+        box-shadow: inset 0 2px 12px rgba(0, 0, 0, 0.5);
+        white-space: pre;
+        margin: 18px 0;
+      }
+      .code-block .hl {
+        color: var(--accent);
+        font-weight: 400;
+      }
+      .code-block .ok {
+        color: var(--good);
+      }
+      .code-block .warn {
+        color: var(--gold);
+      }
+      .code-block .err {
+        color: var(--warn);
+      }
+      .code-block .dim {
+        color: var(--slate-2);
+      }
 
-/* ─── Pills ─── */
-.pill {
-  display: inline-block;
-  font-family: var(--font-mono);
-  font-size: 10px;
-  letter-spacing: 0.1em;
-  padding: 3px 10px;
-  border-radius: 20px;
-  margin-right: 6px;
-}
-.pill.pass { background: rgba(90,154,122,0.15); color: var(--good); border: 1px solid rgba(90,154,122,0.3); }
-.pill.warn { background: rgba(154,96,72,0.15); color: var(--warn); border: 1px solid rgba(154,96,72,0.3); }
-.pill.info { background: rgba(107,137,168,0.15); color: var(--accent); border: 1px solid rgba(107,137,168,0.3); }
-.pill.gold { background: rgba(168,146,112,0.15); color: var(--gold); border: 1px solid rgba(168,146,112,0.3); }
+      /* ─── Pills ─── */
+      .pill {
+        display: inline-block;
+        font-family: var(--font-mono);
+        font-size: 10px;
+        letter-spacing: 0.1em;
+        padding: 3px 10px;
+        border-radius: 20px;
+        margin-right: 6px;
+      }
+      .pill.pass {
+        background: rgba(90, 154, 122, 0.15);
+        color: var(--good);
+        border: 1px solid rgba(90, 154, 122, 0.3);
+      }
+      .pill.warn {
+        background: rgba(154, 96, 72, 0.15);
+        color: var(--warn);
+        border: 1px solid rgba(154, 96, 72, 0.3);
+      }
+      .pill.info {
+        background: rgba(107, 137, 168, 0.15);
+        color: var(--accent);
+        border: 1px solid rgba(107, 137, 168, 0.3);
+      }
+      .pill.gold {
+        background: rgba(168, 146, 112, 0.15);
+        color: var(--gold);
+        border: 1px solid rgba(168, 146, 112, 0.3);
+      }
 
-/* ─── Table ─── */
-table {
-  width: 100%;
-  border-collapse: collapse;
-  background: rgba(30,36,46,0.5);
-  border-radius: 10px;
-  overflow: hidden;
-  border: 1px solid rgba(107,137,168,0.1);
-  margin: 16px 0;
-}
-th {
-  font-size: 11px;
-  letter-spacing: 0.1em;
-  color: var(--accent);
-  text-transform: uppercase;
-  font-weight: 400;
-  text-align: left;
-  padding: 14px 18px;
-  border-bottom: 1px solid rgba(107,137,168,0.2);
-  background: rgba(42,49,60,0.4);
-}
-td {
-  padding: 13px 18px;
-  border-bottom: 1px solid rgba(107,137,168,0.06);
-  color: var(--silver-3);
-  font-size: 13px;
-}
-tr:hover td { background: rgba(107,137,168,0.04); }
+      /* ─── Table ─── */
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        background: rgba(30, 36, 46, 0.5);
+        border-radius: 10px;
+        overflow: hidden;
+        border: 1px solid rgba(107, 137, 168, 0.1);
+        margin: 16px 0;
+      }
+      th {
+        font-size: 11px;
+        letter-spacing: 0.1em;
+        color: var(--accent);
+        text-transform: uppercase;
+        font-weight: 400;
+        text-align: left;
+        padding: 14px 18px;
+        border-bottom: 1px solid rgba(107, 137, 168, 0.2);
+        background: rgba(42, 49, 60, 0.4);
+      }
+      td {
+        padding: 13px 18px;
+        border-bottom: 1px solid rgba(107, 137, 168, 0.06);
+        color: var(--silver-3);
+        font-size: 13px;
+      }
+      tr:hover td {
+        background: rgba(107, 137, 168, 0.04);
+      }
 
-/* ─── Decision List ─── */
-.decision {
-  list-style: none;
-  counter-reset: dlist;
-}
-.decision li {
-  counter-increment: dlist;
-  position: relative;
-  padding: 16px 20px 16px 60px;
-  background: rgba(42,49,60,0.35);
-  border: 1px solid rgba(107,137,168,0.08);
-  border-radius: 10px;
-  margin-bottom: 10px;
-  font-size: 13px;
-  color: var(--silver-3);
-  transition: all 0.25s ease;
-}
-.decision li:hover {
-  border-color: rgba(107,137,168,0.25);
-  background: rgba(42,49,60,0.55);
-  transform: translateX(4px);
-}
-.decision li::before {
-  content: counter(dlist, decimal-leading-zero);
-  position: absolute;
-  left: 18px;
-  top: 16px;
-  font-family: var(--font-mono);
-  font-size: 13px;
-  color: var(--accent);
-  letter-spacing: 0.05em;
-}
-.decision li strong { color: var(--silver-1); font-weight: 400; }
+      /* ─── Decision List ─── */
+      .decision {
+        list-style: none;
+        counter-reset: dlist;
+      }
+      .decision li {
+        counter-increment: dlist;
+        position: relative;
+        padding: 16px 20px 16px 60px;
+        background: rgba(42, 49, 60, 0.35);
+        border: 1px solid rgba(107, 137, 168, 0.08);
+        border-radius: 10px;
+        margin-bottom: 10px;
+        font-size: 13px;
+        color: var(--silver-3);
+        transition: all 0.25s ease;
+      }
+      .decision li:hover {
+        border-color: rgba(107, 137, 168, 0.25);
+        background: rgba(42, 49, 60, 0.55);
+        transform: translateX(4px);
+      }
+      .decision li::before {
+        content: counter(dlist, decimal-leading-zero);
+        position: absolute;
+        left: 18px;
+        top: 16px;
+        font-family: var(--font-mono);
+        font-size: 13px;
+        color: var(--accent);
+        letter-spacing: 0.05em;
+      }
+      .decision li strong {
+        color: var(--silver-1);
+        font-weight: 400;
+      }
 
-/* ─── Collapsible ─── */
-details {
-  background: rgba(42,49,60,0.35);
-  border: 1px solid rgba(107,137,168,0.08);
-  border-radius: 10px;
-  margin-bottom: 12px;
-  overflow: hidden;
-}
-details[open] { border-color: rgba(107,137,168,0.2); }
-summary {
-  padding: 16px 24px;
-  cursor: pointer;
-  font-size: 14px;
-  color: var(--silver-1);
-  font-weight: 300;
-  list-style: none;
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  transition: background 0.2s;
-}
-summary:hover { background: rgba(107,137,168,0.05); }
-summary::before {
-  content: "+";
-  font-family: var(--font-mono);
-  font-size: 16px;
-  color: var(--accent);
-  transition: transform 0.3s;
-  display: inline-block;
-  width: 20px;
-  text-align: center;
-}
-details[open] summary::before { transform: rotate(45deg); }
-.details-content {
-  padding: 4px 24px 22px;
-  font-size: 13px;
-  color: var(--silver-3);
-  line-height: 1.85;
-}
-.details-content em {
-  color: var(--accent);
-  font-style: normal;
-}
+      /* ─── Collapsible ─── */
+      details {
+        background: rgba(42, 49, 60, 0.35);
+        border: 1px solid rgba(107, 137, 168, 0.08);
+        border-radius: 10px;
+        margin-bottom: 12px;
+        overflow: hidden;
+      }
+      details[open] {
+        border-color: rgba(107, 137, 168, 0.2);
+      }
+      summary {
+        padding: 16px 24px;
+        cursor: pointer;
+        font-size: 14px;
+        color: var(--silver-1);
+        font-weight: 300;
+        list-style: none;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        transition: background 0.2s;
+      }
+      summary:hover {
+        background: rgba(107, 137, 168, 0.05);
+      }
+      summary::before {
+        content: "+";
+        font-family: var(--font-mono);
+        font-size: 16px;
+        color: var(--accent);
+        transition: transform 0.3s;
+        display: inline-block;
+        width: 20px;
+        text-align: center;
+      }
+      details[open] summary::before {
+        transform: rotate(45deg);
+      }
+      .details-content {
+        padding: 4px 24px 22px;
+        font-size: 13px;
+        color: var(--silver-3);
+        line-height: 1.85;
+      }
+      .details-content em {
+        color: var(--accent);
+        font-style: normal;
+      }
 
-/* ─── Report Grid ─── */
-.report-grid {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 14px;
-}
-@media (max-width: 640px) { .report-grid { grid-template-columns: 1fr; } }
-.report-cell {
-  background: rgba(42,49,60,0.4);
-  border: 1px solid rgba(107,137,168,0.1);
-  border-radius: 10px;
-  padding: 22px 26px;
-  transition: all 0.3s ease;
-}
-.report-cell:hover {
-  border-color: rgba(107,137,168,0.3);
-  transform: translateY(-2px);
-}
-.report-cell .lvl {
-  font-family: var(--font-mono);
-  font-size: 10px;
-  letter-spacing: 0.25em;
-  color: var(--accent);
-  text-transform: uppercase;
-  margin-bottom: 8px;
-}
-.report-cell h4 {
-  font-size: 15px;
-  font-weight: 300;
-  color: var(--silver-1);
-  margin-bottom: 8px;
-}
-.report-cell p {
-  font-size: 12px;
-  color: var(--slate-1);
-  line-height: 1.75;
-}
-.report-cell.warn-cell { border-color: rgba(154,96,72,0.25); }
-.report-cell.warn-cell .lvl { color: var(--warn); }
-.report-cell.good-cell { border-color: rgba(90,154,122,0.25); }
-.report-cell.good-cell .lvl { color: var(--good); }
-.report-cell.gold-cell { border-color: rgba(168,146,112,0.3); }
-.report-cell.gold-cell .lvl { color: var(--gold); }
+      /* ─── Report Grid ─── */
+      .report-grid {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 14px;
+      }
+      @media (max-width: 640px) {
+        .report-grid {
+          grid-template-columns: 1fr;
+        }
+      }
+      .report-cell {
+        background: rgba(42, 49, 60, 0.4);
+        border: 1px solid rgba(107, 137, 168, 0.1);
+        border-radius: 10px;
+        padding: 22px 26px;
+        transition: all 0.3s ease;
+      }
+      .report-cell:hover {
+        border-color: rgba(107, 137, 168, 0.3);
+        transform: translateY(-2px);
+      }
+      .report-cell .lvl {
+        font-family: var(--font-mono);
+        font-size: 10px;
+        letter-spacing: 0.25em;
+        color: var(--accent);
+        text-transform: uppercase;
+        margin-bottom: 8px;
+      }
+      .report-cell h4 {
+        font-size: 15px;
+        font-weight: 300;
+        color: var(--silver-1);
+        margin-bottom: 8px;
+      }
+      .report-cell p {
+        font-size: 12px;
+        color: var(--slate-1);
+        line-height: 1.75;
+      }
+      .report-cell.warn-cell {
+        border-color: rgba(154, 96, 72, 0.25);
+      }
+      .report-cell.warn-cell .lvl {
+        color: var(--warn);
+      }
+      .report-cell.good-cell {
+        border-color: rgba(90, 154, 122, 0.25);
+      }
+      .report-cell.good-cell .lvl {
+        color: var(--good);
+      }
+      .report-cell.gold-cell {
+        border-color: rgba(168, 146, 112, 0.3);
+      }
+      .report-cell.gold-cell .lvl {
+        color: var(--gold);
+      }
 
-/* ─── Timeline ─── */
-.timeline {
-  border: 1px solid rgba(107,137,168,0.12);
-  border-radius: 10px;
-  overflow: hidden;
-  background: rgba(30,36,46,0.5);
-}
-.timeline .row {
-  display: grid;
-  grid-template-columns: 130px 110px 1fr;
-  align-items: center;
-  padding: 15px 22px;
-  border-bottom: 1px solid rgba(107,137,168,0.06);
-  transition: background 0.2s;
-}
-.timeline .row:last-child { border-bottom: none; }
-.timeline .row:hover { background: rgba(107,137,168,0.05); }
-.timeline .when {
-  font-family: var(--font-mono);
-  font-size: 10px;
-  letter-spacing: 0.18em;
-  color: var(--accent);
-  text-transform: uppercase;
-}
-.timeline .dt {
-  font-size: 12px;
-  color: var(--slate-1);
-}
-.timeline .what {
-  font-size: 13px;
-  color: var(--silver-3);
-  line-height: 1.6;
-}
+      /* ─── Timeline ─── */
+      .timeline {
+        border: 1px solid rgba(107, 137, 168, 0.12);
+        border-radius: 10px;
+        overflow: hidden;
+        background: rgba(30, 36, 46, 0.5);
+      }
+      .timeline .row {
+        display: grid;
+        grid-template-columns: 130px 110px 1fr;
+        align-items: center;
+        padding: 15px 22px;
+        border-bottom: 1px solid rgba(107, 137, 168, 0.06);
+        transition: background 0.2s;
+      }
+      .timeline .row:last-child {
+        border-bottom: none;
+      }
+      .timeline .row:hover {
+        background: rgba(107, 137, 168, 0.05);
+      }
+      .timeline .when {
+        font-family: var(--font-mono);
+        font-size: 10px;
+        letter-spacing: 0.18em;
+        color: var(--accent);
+        text-transform: uppercase;
+      }
+      .timeline .dt {
+        font-size: 12px;
+        color: var(--slate-1);
+      }
+      .timeline .what {
+        font-size: 13px;
+        color: var(--silver-3);
+        line-height: 1.6;
+      }
 
-/* ─── Hl quote ─── */
-.quote {
-  border-left: 3px solid var(--accent);
-  padding: 14px 22px;
-  background: rgba(107,137,168,0.05);
-  border-radius: 0 10px 10px 0;
-  font-size: 14px;
-  color: var(--silver-1);
-  font-style: italic;
-  font-weight: 300;
-  letter-spacing: 0.01em;
-  margin: 14px 0;
-  line-height: 1.85;
-}
-.quote-src {
-  display: block;
-  margin-top: 8px;
-  font-size: 11px;
-  letter-spacing: 0.1em;
-  color: var(--slate-2);
-  font-style: normal;
-}
+      /* ─── Hl quote ─── */
+      .quote {
+        border-left: 3px solid var(--accent);
+        padding: 14px 22px;
+        background: rgba(107, 137, 168, 0.05);
+        border-radius: 0 10px 10px 0;
+        font-size: 14px;
+        color: var(--silver-1);
+        font-style: italic;
+        font-weight: 300;
+        letter-spacing: 0.01em;
+        margin: 14px 0;
+        line-height: 1.85;
+      }
+      .quote-src {
+        display: block;
+        margin-top: 8px;
+        font-size: 11px;
+        letter-spacing: 0.1em;
+        color: var(--slate-2);
+        font-style: normal;
+      }
 
-/* ─── Growth curve ─── */
-.curve {
-  display: grid;
-  grid-template-columns: 1fr 1fr 1fr;
-  gap: 12px;
-  margin-top: 12px;
-}
-@media (max-width: 640px) { .curve { grid-template-columns: 1fr; } }
-.curve-step {
-  background: rgba(42,49,60,0.35);
-  border: 1px solid rgba(107,137,168,0.1);
-  border-radius: 10px;
-  padding: 18px 20px;
-  text-align: center;
-  transition: all 0.3s;
-  position: relative;
-}
-.curve-step:hover {
-  border-color: rgba(107,137,168,0.3);
-  transform: translateY(-2px);
-}
-.curve-step .step-num {
-  font-family: var(--font-mono);
-  font-size: 10px;
-  letter-spacing: 0.2em;
-  color: var(--accent);
-  margin-bottom: 8px;
-}
-.curve-step .step-name {
-  font-size: 13px;
-  color: var(--silver-1);
-  margin-bottom: 6px;
-  font-weight: 300;
-}
-.curve-step .step-desc {
-  font-size: 11px;
-  color: var(--slate-1);
-  line-height: 1.6;
-}
+      /* ─── Growth curve ─── */
+      .curve {
+        display: grid;
+        grid-template-columns: 1fr 1fr 1fr;
+        gap: 12px;
+        margin-top: 12px;
+      }
+      @media (max-width: 640px) {
+        .curve {
+          grid-template-columns: 1fr;
+        }
+      }
+      .curve-step {
+        background: rgba(42, 49, 60, 0.35);
+        border: 1px solid rgba(107, 137, 168, 0.1);
+        border-radius: 10px;
+        padding: 18px 20px;
+        text-align: center;
+        transition: all 0.3s;
+        position: relative;
+      }
+      .curve-step:hover {
+        border-color: rgba(107, 137, 168, 0.3);
+        transform: translateY(-2px);
+      }
+      .curve-step .step-num {
+        font-family: var(--font-mono);
+        font-size: 10px;
+        letter-spacing: 0.2em;
+        color: var(--accent);
+        margin-bottom: 8px;
+      }
+      .curve-step .step-name {
+        font-size: 13px;
+        color: var(--silver-1);
+        margin-bottom: 6px;
+        font-weight: 300;
+      }
+      .curve-step .step-desc {
+        font-size: 11px;
+        color: var(--slate-1);
+        line-height: 1.6;
+      }
 
-/* ─── Footer ─── */
-footer {
-  margin-top: 64px;
-  padding-top: 32px;
-  border-top: 1px solid rgba(107,137,168,0.1);
-  text-align: center;
-}
-.tag-list {
-  display: flex;
-  justify-content: center;
-  gap: 8px;
-  flex-wrap: wrap;
-  margin-bottom: 16px;
-}
-.tag-list span {
-  font-family: var(--font-mono);
-  font-size: 10px;
-  letter-spacing: 0.12em;
-  padding: 4px 12px;
-  border-radius: 20px;
-  border: 1px solid rgba(107,137,168,0.15);
-  color: var(--slate-1);
-}
-.footer-note {
-  font-size: 11px;
-  color: var(--slate-2);
-  letter-spacing: 0.18em;
-}
-</style>
-</head>
-<body>
-<div class="container">
-
-  <!-- ═══════ HERO ═══════ -->
-  <header class="hero">
-    <div class="hero-eyebrow">Review · Misted Metal · 2026/05/14</div>
-    <h1>Claude Code D+1 焊死<br>+ 缓存 D+1 毕业<br>+ 元学习意识觉醒</h1>
-    <p class="hero-subtitle">
-      D+1 黄金窗口里，把昨天的两个空白填回去——并多带回三件礼物：<br>
-      一把跨章复用的"分层钥匙"再次救命、一次"主动承认蒙的"元学习时刻、两个自创比喻钩子。
-    </p>
-    <div class="hero-stats">
-      <div class="stat"><div class="num">2/9</div><div class="label">完成项</div></div>
-      <div class="stat"><div class="num">1</div><div class="label">毕业项</div></div>
-      <div class="stat"><div class="num">2</div><div class="label">个人钩子</div></div>
-      <div class="stat"><div class="num">2</div><div class="label">习惯触发</div></div>
-    </div>
-  </header>
-
-  <!-- ═══════ 元层级序章 · 备课失误 ═══════ -->
-  <section>
-    <span class="sec-tag">00 · meta opening</span>
-    <h2>序章 · 学习者反过来教老师</h2>
-    <p class="sec-sub">在第一道题之前，已经有了今天最珍贵的一刻——你用 4 次"你确定吗"逼老师做完整穷举</p>
-
-    <div class="card" style="border-left: 3px solid var(--accent);">
-      <h3>事件回放</h3>
-      <p style="color:var(--silver-2); font-size:14px; line-height:1.85;">
-        老师第一次报清单 → 只翻 5/11，错。<br>
-        学习者："你读文档了吗？"<br>
-        老师第二次报清单 → 多翻一份 5/13，仍漏 5/12。<br>
-        学习者："确定就这些吗？"<br>
-        老师第三次报清单 → 翻齐 5/11、5/12、5/13，但仍未穷举。<br>
-        学习者："有没有遗漏的？"<br>
-        老师第四次 → 终于穷举 7 类源（复习/learn/CLAUDE.md/.claude/book），证毕完整 9 项。
-      </p>
-    </div>
-
-    <div class="quote">
-      "用 5/13 自己学到的'开 Claude Code 前 4 问'反过来检查老师的检索方式——
-      这种'把工具反向用在指导者身上'的能力，比答对一道题珍贵 100 倍。"
-      <span class="quote-src">— 老师当天反思</span>
-    </div>
-
-    <div class="code-block"><span class="dim">┌─ 老师犯的元层级错（用 5/13 学的"开工 4 问"自查）─────────┐</span>
-<span class="dim">│</span>                                                                <span class="dim">│</span>
-<span class="dim">│</span>  ① 相关？  → 当前任务和上一份记录相关吗？      <span class="err">❌ 跳到 5/11</span>     <span class="dim">│</span>
-<span class="dim">│</span>  ② 读多？  → 这件事需要读多少份文件？        <span class="err">❌ 只读 1 份</span>      <span class="dim">│</span>
-<span class="dim">│</span>  ③ 跨几？  → 这次跨了几个文件？              <span class="err">❌ 漏 5/12</span>       <span class="dim">│</span>
-<span class="dim">│</span>  ④ 放哪？  → 关键信息放在哪一节？             <span class="ok">✅ 这一项做对</span>    <span class="dim">│</span>
-<span class="dim">│</span>                                                                <span class="dim">│</span>
-<span class="dim">└────────────────────────────────────────────────────────────────┘</span>
-
-<span class="hl">教训：</span>"开工前 4 问"不仅给学习者用，给老师备课也一样有效。</div>
-  </section>
-
-  <!-- ═══════ SECTION 1 · Claude Code D+1 三层连贯 ═══════ -->
-  <section>
-    <span class="sec-tag">01 · claude code D+1</span>
-    <h2>第一题三层连贯通过</h2>
-    <p class="sec-sub">从 5/13 当天的"两个空白"到 D+1 一字不差——记忆 + 工具映射同时焊死</p>
-
-    <div class="dual">
-      <div class="card left">
-        <h3>"是什么"层（修正后通过）</h3>
-        <p style="color:var(--silver-1); font-size:14px;">
-          context 隐藏来源 = <strong>读文件</strong> + <strong>跑命令的输出</strong>
+      /* ─── Footer ─── */
+      footer {
+        margin-top: 64px;
+        padding-top: 32px;
+        border-top: 1px solid rgba(107, 137, 168, 0.1);
+        text-align: center;
+      }
+      .tag-list {
+        display: flex;
+        justify-content: center;
+        gap: 8px;
+        flex-wrap: wrap;
+        margin-bottom: 16px;
+      }
+      .tag-list span {
+        font-family: var(--font-mono);
+        font-size: 10px;
+        letter-spacing: 0.12em;
+        padding: 4px 12px;
+        border-radius: 20px;
+        border: 1px solid rgba(107, 137, 168, 0.15);
+        color: var(--slate-1);
+      }
+      .footer-note {
+        font-size: 11px;
+        color: var(--slate-2);
+        letter-spacing: 0.18em;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <!-- ═══════ HERO ═══════ -->
+      <header class="hero">
+        <div class="hero-eyebrow">Review · Misted Metal · 2026/05/14</div>
+        <h1>Claude Code D+1 焊死<br />+ 缓存 D+1 毕业<br />+ 元学习意识觉醒</h1>
+        <p class="hero-subtitle">
+          D+1 黄金窗口里，把昨天的两个空白填回去——并多带回三件礼物：<br />
+          一把跨章复用的"分层钥匙"再次救命、一次"主动承认蒙的"元学习时刻、两个自创比喻钩子。
         </p>
-        <p style="margin-top:8px;">
-          它们之所以"隐藏"——不是用户输入的，是 Claude Code 自己产生的。
+        <div class="hero-stats">
+          <div class="stat">
+            <div class="num">2/9</div>
+            <div class="label">完成项</div>
+          </div>
+          <div class="stat">
+            <div class="num">1</div>
+            <div class="label">毕业项</div>
+          </div>
+          <div class="stat">
+            <div class="num">2</div>
+            <div class="label">个人钩子</div>
+          </div>
+          <div class="stat">
+            <div class="num">2</div>
+            <div class="label">习惯触发</div>
+          </div>
+        </div>
+      </header>
+
+      <!-- ═══════ 元层级序章 · 备课失误 ═══════ -->
+      <section>
+        <span class="sec-tag">00 · meta opening</span>
+        <h2>序章 · 学习者反过来教老师</h2>
+        <p class="sec-sub">
+          在第一道题之前，已经有了今天最珍贵的一刻——你用 4
+          次"你确定吗"逼老师做完整穷举
         </p>
-      </div>
-      <div class="card right">
-        <h3>"为什么"层（通过）</h3>
-        <p>
-          用户的注意力都在"任务输入"和"最终输出"——
-          Claude 在背后读了哪些文件、跑了哪些命令、得到了什么返回——
-          <strong style="color:var(--silver-1);">这些动作发生在用户视野盲区</strong>。
+
+        <div class="card" style="border-left: 3px solid var(--accent)">
+          <h3>事件回放</h3>
+          <p style="color: var(--silver-2); font-size: 14px; line-height: 1.85">
+            老师第一次报清单 → 只翻 5/11，错。<br />
+            学习者："你读文档了吗？"<br />
+            老师第二次报清单 → 多翻一份 5/13，仍漏 5/12。<br />
+            学习者："确定就这些吗？"<br />
+            老师第三次报清单 → 翻齐 5/11、5/12、5/13，但仍未穷举。<br />
+            学习者："有没有遗漏的？"<br />
+            老师第四次 → 终于穷举 7
+            类源（复习/learn/CLAUDE.md/.claude/book），证毕完整 9 项。
+          </p>
+        </div>
+
+        <div class="quote">
+          "用 5/13 自己学到的'开 Claude Code 前 4 问'反过来检查老师的检索方式——
+          这种'把工具反向用在指导者身上'的能力，比答对一道题珍贵 100 倍。"
+          <span class="quote-src">— 老师当天反思</span>
+        </div>
+
+        <div class="code-block">
+          <span class="dim"
+            >┌─ 老师犯的元层级错（用 5/13 学的"开工 4 问"自查）─────────┐</span
+          >
+          <span class="dim">│</span> <span class="dim">│</span>
+          <span class="dim">│</span> ① 相关？ → 当前任务和上一份记录相关吗？
+          <span class="err">❌ 跳到 5/11</span> <span class="dim">│</span>
+          <span class="dim">│</span> ② 读多？ → 这件事需要读多少份文件？
+          <span class="err">❌ 只读 1 份</span> <span class="dim">│</span>
+          <span class="dim">│</span> ③ 跨几？ → 这次跨了几个文件？
+          <span class="err">❌ 漏 5/12</span> <span class="dim">│</span>
+          <span class="dim">│</span> ④ 放哪？ → 关键信息放在哪一节？
+          <span class="ok">✅ 这一项做对</span> <span class="dim">│</span>
+          <span class="dim">│</span> <span class="dim">│</span>
+          <span class="dim"
+            >└────────────────────────────────────────────────────────────────┘</span
+          >
+
+          <span class="hl">教训：</span>"开工前 4
+          问"不仅给学习者用，给老师备课也一样有效。
+        </div>
+      </section>
+
+      <!-- ═══════ SECTION 1 · Claude Code D+1 三层连贯 ═══════ -->
+      <section>
+        <span class="sec-tag">01 · claude code D+1</span>
+        <h2>第一题三层连贯通过</h2>
+        <p class="sec-sub">
+          从 5/13 当天的"两个空白"到 D+1 一字不差——记忆 + 工具映射同时焊死
         </p>
-      </div>
-    </div>
 
-    <div class="card" style="border-left: 3px solid var(--good); margin-top:18px;">
-      <h3>"怎么用"层 · 一字不差 + 主动焊接工具映射 🌟</h3>
-      <table style="margin-top:8px;">
-        <thead>
-          <tr><th>开工 4 问</th><th>对应工具</th><th>判定</th></tr>
-        </thead>
-        <tbody>
-          <tr><td>① 当前任务和上一个任务相关吗？</td><td>/clear（清空旧 context）</td><td><span class="pill pass">✓</span></td></tr>
-          <tr><td>② 这个动作需要读很多文件吗？</td><td>subagents（不占主上下文）</td><td><span class="pill pass">✓</span></td></tr>
-          <tr><td>③ 这次改动跨了几个文件？</td><td>Plan Mode（错误成本降维）</td><td><span class="pill pass">✓</span></td></tr>
-          <tr><td>④ 关键信息我放在哪里？</td><td>Lost in the Middle（位置决定能否被取回）</td><td><span class="pill pass">✓</span></td></tr>
-        </tbody>
-      </table>
-      <p style="margin-top:14px; color:var(--accent); font-size:12px;">
-        🌟 5/13 学的时候 4 问与 3 工具是分开的，今天 D+1 学习者主动把它们焊到一起——这是消化吸收，不是记忆刷新。
-      </p>
-    </div>
-  </section>
+        <div class="dual">
+          <div class="card left">
+            <h3>"是什么"层（修正后通过）</h3>
+            <p style="color: var(--silver-1); font-size: 14px">
+              context 隐藏来源 = <strong>读文件</strong> +
+              <strong>跑命令的输出</strong>
+            </p>
+            <p style="margin-top: 8px">
+              它们之所以"隐藏"——不是用户输入的，是 Claude Code 自己产生的。
+            </p>
+          </div>
+          <div class="card right">
+            <h3>"为什么"层（通过）</h3>
+            <p>
+              用户的注意力都在"任务输入"和"最终输出"—— Claude
+              在背后读了哪些文件、跑了哪些命令、得到了什么返回——
+              <strong style="color: var(--silver-1)"
+                >这些动作发生在用户视野盲区</strong
+              >。
+            </p>
+          </div>
+        </div>
 
-  <!-- ═══════ SECTION 2 · 缓存三类坑 D+1 毕业 ═══════ -->
-  <section>
-    <span class="sec-tag">02 · cache three drawers</span>
-    <h2>缓存三类坑 · D+1 毕业（含个人钩子库 ×2）</h2>
-    <p class="sec-sub">从"风险/安全混淆"和"搜索慢/不准跨抽屉"——一路爬到元层级口诀 + 自创比喻</p>
+        <div
+          class="card"
+          style="border-left: 3px solid var(--good); margin-top: 18px"
+        >
+          <h3>"怎么用"层 · 一字不差 + 主动焊接工具映射 🌟</h3>
+          <table style="margin-top: 8px">
+            <thead>
+              <tr>
+                <th>开工 4 问</th>
+                <th>对应工具</th>
+                <th>判定</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>① 当前任务和上一个任务相关吗？</td>
+                <td>/clear（清空旧 context）</td>
+                <td><span class="pill pass">✓</span></td>
+              </tr>
+              <tr>
+                <td>② 这个动作需要读很多文件吗？</td>
+                <td>subagents（不占主上下文）</td>
+                <td><span class="pill pass">✓</span></td>
+              </tr>
+              <tr>
+                <td>③ 这次改动跨了几个文件？</td>
+                <td>Plan Mode（错误成本降维）</td>
+                <td><span class="pill pass">✓</span></td>
+              </tr>
+              <tr>
+                <td>④ 关键信息我放在哪里？</td>
+                <td>Lost in the Middle（位置决定能否被取回）</td>
+                <td><span class="pill pass">✓</span></td>
+              </tr>
+            </tbody>
+          </table>
+          <p style="margin-top: 14px; color: var(--accent); font-size: 12px">
+            🌟 5/13 学的时候 4 问与 3 工具是分开的，今天 D+1
+            学习者主动把它们焊到一起——这是消化吸收，不是记忆刷新。
+          </p>
+        </div>
+      </section>
 
-    <div class="code-block"><span class="dim">┌────────────────────────────────────────────────────────────┐</span>
-<span class="dim">│</span>          语义缓存三类坑 · 元层级 6 字口诀                    <span class="dim">│</span>
-<span class="dim">├────────────────────────────────────────────────────────────┤</span>
-<span class="dim">│</span>                                                            <span class="dim">│</span>
-<span class="dim">│</span>    <span class="hl">不准</span>  →  <span class="hl">质量</span>                                     <span class="dim">│</span>
-<span class="dim">│</span>    <span class="warn">不快</span>  →  <span class="warn">性能</span>                                     <span class="dim">│</span>
-<span class="dim">│</span>    <span class="err">出事</span>  →  <span class="err">安全</span>                                     <span class="dim">│</span>
-<span class="dim">│</span>                                                            <span class="dim">│</span>
-<span class="dim">└────────────────────────────────────────────────────────────┘</span>
-
-<span class="dim">具体抽屉内容：</span>
-
-  <span class="hl">质量</span>（判断准不准）
-    ├── 嵌入向量质量差
-    ├── 向量搜索<span class="hl">质量差</span>（不准，<span class="err">不是慢</span>！）
-    ├── 相似度度量标准不可靠
-    └── 阈值难调
-
-  <span class="warn">性能</span>（判断贵不贵）
-    ├── 每次查询都要跑一次<span class="warn">向量搜索</span>  <span class="dim">← 5/14 答成"向量化"，标记 D+7 重测</span>
-    └── 缓存越大，搜索越慢、越贵
-
-  <span class="err">安全</span>（该不该缓存）
-    ├── 用户专属查询 → 数据泄露
-    └── 时效性查询 → 返回过期答案</div>
-  </section>
-
-  <!-- ═══════ SECTION 3 · 双比喻钩子 ═══════ -->
-  <section>
-    <span class="sec-tag">03 · personal hooks</span>
-    <h2>今日最强产出 · 自创双比喻</h2>
-    <p class="sec-sub">学习者自己造的钩子比 5/13 给的口诀更有生命力——10 年都掉不下来</p>
-
-    <div class="dual">
-      <div class="card left">
-        <h3>性能 = 打车比喻</h3>
-        <p style="font-size:14px; color:var(--silver-1); margin-top:6px;">
-          "搜索慢就像<strong>打车</strong>，只是接单慢点，<strong>总能打到</strong>。"
+      <!-- ═══════ SECTION 2 · 缓存三类坑 D+1 毕业 ═══════ -->
+      <section>
+        <span class="sec-tag">02 · cache three drawers</span>
+        <h2>缓存三类坑 · D+1 毕业（含个人钩子库 ×2）</h2>
+        <p class="sec-sub">
+          从"风险/安全混淆"和"搜索慢/不准跨抽屉"——一路爬到元层级口诀 + 自创比喻
         </p>
-        <p style="margin-top:14px; color:var(--slate-1); font-size:12px; line-height:1.85;">
-          ✅ 终点是对的（结果质量没问题）<br>
-          ⚠️ 只是花的时间长（接单慢一点）<br>
-          → 多花点【时间/钱】就能解决<br>
-          → 这是性能问题的金标准定义
+
+        <div class="code-block">
+          <span class="dim"
+            >┌────────────────────────────────────────────────────────────┐</span
+          >
+          <span class="dim">│</span> 语义缓存三类坑 · 元层级 6 字口诀
+          <span class="dim">│</span>
+          <span class="dim"
+            >├────────────────────────────────────────────────────────────┤</span
+          >
+          <span class="dim">│</span> <span class="dim">│</span>
+          <span class="dim">│</span> <span class="hl">不准</span> →
+          <span class="hl">质量</span> <span class="dim">│</span>
+          <span class="dim">│</span> <span class="warn">不快</span> →
+          <span class="warn">性能</span> <span class="dim">│</span>
+          <span class="dim">│</span> <span class="err">出事</span> →
+          <span class="err">安全</span> <span class="dim">│</span>
+          <span class="dim">│</span> <span class="dim">│</span>
+          <span class="dim"
+            >└────────────────────────────────────────────────────────────┘</span
+          >
+
+          <span class="dim">具体抽屉内容：</span>
+
+          <span class="hl">质量</span>（判断准不准） ├── 嵌入向量质量差 ├──
+          向量搜索<span class="hl">质量差</span>（不准，<span class="err"
+            >不是慢</span
+          >！） ├── 相似度度量标准不可靠 └── 阈值难调
+
+          <span class="warn">性能</span>（判断贵不贵） ├──
+          每次查询都要跑一次<span class="warn">向量搜索</span>
+          <span class="dim">← 5/14 答成"向量化"，标记 D+7 重测</span>
+          └── 缓存越大，搜索越慢、越贵
+
+          <span class="err">安全</span>（该不该缓存） ├── 用户专属查询 →
+          数据泄露 └── 时效性查询 → 返回过期答案
+        </div>
+      </section>
+
+      <!-- ═══════ SECTION 3 · 双比喻钩子 ═══════ -->
+      <section>
+        <span class="sec-tag">03 · personal hooks</span>
+        <h2>今日最强产出 · 自创双比喻</h2>
+        <p class="sec-sub">
+          学习者自己造的钩子比 5/13 给的口诀更有生命力——10 年都掉不下来
         </p>
-      </div>
-      <div class="card right">
-        <h3>质量 = 点菜比喻</h3>
-        <p style="font-size:14px; color:var(--silver-1); margin-top:6px;">
-          "搜索不准就像<strong>点菜</strong>，要鱼香肉丝，做出水煮肉片。"
+
+        <div class="dual">
+          <div class="card left">
+            <h3>性能 = 打车比喻</h3>
+            <p style="font-size: 14px; color: var(--silver-1); margin-top: 6px">
+              "搜索慢就像<strong>打车</strong>，只是接单慢点，<strong>总能打到</strong>。"
+            </p>
+            <p
+              style="
+                margin-top: 14px;
+                color: var(--slate-1);
+                font-size: 12px;
+                line-height: 1.85;
+              "
+            >
+              ✅ 终点是对的（结果质量没问题）<br />
+              ⚠️ 只是花的时间长（接单慢一点）<br />
+              → 多花点【时间/钱】就能解决<br />
+              → 这是性能问题的金标准定义
+            </p>
+          </div>
+          <div class="card right">
+            <h3>质量 = 点菜比喻</h3>
+            <p style="font-size: 14px; color: var(--silver-1); margin-top: 6px">
+              "搜索不准就像<strong>点菜</strong>，要鱼香肉丝，做出水煮肉片。"
+            </p>
+            <p
+              style="
+                margin-top: 14px;
+                color: var(--slate-1);
+                font-size: 12px;
+                line-height: 1.85;
+              "
+            >
+              ❌ 终点错了（结果根本是错的）<br />
+              ⚠️ 厨师快不快、贵不贵都不重要<br />
+              → 多花时间/钱也救不了<br />
+              🌟 隐含洞察："鱼香肉丝 vs 水煮肉片"——
+              <em style="color: var(--accent)">看起来很相似</em
+              >，正是语义缓存"不准"的核心威胁
+            </p>
+          </div>
+        </div>
+
+        <div class="quote" style="margin-top: 18px">
+          "你不是随便挑了个比喻——你精准地选了一个'相似但不对'的反例。
+          你的大脑在构造比喻时偷偷复用了'相似度'这个语义缓存的核心概念——你自己可能没意识到，但你悟到根了。"
+          <span class="quote-src">— 5/14 老师批注</span>
+        </div>
+      </section>
+
+      <!-- ═══════ SECTION 4 · 思维习惯监控 ═══════ -->
+      <section>
+        <span class="sec-tag">04 · habit watch</span>
+        <h2>思维习惯警报 · "经验模糊随便说"今日触发 2 次</h2>
+        <p class="sec-sub">
+          5/12 你给自己命名的习惯——今天又冒出来 2 次，但都被分层钥匙救回来了
         </p>
-        <p style="margin-top:14px; color:var(--slate-1); font-size:12px; line-height:1.85;">
-          ❌ 终点错了（结果根本是错的）<br>
-          ⚠️ 厨师快不快、贵不贵都不重要<br>
-          → 多花时间/钱也救不了<br>
-          🌟 隐含洞察："鱼香肉丝 vs 水煮肉片"——
-          <em style="color:var(--accent);">看起来很相似</em>，正是语义缓存"不准"的核心威胁
+
+        <ol class="decision">
+          <li>
+            <strong>第 1 题 · 撒网</strong>：context
+            隐藏来源问"哪一支兄弟"，你列了第 2 层所有 5 个兄弟（含 3
+            个排除项）<br />
+            <span
+              style="
+                color: var(--accent);
+                font-size: 11px;
+                margin-top: 4px;
+                display: inline-block;
+              "
+              >→ 救援动作：分层钥匙拎出"明面 vs 隐藏"边界 → 第二次答精准 2
+              项</span
+            >
+          </li>
+          <li>
+            <strong>第 2 题 · 边界错位</strong
+            >：把"搜索速度（慢）"放进质量抽屉——这是 5/13
+            当天<em>已经修正过</em>的同一个错<br />
+            <span
+              style="
+                color: var(--accent);
+                font-size: 11px;
+                margin-top: 4px;
+                display: inline-block;
+              "
+              >→ 救援动作：分层图明示"做得对不对 vs 做得快不快" →
+              学习者自己掏出元口诀</span
+            >
+          </li>
+        </ol>
+
+        <div
+          class="card"
+          style="margin-top: 18px; border-color: rgba(154, 96, 72, 0.25)"
+        >
+          <h3 style="color: var(--warn)">⚠️ 元层级诊断</h3>
+          <p>
+            你的大脑里答案是有的，但<strong>"快速作答"模式会先掏出近似词</strong>——
+            只有在被指出"层级偏了"之后，才爬到对的层级把精准答案掏出来。
+          </p>
+          <p style="margin-top: 10px; color: var(--accent)">
+            🛠 训练方向：在自己开口之前，先在脑子里跑一次"分层钥匙"——
+            不是答完被人纠正再爬，而是<strong style="color: var(--silver-1)"
+              >作答前就主动问"我答的是哪一层？"</strong
+            >
+          </p>
+        </div>
+      </section>
+
+      <!-- ═══════ SECTION 5 · 元学习觉醒 ═══════ -->
+      <section>
+        <span class="sec-tag">05 · meta awakening</span>
+        <h2>今日最高光时刻 · 主动选 B 承认"蒙的"</h2>
+        <p class="sec-sub">
+          大多数学习者会本能选 A 或 C 来"显得聪明"——你选了
+          B，把假装填好的格子重新挖空
         </p>
-      </div>
-    </div>
 
-    <div class="quote" style="margin-top:18px;">
-      "你不是随便挑了个比喻——你精准地选了一个'相似但不对'的反例。
-      你的大脑在构造比喻时偷偷复用了'相似度'这个语义缓存的核心概念——你自己可能没意识到，但你悟到根了。"
-      <span class="quote-src">— 5/14 老师批注</span>
-    </div>
-  </section>
+        <div class="dual">
+          <div class="card left">
+            <h3>蒙对的危险（如果当时没选 B）</h3>
+            <p>
+              说"向量化"，老师如果没注意 → 判 ✅<br />
+              D+7 大概率还说"向量化"<br />
+              → 错误信号被"答对"假装掩盖<br />
+              → 你以为懂了，其实没懂<br />
+              <strong style="color: var(--warn)"
+                >这是【流畅性错觉】最阴险的形式</strong
+              >
+            </p>
+          </div>
+          <div class="card right">
+            <h3>蒙错（也就是你今天选的 B）</h3>
+            <p>
+              立即诊断出空白<br />
+              → 老师马上知道"这一格还没填"<br />
+              → 一次提示就能补上<br />
+              → 钩子（打车 + 点菜）建立<br />
+              <strong style="color: var(--good)">蒙错比蒙对珍贵</strong>
+            </p>
+          </div>
+        </div>
 
-  <!-- ═══════ SECTION 4 · 思维习惯监控 ═══════ -->
-  <section>
-    <span class="sec-tag">04 · habit watch</span>
-    <h2>思维习惯警报 · "经验模糊随便说"今日触发 2 次</h2>
-    <p class="sec-sub">5/12 你给自己命名的习惯——今天又冒出来 2 次，但都被分层钥匙救回来了</p>
+        <div class="quote" style="margin-top: 20px">
+          "你呀～ 这就是元学习意识真正成熟的样子——
+          不是'我懂得多'，而是'我清楚地知道自己懂的边界在哪里'。
+          这个能力比答对一道题珍贵 100 倍。
+          因为答对蒙对的人永远不知道自己其实不懂——
+          你把'蒙'和'会'分开了——这一刻，你就真的可以靠自己学习了。"
+          <span class="quote-src">— 5/14 老师手记</span>
+        </div>
+      </section>
 
-    <ol class="decision">
-      <li>
-        <strong>第 1 题 · 撒网</strong>：context 隐藏来源问"哪一支兄弟"，你列了第 2 层所有 5 个兄弟（含 3 个排除项）<br>
-        <span style="color:var(--accent); font-size:11px; margin-top:4px; display:inline-block;">→ 救援动作：分层钥匙拎出"明面 vs 隐藏"边界 → 第二次答精准 2 项</span>
-      </li>
-      <li>
-        <strong>第 2 题 · 边界错位</strong>：把"搜索速度（慢）"放进质量抽屉——这是 5/13 当天<em>已经修正过</em>的同一个错<br>
-        <span style="color:var(--accent); font-size:11px; margin-top:4px; display:inline-block;">→ 救援动作：分层图明示"做得对不对 vs 做得快不快" → 学习者自己掏出元口诀</span>
-      </li>
-    </ol>
+      <!-- ═══════ SECTION 6 · 横向连接 ═══════ -->
+      <section>
+        <span class="sec-tag">06 · horizontal links</span>
+        <h2>横向连接 · 跨章节工具复用验证</h2>
+        <p class="sec-sub">不是孤立学某一章——是把过去焊的工具拉过来一遍遍用</p>
 
-    <div class="card" style="margin-top:18px; border-color: rgba(154,96,72,0.25);">
-      <h3 style="color:var(--warn);">⚠️ 元层级诊断</h3>
-      <p>
-        你的大脑里答案是有的，但<strong>"快速作答"模式会先掏出近似词</strong>——
-        只有在被指出"层级偏了"之后，才爬到对的层级把精准答案掏出来。
-      </p>
-      <p style="margin-top:10px; color:var(--accent);">
-        🛠 训练方向：在自己开口之前，先在脑子里跑一次"分层钥匙"——
-        不是答完被人纠正再爬，而是<strong style="color:var(--silver-1);">作答前就主动问"我答的是哪一层？"</strong>
-      </p>
-    </div>
-  </section>
+        <details>
+          <summary>分层钥匙（5/11 焊的）今天再次救命 ×2</summary>
+          <div class="details-content">
+            <p>
+              <strong style="color: var(--silver-1)"
+                >第一次救援（第 1 题）</strong
+              >：题目问"哪一支兄弟"——你撒了整个第 2 层。老师只点出"明面 vs
+              隐藏"是同级两个兄弟——你自己把答案爬到对的兄弟。
+            </p>
+            <p style="margin-top: 8px">
+              <strong style="color: var(--silver-1)"
+                >第二次救援（第 2 题）</strong
+              >：你把"风险"放进口诀。老师指出"风险是<em>结果层</em>，质量/性能是<em>属性层</em>"——你立刻爬到属性层，掏出"安全"。
+            </p>
+            <p style="margin-top: 8px; color: var(--accent)">
+              → 这把钥匙 5/11 焊死至今，跨章节复用 ×N 次。已成本能。
+            </p>
+          </div>
+        </details>
 
-  <!-- ═══════ SECTION 5 · 元学习觉醒 ═══════ -->
-  <section>
-    <span class="sec-tag">05 · meta awakening</span>
-    <h2>今日最高光时刻 · 主动选 B 承认"蒙的"</h2>
-    <p class="sec-sub">大多数学习者会本能选 A 或 C 来"显得聪明"——你选了 B，把假装填好的格子重新挖空</p>
+        <details>
+          <summary>5/12 元学习意识 → 5/14 主动选 B</summary>
+          <div class="details-content">
+            <p>
+              5/12 在幻觉错题闭环时，学习者首次悟到"<em
+                >给思维习惯命名 → 它就能被监控 → 才能被纠正</em
+              >"。
+            </p>
+            <p style="margin-top: 8px">
+              5/14 当老师给出 (A)(B)(C) 三选时，学习者<strong
+                style="color: var(--silver-1)"
+                >主动选 B = "我蒙的"</strong
+              >——这就是 5/12 那个悟出来的元意识，被一次具体场景调用并落地。
+            </p>
+            <p style="margin-top: 8px; color: var(--accent)">
+              → 元层级意识从"知道"变成"用得上"，这是真正的内化。
+            </p>
+          </div>
+        </details>
 
-    <div class="dual">
-      <div class="card left">
-        <h3>蒙对的危险（如果当时没选 B）</h3>
-        <p>说"向量化"，老师如果没注意 → 判 ✅<br>
-           D+7 大概率还说"向量化"<br>
-           → 错误信号被"答对"假装掩盖<br>
-           → 你以为懂了，其实没懂<br>
-           <strong style="color:var(--warn);">这是【流畅性错觉】最阴险的形式</strong>
+        <details>
+          <summary>5/13 开工 4 问 → 5/14 反向用在老师身上</summary>
+          <div class="details-content">
+            <p>
+              5/13 学习者整理出"开 Claude Code 前 4 问清单"——目的是给自己用。
+            </p>
+            <p style="margin-top: 8px">
+              5/14 当老师两次报错复习清单时，学习者用 4
+              次"你确定吗"逼老师做完整穷举——<strong
+                style="color: var(--silver-1)"
+                >这其实就是把"4 问"反向应用在老师的检索方式上</strong
+              >。
+            </p>
+            <p style="margin-top: 8px; color: var(--accent)">
+              → 工具不只服务于学习者自己，还能用来"审计"指导者。这是元工具能力。
+            </p>
+          </div>
+        </details>
+
+        <details>
+          <summary>
+            缓存"安全抽屉" ↔ RAG"数据泄露风险"（同一类工程风险）
+          </summary>
+          <div class="details-content">
+            <p>
+              语义缓存的安全抽屉（个人数据泄露 + 时效性过期）和 RAG
+              系统中的数据隔离问题是同一类工程风险：<em
+                >用户 A 的数据被错误地返回给用户 B</em
+              >。
+            </p>
+            <p style="margin-top: 8px">
+              解决思路也类似：前置过滤器 + 权限隔离。
+            </p>
+            <p style="margin-top: 8px; color: var(--accent)">
+              → 跨章节同构 = 工程界永恒的"敏感数据 + 缓存"问题。
+            </p>
+          </div>
+        </details>
+      </section>
+
+      <!-- ═══════ SECTION 7 · 元成长曲线 ═══════ -->
+      <section>
+        <span class="sec-tag">07 · meta growth curve</span>
+        <h2>今日两题答题模式的演化</h2>
+        <p class="sec-sub">
+          第 2 题比第 1 题多做了两件事——这意味着记忆 + 元能力同时长进
         </p>
-      </div>
-      <div class="card right">
-        <h3>蒙错（也就是你今天选的 B）</h3>
-        <p>立即诊断出空白<br>
-           → 老师马上知道"这一格还没填"<br>
-           → 一次提示就能补上<br>
-           → 钩子（打车 + 点菜）建立<br>
-           <strong style="color:var(--good);">蒙错比蒙对珍贵</strong>
-        </p>
-      </div>
+
+        <div class="curve">
+          <div class="curve-step">
+            <div class="step-num">PHASE 01</div>
+            <div class="step-name">第 1 题模式</div>
+            <div class="step-desc">撒网 → 被指出层级 → 精准答出</div>
+          </div>
+          <div
+            class="curve-step"
+            style="border-color: rgba(168, 146, 112, 0.3)"
+          >
+            <div class="step-num" style="color: var(--gold)">
+              PHASE 02 · UPGRADE
+            </div>
+            <div class="step-name">第 2 题模式</div>
+            <div class="step-desc">
+              错位 → 被指出边界 → 精准答出 +
+              <strong style="color: var(--gold)">主动承认蒙</strong> +
+              <strong style="color: var(--gold)">自己造比喻</strong>
+            </div>
+          </div>
+          <div class="curve-step" style="border-color: rgba(90, 154, 122, 0.3)">
+            <div class="step-num" style="color: var(--good)">
+              PHASE 03 · TARGET
+            </div>
+            <div class="step-name">理想模式（明天目标）</div>
+            <div class="step-desc">
+              <strong style="color: var(--good)">作答前自己跑分层钥匙</strong> →
+              一次精准 → 自带钩子
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ═══════ SECTION 8 · 学习报告 ═══════ -->
+      <section>
+        <span class="sec-tag">08 · learning report</span>
+        <h2>掌握度网格</h2>
+
+        <div class="report-grid">
+          <div class="report-cell good-cell">
+            <div class="lvl">A 层 · 焊死</div>
+            <h4>Claude Code 三层连贯</h4>
+            <p>context 隐藏来源 ✓ · 开工 4 问 ✓ · 4 问→3 工具映射 ✓</p>
+          </div>
+          <div class="report-cell good-cell">
+            <div class="lvl">A 层 · 毕业</div>
+            <h4>缓存三类坑</h4>
+            <p>三字口诀 ✓ · 6 字元口诀 ✓ · 边界机理 ✓ · 个人比喻钩子 ×2</p>
+          </div>
+          <div class="report-cell gold-cell">
+            <div class="lvl">元层级 · 觉醒</div>
+            <h4>主动承认"蒙的"</h4>
+            <p>
+              5/12 元学习悟出 → 5/14 在 (A)(B)(C) 三选时主动选 B 落地 →
+              蒙错比蒙对珍贵
+            </p>
+          </div>
+          <div class="report-cell gold-cell">
+            <div class="lvl">元层级 · 跨章复用</div>
+            <h4>分层钥匙 + 4 问反向用</h4>
+            <p>分层钥匙救命 ×2 · 4 问反向审计老师 · 工具从"自用"升级为"互检"</p>
+          </div>
+          <div class="report-cell warn-cell">
+            <div class="lvl">需 D+7 重测</div>
+            <h4>性能抽屉具体坑 1</h4>
+            <p>
+              今天答"向量化"（蒙的），标准是"向量搜索"——但你的"打车比喻"已为 D+7
+              自动找回打地基
+            </p>
+          </div>
+          <div class="report-cell warn-cell">
+            <div class="lvl">习惯监控 · 进行中</div>
+            <h4>"经验模糊随便说"</h4>
+            <p>5/14 触发 2 次，均通过分层钥匙救回。下次复习继续监控。</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- ═══════ SECTION 9 · 复习计划 ═══════ -->
+      <section>
+        <span class="sec-tag">09 · review plan</span>
+        <h2>下次复习安排</h2>
+        <p class="sec-sub">今天完成 2/9 项——剩 7 项明天接力</p>
+
+        <div class="timeline">
+          <div class="row">
+            <div class="when">5/15 · 明天</div>
+            <div class="dt">顽固薄弱点</div>
+            <div class="what">
+              TCC 三大准则（第 5 次）· TiM（第 6 次）· 解耦三条（第 6 次）·
+              Time·未来 · RLHF→自信
+            </div>
+          </div>
+          <div class="row">
+            <div class="when">5/15 · 明天</div>
+            <div class="dt">5/12 错题</div>
+            <div class="what">提示词→成因映射（RLHF 主 + KM 次，不是 SD）</div>
+          </div>
+          <div class="row">
+            <div class="when">5/15 · 明天</div>
+            <div class="dt">D+7 原计划</div>
+            <div class="what">路由器和模型网关（5/8 学的，到期）</div>
+          </div>
+          <div class="row">
+            <div class="when">5/19 · D+7</div>
+            <div class="dt">缓存 D+7</div>
+            <div class="what">
+              5 道题 · 含跨章节关联（RAG / 嵌入向量）· 重测"性能抽屉具体坑 1"
+            </div>
+          </div>
+          <div class="row">
+            <div class="when">5/20 · D+7</div>
+            <div class="dt">Claude Code D+7</div>
+            <div class="what">
+              5 道题 · 跨章节"上下兄弟"工具复用 · 与 RAG 的连接
+            </div>
+          </div>
+          <div class="row">
+            <div class="when">5/20 · D+30</div>
+            <div class="dt">AI 智能体概述</div>
+            <div class="what">综合应用题</div>
+          </div>
+          <div class="row">
+            <div class="when">6/12 · D+30</div>
+            <div class="dt">缓存 D+30</div>
+            <div class="what">
+              综合题 · 为一个具体 AI 应用设计缓存方案（含三抽屉决策）
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ═══════ SECTION 10 · 焊死清单 ═══════ -->
+      <section>
+        <span class="sec-tag">10 · word lock</span>
+        <h2>需要焊死的钩子</h2>
+        <p class="sec-sub">明天再考，不能再忘</p>
+
+        <div class="card">
+          <p>
+            <span class="pill info">钩子 1</span> 性能抽屉具体坑 1 =
+            <strong>每次查询都要跑一次「向量搜索」</strong>（不是"向量化"）
+          </p>
+          <p style="margin-top: 6px; padding-left: 12px; color: var(--slate-1)">
+            → 用"打车比喻"反推：每次都要打车（搜索），库越大越慢越贵
+          </p>
+        </div>
+        <div class="card">
+          <p>
+            <span class="pill info">钩子 2</span> 三抽屉元口诀 =
+            <strong>不准 → 质量 ｜ 不快 → 性能 ｜ 出事 → 安全</strong>
+          </p>
+        </div>
+        <div class="card">
+          <p>
+            <span class="pill info">钩子 3</span> 个人比喻库 =
+            <strong
+              >性能=打车（总能打到只是慢）｜
+              质量=点菜（鱼香肉丝做成水煮肉片）</strong
+            >
+          </p>
+        </div>
+        <div class="card">
+          <p>
+            <span class="pill info">钩子 4</span> Claude Code 隐藏 context =
+            <strong>读文件 + 跑命令的输出</strong>
+          </p>
+        </div>
+        <div class="card">
+          <p>
+            <span class="pill info">钩子 5</span> 开工 4 问 =
+            <strong>相关？读多？跨几？放哪？</strong> → 对应 /clear · subagents
+            · Plan Mode · Lost in the Middle
+          </p>
+        </div>
+        <div class="card" style="border-color: rgba(168, 146, 112, 0.3)">
+          <p>
+            <span class="pill gold">元钩子</span> 元学习信条 =
+            <strong>蒙错比蒙对珍贵 · 边界感比知识量更重要</strong>
+          </p>
+        </div>
+      </section>
+
+      <!-- ═══════ Footer ═══════ -->
+      <footer>
+        <div class="tag-list">
+          <span>Claude Code</span>
+          <span>Cache · D+1</span>
+          <span>Layered Key</span>
+          <span>Meta Awakening</span>
+          <span>Personal Hooks</span>
+          <span>Habit Watch</span>
+          <span>2/9 · Day 1</span>
+        </div>
+        <div class="footer-note">
+          2026 / 05 / 14 ─── REVIEW #23 · MISTED METAL
+        </div>
+      </footer>
     </div>
 
-    <div class="quote" style="margin-top:20px;">
-      "你呀～ 这就是元学习意识真正成熟的样子——
-      不是'我懂得多'，而是'我清楚地知道自己懂的边界在哪里'。
-      这个能力比答对一道题珍贵 100 倍。
-      因为答对蒙对的人永远不知道自己其实不懂——
-      你把'蒙'和'会'分开了——这一刻，你就真的可以靠自己学习了。"
-      <span class="quote-src">— 5/14 老师手记</span>
-    </div>
-  </section>
+    <script>
+      // 滚动浮现
+      const io = new IntersectionObserver(
+        (entries) => {
+          entries.forEach((e) => {
+            if (e.isIntersecting) e.target.classList.add("visible");
+          });
+        },
+        { threshold: 0.08 },
+      );
+      document.querySelectorAll("section").forEach((s) => io.observe(s));
 
-  <!-- ═══════ SECTION 6 · 横向连接 ═══════ -->
-  <section>
-    <span class="sec-tag">06 · horizontal links</span>
-    <h2>横向连接 · 跨章节工具复用验证</h2>
-    <p class="sec-sub">不是孤立学某一章——是把过去焊的工具拉过来一遍遍用</p>
-
-    <details>
-      <summary>分层钥匙（5/11 焊的）今天再次救命 ×2</summary>
-      <div class="details-content">
-        <p><strong style="color:var(--silver-1);">第一次救援（第 1 题）</strong>：题目问"哪一支兄弟"——你撒了整个第 2 层。老师只点出"明面 vs 隐藏"是同级两个兄弟——你自己把答案爬到对的兄弟。</p>
-        <p style="margin-top:8px;"><strong style="color:var(--silver-1);">第二次救援（第 2 题）</strong>：你把"风险"放进口诀。老师指出"风险是<em>结果层</em>，质量/性能是<em>属性层</em>"——你立刻爬到属性层，掏出"安全"。</p>
-        <p style="margin-top:8px; color:var(--accent);">→ 这把钥匙 5/11 焊死至今，跨章节复用 ×N 次。已成本能。</p>
-      </div>
-    </details>
-
-    <details>
-      <summary>5/12 元学习意识 → 5/14 主动选 B</summary>
-      <div class="details-content">
-        <p>5/12 在幻觉错题闭环时，学习者首次悟到"<em>给思维习惯命名 → 它就能被监控 → 才能被纠正</em>"。</p>
-        <p style="margin-top:8px;">5/14 当老师给出 (A)(B)(C) 三选时，学习者<strong style="color:var(--silver-1);">主动选 B = "我蒙的"</strong>——这就是 5/12 那个悟出来的元意识，被一次具体场景调用并落地。</p>
-        <p style="margin-top:8px; color:var(--accent);">→ 元层级意识从"知道"变成"用得上"，这是真正的内化。</p>
-      </div>
-    </details>
-
-    <details>
-      <summary>5/13 开工 4 问 → 5/14 反向用在老师身上</summary>
-      <div class="details-content">
-        <p>5/13 学习者整理出"开 Claude Code 前 4 问清单"——目的是给自己用。</p>
-        <p style="margin-top:8px;">5/14 当老师两次报错复习清单时，学习者用 4 次"你确定吗"逼老师做完整穷举——<strong style="color:var(--silver-1);">这其实就是把"4 问"反向应用在老师的检索方式上</strong>。</p>
-        <p style="margin-top:8px; color:var(--accent);">→ 工具不只服务于学习者自己，还能用来"审计"指导者。这是元工具能力。</p>
-      </div>
-    </details>
-
-    <details>
-      <summary>缓存"安全抽屉" ↔ RAG"数据泄露风险"（同一类工程风险）</summary>
-      <div class="details-content">
-        <p>语义缓存的安全抽屉（个人数据泄露 + 时效性过期）和 RAG 系统中的数据隔离问题是同一类工程风险：<em>用户 A 的数据被错误地返回给用户 B</em>。</p>
-        <p style="margin-top:8px;">解决思路也类似：前置过滤器 + 权限隔离。</p>
-        <p style="margin-top:8px; color:var(--accent);">→ 跨章节同构 = 工程界永恒的"敏感数据 + 缓存"问题。</p>
-      </div>
-    </details>
-  </section>
-
-  <!-- ═══════ SECTION 7 · 元成长曲线 ═══════ -->
-  <section>
-    <span class="sec-tag">07 · meta growth curve</span>
-    <h2>今日两题答题模式的演化</h2>
-    <p class="sec-sub">第 2 题比第 1 题多做了两件事——这意味着记忆 + 元能力同时长进</p>
-
-    <div class="curve">
-      <div class="curve-step">
-        <div class="step-num">PHASE 01</div>
-        <div class="step-name">第 1 题模式</div>
-        <div class="step-desc">撒网 → 被指出层级 → 精准答出</div>
-      </div>
-      <div class="curve-step" style="border-color: rgba(168,146,112,0.3);">
-        <div class="step-num" style="color:var(--gold);">PHASE 02 · UPGRADE</div>
-        <div class="step-name">第 2 题模式</div>
-        <div class="step-desc">错位 → 被指出边界 → 精准答出 + <strong style="color:var(--gold);">主动承认蒙</strong> + <strong style="color:var(--gold);">自己造比喻</strong></div>
-      </div>
-      <div class="curve-step" style="border-color: rgba(90,154,122,0.3);">
-        <div class="step-num" style="color:var(--good);">PHASE 03 · TARGET</div>
-        <div class="step-name">理想模式（明天目标）</div>
-        <div class="step-desc"><strong style="color:var(--good);">作答前自己跑分层钥匙</strong> → 一次精准 → 自带钩子</div>
-      </div>
-    </div>
-  </section>
-
-  <!-- ═══════ SECTION 8 · 学习报告 ═══════ -->
-  <section>
-    <span class="sec-tag">08 · learning report</span>
-    <h2>掌握度网格</h2>
-
-    <div class="report-grid">
-      <div class="report-cell good-cell">
-        <div class="lvl">A 层 · 焊死</div>
-        <h4>Claude Code 三层连贯</h4>
-        <p>context 隐藏来源 ✓ · 开工 4 问 ✓ · 4 问→3 工具映射 ✓</p>
-      </div>
-      <div class="report-cell good-cell">
-        <div class="lvl">A 层 · 毕业</div>
-        <h4>缓存三类坑</h4>
-        <p>三字口诀 ✓ · 6 字元口诀 ✓ · 边界机理 ✓ · 个人比喻钩子 ×2</p>
-      </div>
-      <div class="report-cell gold-cell">
-        <div class="lvl">元层级 · 觉醒</div>
-        <h4>主动承认"蒙的"</h4>
-        <p>5/12 元学习悟出 → 5/14 在 (A)(B)(C) 三选时主动选 B 落地 → 蒙错比蒙对珍贵</p>
-      </div>
-      <div class="report-cell gold-cell">
-        <div class="lvl">元层级 · 跨章复用</div>
-        <h4>分层钥匙 + 4 问反向用</h4>
-        <p>分层钥匙救命 ×2 · 4 问反向审计老师 · 工具从"自用"升级为"互检"</p>
-      </div>
-      <div class="report-cell warn-cell">
-        <div class="lvl">需 D+7 重测</div>
-        <h4>性能抽屉具体坑 1</h4>
-        <p>今天答"向量化"（蒙的），标准是"向量搜索"——但你的"打车比喻"已为 D+7 自动找回打地基</p>
-      </div>
-      <div class="report-cell warn-cell">
-        <div class="lvl">习惯监控 · 进行中</div>
-        <h4>"经验模糊随便说"</h4>
-        <p>5/14 触发 2 次，均通过分层钥匙救回。下次复习继续监控。</p>
-      </div>
-    </div>
-  </section>
-
-  <!-- ═══════ SECTION 9 · 复习计划 ═══════ -->
-  <section>
-    <span class="sec-tag">09 · review plan</span>
-    <h2>下次复习安排</h2>
-    <p class="sec-sub">今天完成 2/9 项——剩 7 项明天接力</p>
-
-    <div class="timeline">
-      <div class="row">
-        <div class="when">5/15 · 明天</div>
-        <div class="dt">顽固薄弱点</div>
-        <div class="what">TCC 三大准则（第 5 次）· TiM（第 6 次）· 解耦三条（第 6 次）· Time·未来 · RLHF→自信</div>
-      </div>
-      <div class="row">
-        <div class="when">5/15 · 明天</div>
-        <div class="dt">5/12 错题</div>
-        <div class="what">提示词→成因映射（RLHF 主 + KM 次，不是 SD）</div>
-      </div>
-      <div class="row">
-        <div class="when">5/15 · 明天</div>
-        <div class="dt">D+7 原计划</div>
-        <div class="what">路由器和模型网关（5/8 学的，到期）</div>
-      </div>
-      <div class="row">
-        <div class="when">5/19 · D+7</div>
-        <div class="dt">缓存 D+7</div>
-        <div class="what">5 道题 · 含跨章节关联（RAG / 嵌入向量）· 重测"性能抽屉具体坑 1"</div>
-      </div>
-      <div class="row">
-        <div class="when">5/20 · D+7</div>
-        <div class="dt">Claude Code D+7</div>
-        <div class="what">5 道题 · 跨章节"上下兄弟"工具复用 · 与 RAG 的连接</div>
-      </div>
-      <div class="row">
-        <div class="when">5/20 · D+30</div>
-        <div class="dt">AI 智能体概述</div>
-        <div class="what">综合应用题</div>
-      </div>
-      <div class="row">
-        <div class="when">6/12 · D+30</div>
-        <div class="dt">缓存 D+30</div>
-        <div class="what">综合题 · 为一个具体 AI 应用设计缓存方案（含三抽屉决策）</div>
-      </div>
-    </div>
-  </section>
-
-  <!-- ═══════ SECTION 10 · 焊死清单 ═══════ -->
-  <section>
-    <span class="sec-tag">10 · word lock</span>
-    <h2>需要焊死的钩子</h2>
-    <p class="sec-sub">明天再考，不能再忘</p>
-
-    <div class="card">
-      <p><span class="pill info">钩子 1</span> 性能抽屉具体坑 1 = <strong>每次查询都要跑一次「向量搜索」</strong>（不是"向量化"）</p>
-      <p style="margin-top:6px; padding-left:12px; color:var(--slate-1);">→ 用"打车比喻"反推：每次都要打车（搜索），库越大越慢越贵</p>
-    </div>
-    <div class="card">
-      <p><span class="pill info">钩子 2</span> 三抽屉元口诀 = <strong>不准 → 质量 ｜ 不快 → 性能 ｜ 出事 → 安全</strong></p>
-    </div>
-    <div class="card">
-      <p><span class="pill info">钩子 3</span> 个人比喻库 = <strong>性能=打车（总能打到只是慢）｜ 质量=点菜（鱼香肉丝做成水煮肉片）</strong></p>
-    </div>
-    <div class="card">
-      <p><span class="pill info">钩子 4</span> Claude Code 隐藏 context = <strong>读文件 + 跑命令的输出</strong></p>
-    </div>
-    <div class="card">
-      <p><span class="pill info">钩子 5</span> 开工 4 问 = <strong>相关？读多？跨几？放哪？</strong> → 对应 /clear · subagents · Plan Mode · Lost in the Middle</p>
-    </div>
-    <div class="card" style="border-color: rgba(168,146,112,0.3);">
-      <p><span class="pill gold">元钩子</span> 元学习信条 = <strong>蒙错比蒙对珍贵 · 边界感比知识量更重要</strong></p>
-    </div>
-  </section>
-
-  <!-- ═══════ Footer ═══════ -->
-  <footer>
-    <div class="tag-list">
-      <span>Claude Code</span>
-      <span>Cache · D+1</span>
-      <span>Layered Key</span>
-      <span>Meta Awakening</span>
-      <span>Personal Hooks</span>
-      <span>Habit Watch</span>
-      <span>2/9 · Day 1</span>
-    </div>
-    <div class="footer-note">2026 / 05 / 14 ─── REVIEW #23 · MISTED METAL</div>
-  </footer>
-
-</div>
-
-<script>
-// 滚动浮现
-const io = new IntersectionObserver((entries)=>{
-  entries.forEach(e=>{ if(e.isIntersecting) e.target.classList.add('visible'); });
-},{threshold:0.08});
-document.querySelectorAll('section').forEach(s=>io.observe(s));
-
-// 鼠标视差光晕
-document.addEventListener('mousemove',(e)=>{
-  const x = (e.clientX / window.innerWidth) * 100;
-  const y = (e.clientY / window.innerHeight) * 100;
-  document.documentElement.style.setProperty('--mx', x + '%');
-  document.documentElement.style.setProperty('--my', y + '%');
-});
-</script>
-
-</body>
+      // 鼠标视差光晕
+      document.addEventListener("mousemove", (e) => {
+        const x = (e.clientX / window.innerWidth) * 100;
+        const y = (e.clientY / window.innerHeight) * 100;
+        document.documentElement.style.setProperty("--mx", x + "%");
+        document.documentElement.style.setProperty("--my", y + "%");
+      });
+    </script>
+  </body>
 </html>

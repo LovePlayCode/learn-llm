@@ -1,0 +1,963 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>5/24 · 推理时计算 · D44 · 洞察网络闭环</title>
+    <style>
+      :root {
+        --metal-100: #eef0f3;
+        --metal-200: #d8dde3;
+        --metal-300: #b6bec8;
+        --metal-400: #8993a3;
+        --metal-500: #5c6675;
+        --metal-600: #3f4754;
+        --metal-700: #2a313c;
+        --metal-800: #1a1f28;
+        --metal-900: #07090d;
+        --accent: #6b89a8;
+        --accent-dim: #4a6280;
+        --accent-glow: rgba(107, 137, 168, 0.15);
+        --warn: #a86b5c;
+        --warn-dim: #6b3f3a;
+        --good: #5a9a7a;
+        --gold: #a89270;
+        --thin: 200;
+        --reg: 300;
+        --med: 400;
+        --mono: ui-monospace, SFMono-Regular, "JetBrains Mono", Menlo, Consolas, monospace;
+        --sans: -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", system-ui, sans-serif;
+        --mx: 50%;
+        --my: 30%;
+      }
+
+      * { box-sizing: border-box; margin: 0; padding: 0; }
+
+      html, body {
+        background: linear-gradient(180deg, var(--metal-800) 0%, var(--metal-900) 100%);
+        color: var(--metal-200);
+        font-family: var(--sans);
+        font-weight: var(--thin);
+        line-height: 1.75;
+        letter-spacing: 0.02em;
+        overflow-x: hidden;
+        min-height: 100vh;
+      }
+
+      /* SVG 噪点纹理 */
+      body::before {
+        content: "";
+        position: fixed;
+        inset: 0;
+        pointer-events: none;
+        z-index: 1;
+        opacity: 0.4;
+        mix-blend-mode: overlay;
+        background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='200' height='200'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 0.5  0 0 0 0 0.55  0 0 0 0 0.6  0 0 0 0.4 0'/></filter><rect width='100%25' height='100%25' filter='url(%23n)'/></svg>");
+      }
+
+      /* 鼠标跟随光晕 */
+      body::after {
+        content: "";
+        position: fixed;
+        inset: 0;
+        pointer-events: none;
+        z-index: 0;
+        background: radial-gradient(
+          600px circle at var(--mx) var(--my),
+          rgba(107, 137, 168, 0.10),
+          transparent 40%
+        );
+        transition: background 0.2s ease;
+      }
+
+      .container {
+        position: relative;
+        z-index: 2;
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 80px 32px 120px;
+      }
+
+      /* ─── HERO ─── */
+      .hero {
+        border: 1px solid var(--metal-700);
+        background: linear-gradient(135deg, var(--metal-800), var(--metal-900) 60%);
+        padding: 64px 56px;
+        position: relative;
+        overflow: hidden;
+        border-radius: 4px;
+      }
+      .hero::before {
+        content: "";
+        position: absolute;
+        inset: 0;
+        background: radial-gradient(circle at 80% 20%, rgba(107,137,168,0.07), transparent 50%);
+        pointer-events: none;
+      }
+      .hero .meta {
+        font-family: var(--mono);
+        font-size: 11px;
+        color: var(--metal-400);
+        letter-spacing: 0.2em;
+        margin-bottom: 32px;
+        text-transform: uppercase;
+      }
+      .hero h1 {
+        font-size: 44px;
+        font-weight: var(--thin);
+        line-height: 1.25;
+        color: var(--metal-100);
+        margin-bottom: 28px;
+        letter-spacing: -0.01em;
+      }
+      .hero h1 em {
+        font-style: normal;
+        color: var(--accent);
+        font-weight: var(--reg);
+      }
+      .hero .lead {
+        font-size: 15px;
+        color: var(--metal-300);
+        max-width: 680px;
+        line-height: 1.85;
+      }
+      .hero .lead em {
+        font-style: normal;
+        color: var(--metal-100);
+        border-bottom: 1px dashed var(--accent-dim);
+      }
+
+      /* ─── 关键数字栏 ─── */
+      .stats {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 0;
+        margin-top: 48px;
+        border-top: 1px solid var(--metal-700);
+        padding-top: 32px;
+      }
+      .stat {
+        padding: 0 20px;
+        border-right: 1px solid var(--metal-700);
+      }
+      .stat:last-child { border-right: none; }
+      .stat .num {
+        font-family: var(--mono);
+        font-size: 32px;
+        color: var(--metal-100);
+        font-weight: var(--reg);
+        margin-bottom: 6px;
+      }
+      .stat .num em { font-style: normal; color: var(--accent); }
+      .stat .lbl {
+        font-family: var(--mono);
+        font-size: 10px;
+        text-transform: uppercase;
+        color: var(--metal-400);
+        letter-spacing: 0.2em;
+      }
+
+      /* ─── 章节通用 ─── */
+      section { margin-top: 96px; }
+      .sec-num {
+        font-family: var(--mono);
+        font-size: 11px;
+        color: var(--metal-400);
+        letter-spacing: 0.3em;
+        margin-bottom: 18px;
+        text-transform: uppercase;
+      }
+      h2 {
+        font-size: 30px;
+        font-weight: var(--thin);
+        color: var(--metal-100);
+        margin-bottom: 36px;
+        letter-spacing: -0.005em;
+      }
+      h2 em {
+        font-style: normal;
+        color: var(--accent);
+        font-weight: var(--reg);
+      }
+      h3 {
+        font-size: 19px;
+        font-weight: var(--reg);
+        color: var(--metal-100);
+        margin-bottom: 20px;
+      }
+      p { margin-bottom: 16px; color: var(--metal-300); font-size: 14.5px; }
+      p strong { color: var(--metal-100); font-weight: var(--med); }
+      p em { font-style: normal; color: var(--accent); }
+      .muted { color: var(--metal-400); font-size: 13px; font-family: var(--mono); }
+
+      /* ─── 滚动浮现 ─── */
+      .reveal {
+        opacity: 0;
+        transform: translateY(24px);
+        transition: opacity 0.8s ease, transform 0.8s ease;
+      }
+      .reveal.in { opacity: 1; transform: translateY(0); }
+
+      /* ─── 卡片基础 ─── */
+      .card {
+        border: 1px solid var(--metal-700);
+        background: linear-gradient(135deg, var(--metal-800) 0%, var(--metal-900) 100%);
+        padding: 28px 32px;
+        border-radius: 4px;
+        transition: transform 0.3s ease, border-color 0.3s ease, background 0.3s ease;
+      }
+      .card:hover {
+        transform: translateY(-3px);
+        border-color: var(--accent-dim);
+        background: linear-gradient(135deg, var(--metal-700) 0%, var(--metal-800) 100%);
+      }
+
+      /* ─── 双卡并列对比 ─── */
+      .compare {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 20px;
+      }
+      .compare .card h4 {
+        font-size: 14px;
+        color: var(--accent);
+        font-family: var(--mono);
+        letter-spacing: 0.1em;
+        margin-bottom: 12px;
+        text-transform: uppercase;
+      }
+      .compare .card .label {
+        font-family: var(--mono);
+        font-size: 11px;
+        color: var(--metal-400);
+        margin-top: 14px;
+        margin-bottom: 4px;
+        text-transform: uppercase;
+        letter-spacing: 0.15em;
+      }
+      .compare .card .val {
+        color: var(--metal-100);
+        font-size: 14px;
+      }
+
+      /* ─── ASCII 代码块 ─── */
+      .ascii {
+        font-family: var(--mono);
+        font-size: 13px;
+        background: var(--metal-900);
+        color: var(--metal-200);
+        padding: 24px 28px;
+        border-radius: 4px;
+        white-space: pre;
+        overflow-x: auto;
+        line-height: 1.6;
+        box-shadow: inset 0 0 30px rgba(0,0,0,0.5);
+        border: 1px solid var(--metal-700);
+      }
+      .ascii .em { color: var(--accent); font-weight: var(--med); }
+      .ascii .warn { color: var(--warn); font-weight: var(--med); }
+      .ascii .good { color: var(--good); font-weight: var(--med); }
+      .ascii .gold { color: var(--gold); font-weight: var(--med); }
+      .ascii .dim { color: var(--metal-500); }
+
+      /* ─── 三层分层卡 ─── */
+      .layers {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 14px;
+      }
+      .layer {
+        border: 1px solid var(--metal-700);
+        padding: 22px 28px;
+        border-radius: 4px;
+        position: relative;
+      }
+      .layer.l3 { background: linear-gradient(135deg, #2a313c, #1f2530); }
+      .layer.l2 { background: linear-gradient(135deg, #232932, #181d26); }
+      .layer.l1 { background: linear-gradient(135deg, #1c2129, #11161e); }
+      .layer .tag {
+        font-family: var(--mono);
+        font-size: 10px;
+        color: var(--accent);
+        letter-spacing: 0.2em;
+        margin-bottom: 8px;
+        text-transform: uppercase;
+      }
+      .layer h4 {
+        font-size: 16px;
+        color: var(--metal-100);
+        font-weight: var(--reg);
+        margin-bottom: 6px;
+      }
+      .layer .members {
+        font-family: var(--mono);
+        font-size: 13px;
+        color: var(--metal-300);
+      }
+
+      /* ─── 红点表格 ─── */
+      .reds {
+        display: grid;
+        gap: 12px;
+      }
+      details.red {
+        border: 1px solid var(--metal-700);
+        border-left: 3px solid var(--warn);
+        background: linear-gradient(90deg, rgba(168,107,92,0.06), transparent 60%);
+        padding: 18px 24px;
+        border-radius: 4px;
+        transition: background 0.3s ease;
+      }
+      details.red[open] { background: linear-gradient(90deg, rgba(168,107,92,0.12), transparent 70%); }
+      details.red summary {
+        cursor: pointer;
+        list-style: none;
+        font-size: 15px;
+        color: var(--metal-100);
+        font-weight: var(--reg);
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+      }
+      details.red summary::after {
+        content: "+";
+        font-family: var(--mono);
+        font-size: 22px;
+        color: var(--warn);
+        transition: transform 0.3s ease;
+        font-weight: var(--reg);
+      }
+      details.red[open] summary::after { transform: rotate(45deg); }
+      details.red summary::-webkit-details-marker { display: none; }
+      details.red .body {
+        margin-top: 14px;
+        color: var(--metal-300);
+        font-size: 14px;
+        line-height: 1.8;
+      }
+      details.red .body strong { color: var(--metal-100); }
+
+      /* ─── 网络图（洞察连接） ─── */
+      .network {
+        background: var(--metal-900);
+        border: 1px solid var(--metal-700);
+        padding: 36px 28px;
+        border-radius: 4px;
+        text-align: center;
+        position: relative;
+      }
+      .network .node {
+        display: inline-block;
+        padding: 14px 22px;
+        border: 1px solid var(--accent-dim);
+        border-radius: 4px;
+        margin: 12px;
+        font-family: var(--mono);
+        font-size: 13px;
+        color: var(--metal-100);
+        background: linear-gradient(135deg, var(--metal-800), var(--metal-700));
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+      }
+      .network .node:hover {
+        transform: scale(1.04);
+        box-shadow: 0 0 24px var(--accent-glow);
+      }
+      .network .node .date {
+        display: block;
+        font-size: 10px;
+        color: var(--accent);
+        margin-bottom: 4px;
+        letter-spacing: 0.15em;
+      }
+      .network .arrow {
+        font-family: var(--mono);
+        color: var(--metal-500);
+        font-size: 16px;
+        margin: 0 4px;
+      }
+
+      /* ─── 行动条目 ─── */
+      ol.checklist {
+        counter-reset: c;
+        list-style: none;
+      }
+      ol.checklist li {
+        counter-increment: c;
+        position: relative;
+        padding: 16px 20px 16px 64px;
+        margin-bottom: 10px;
+        border: 1px solid var(--metal-700);
+        border-radius: 4px;
+        background: linear-gradient(90deg, var(--metal-800), var(--metal-900));
+        color: var(--metal-200);
+        font-size: 14.5px;
+        transition: all 0.3s ease;
+      }
+      ol.checklist li:hover {
+        border-color: var(--accent-dim);
+        background: linear-gradient(90deg, var(--metal-700), var(--metal-800));
+        transform: translateX(4px);
+      }
+      ol.checklist li::before {
+        content: counter(c, decimal-leading-zero);
+        position: absolute;
+        left: 20px;
+        top: 16px;
+        font-family: var(--mono);
+        font-size: 13px;
+        color: var(--accent);
+        letter-spacing: 0.1em;
+      }
+
+      /* ─── 学习报告网格 ─── */
+      .report {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 14px;
+      }
+      .report .card {
+        padding: 24px 22px;
+      }
+      .report .card .tier {
+        font-family: var(--mono);
+        font-size: 11px;
+        color: var(--accent);
+        letter-spacing: 0.2em;
+        text-transform: uppercase;
+        margin-bottom: 8px;
+      }
+      .report .card h4 {
+        font-size: 15px;
+        color: var(--metal-100);
+        font-weight: var(--reg);
+        margin-bottom: 10px;
+      }
+      .report .card p {
+        font-size: 13px;
+        color: var(--metal-300);
+        margin: 0;
+      }
+
+      /* ─── 时间表 ─── */
+      .timeline {
+        border-left: 1px solid var(--metal-700);
+        padding-left: 28px;
+        margin-left: 12px;
+      }
+      .timeline-item {
+        position: relative;
+        padding-bottom: 28px;
+      }
+      .timeline-item::before {
+        content: "";
+        position: absolute;
+        left: -34px;
+        top: 6px;
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+        background: var(--metal-600);
+      }
+      .timeline-item.next::before { background: var(--accent); box-shadow: 0 0 10px var(--accent); }
+      .timeline-item .timeline-date {
+        font-family: var(--mono);
+        font-size: 11px;
+        color: var(--accent);
+        letter-spacing: 0.15em;
+        margin-bottom: 4px;
+      }
+      .timeline-item .timeline-title {
+        font-size: 15px;
+        color: var(--metal-100);
+        margin-bottom: 4px;
+      }
+      .timeline-item .timeline-desc {
+        font-size: 13px;
+        color: var(--metal-400);
+      }
+
+      /* ─── 金句 ─── */
+      blockquote.kin {
+        margin: 24px 0;
+        padding: 22px 28px;
+        border-left: 2px solid var(--accent);
+        background: linear-gradient(90deg, rgba(107,137,168,0.08), transparent 70%);
+        font-style: italic;
+        color: var(--metal-100);
+        font-size: 15px;
+      }
+      blockquote.kin .src {
+        display: block;
+        margin-top: 10px;
+        font-style: normal;
+        font-family: var(--mono);
+        font-size: 11px;
+        color: var(--metal-400);
+        letter-spacing: 0.15em;
+      }
+
+      /* ─── 成长曲线 ─── */
+      .curve {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 0;
+        border: 1px solid var(--metal-700);
+        border-radius: 4px;
+        overflow: hidden;
+      }
+      .curve .phase {
+        padding: 28px 24px;
+        border-right: 1px solid var(--metal-700);
+        position: relative;
+      }
+      .curve .phase:last-child { border-right: none; }
+      .curve .phase.p1 { background: linear-gradient(135deg, #1f2530, #181d26); }
+      .curve .phase.p2 { background: linear-gradient(135deg, #232932, #1c2129); }
+      .curve .phase.p3 { background: linear-gradient(135deg, #2a313c, #232932); }
+      .curve .lbl {
+        font-family: var(--mono);
+        font-size: 10px;
+        color: var(--accent);
+        letter-spacing: 0.2em;
+        margin-bottom: 8px;
+        text-transform: uppercase;
+      }
+      .curve h4 {
+        font-size: 15px;
+        color: var(--metal-100);
+        margin-bottom: 8px;
+        font-weight: var(--reg);
+      }
+      .curve p {
+        font-size: 12.5px;
+        color: var(--metal-300);
+        margin: 0;
+        line-height: 1.7;
+      }
+
+      /* ─── 页脚 ─── */
+      footer {
+        margin-top: 120px;
+        padding-top: 32px;
+        border-top: 1px solid var(--metal-700);
+        font-family: var(--mono);
+        font-size: 11px;
+        color: var(--metal-500);
+        letter-spacing: 0.15em;
+        display: flex;
+        justify-content: space-between;
+        flex-wrap: wrap;
+        gap: 12px;
+      }
+      footer .tags span {
+        margin-right: 12px;
+        color: var(--metal-400);
+      }
+
+      /* ─── 响应式 ─── */
+      @media (max-width: 800px) {
+        .stats { grid-template-columns: repeat(2, 1fr); }
+        .stat { border-right: none; border-bottom: 1px solid var(--metal-700); padding-bottom: 16px; }
+        .compare { grid-template-columns: 1fr; }
+        .report { grid-template-columns: 1fr; }
+        .curve { grid-template-columns: 1fr; }
+        .curve .phase { border-right: none; border-bottom: 1px solid var(--metal-700); }
+        .hero { padding: 40px 28px; }
+        .hero h1 { font-size: 30px; }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <!-- ─── HERO ─── -->
+      <header class="hero reveal">
+        <div class="meta">2026 · 05 · 24 ─── REVIEW NOTE / D44 · 推理时计算</div>
+        <h1>推理时计算 · D44 · <em>洞察网络闭环</em><br />—— 3 道综合题 · 13 天后的握手</h1>
+        <p class="lead">
+          今天不是 D30——是 D44（4/10 学习 + 5/11 D30 之后的第二次综合验证）。<br />
+          任务不是"再讲一遍"，是验证 <em>5/11 焊下的"分层钥匙"</em> 13 天没用过会不会生锈。
+        </p>
+        <p class="lead" style="margin-top: 14px;">
+          结论：<em>钥匙没生锈，只是没主动启动。一启动就立刻自我修正，并且长出了进阶版。</em>
+        </p>
+
+        <div class="stats">
+          <div class="stat"><div class="num"><em>3</em></div><div class="lbl">综合题 · 全部焊死</div></div>
+          <div class="stat"><div class="num"><em>5</em></div><div class="lbl">A 层概念落地</div></div>
+          <div class="stat"><div class="num"><em>5</em></div><div class="lbl">元能力新焊</div></div>
+          <div class="stat"><div class="num"><em>3</em></div><div class="lbl">红点 · D60 监控</div></div>
+        </div>
+      </header>
+
+      <!-- ─── SECTION 01: 双维度家族图 ─── -->
+      <section class="reveal">
+        <div class="sec-num">SECTION 01 ─── 三层家族图 · 双维度切片版</div>
+        <h2>"推理时计算" 不是一棵树 ── 它是 <em>一张交叉表</em></h2>
+        <p>5/11 焊下的钥匙能切到三层（爷爷/儿子/工具）。今天 D44 切到了第四刀——<em>儿子层内部横跨两个不同维度</em>。这是 5/11 没考到的深度，今天自己说出来了。</p>
+
+        <div class="ascii">
+<span class="dim">第 3 层（爷爷）</span>          <span class="em">推理时计算（Test-Time Compute）</span>
+                            │
+       ┌────────────────────┴────────────────────┐
+<span class="dim">第 2 层 · 维度 A</span>                              <span class="dim">第 2 层 · 维度 B</span>
+"如何<span class="gold">生成</span>更多回答"                       "如何<span class="gold">选择</span>更好回答"
+       │                                         │
+   ┌───┴────┐                                ┌───┴───┬─────────┬──────┐
+<span class="good">Best-of-N</span>  <span class="good">集束搜索</span>                          <span class="good">最大似然</span>  <span class="good">验证器</span>  <span class="good">多数</span>     <span class="good">用户</span>
+                                            <span class="good">重排序</span>     <span class="good">打分</span>     <span class="good">投票</span>     <span class="good">选择</span>
+       │                                         │
+       └────── 跨维度组合 ───→  <span class="em">自洽性</span>  ←──────┘
+                          = Best-of-N (生成) + 多数投票 (选择)
+                            │
+                            ▼
+<span class="dim">第 1 层（底层工具/数据原语）</span>
+                       <span class="warn">采样 · 对数概率（数字）· 奖励模型（组件）</span>
+                            │
+                       被儿子们调用，执行底层操作
+        </div>
+
+        <p style="margin-top: 24px;" class="muted">
+          ▸ 维度 A 和维度 B 是<strong>正交</strong>的——可以任意组合。<br />
+          ▸ "对数概率"和"奖励模型"在工程语境里有<strong>两种身份</strong>：作为"数据原语"是底层工具；作为"使用策略名"是 B 维度兄弟（最大似然重排序、验证器打分）。
+        </p>
+      </section>
+
+      <!-- ─── SECTION 02: 方法名拆解（今日新焊元能力） ─── -->
+      <section class="reveal">
+        <div class="sec-num">SECTION 02 ─── 元能力 · 方法名拆解</div>
+        <h2>把一个词拆成 <em>"数据原语 + 使用策略"</em> 两件事</h2>
+        <p>今天最值钱的洞察——发生在"对数概率到底是工具还是策略"这一刀上。你自己造出了这把进阶钥匙：</p>
+
+        <div class="compare">
+          <div class="card">
+            <h4>对数概率</h4>
+            <div class="label">作为数据原语（工具层）</div>
+            <p class="val">logprob 这个数字本身——模型与生俱来的物理量。哪怕只生成 1 个答案，也有对数概率。</p>
+            <div class="label">作为使用策略（B 维度兄弟）</div>
+            <p class="val"><em>最大似然重排序</em>——规则："谁的总对数概率最高，谁赢"。这才是 B 维度的兄弟，和多数投票平级。</p>
+          </div>
+
+          <div class="card">
+            <h4>奖励模型</h4>
+            <div class="label">作为数据原语（工具层）</div>
+            <p class="val">reward model 这个组件本身——一个独立的打分模型。</p>
+            <div class="label">作为使用策略（B 维度兄弟）</div>
+            <p class="val"><em>验证器打分（reward reranking）</em>——规则："谁被奖励模型打分最高，谁赢"。</p>
+          </div>
+        </div>
+
+        <blockquote class="kin">
+          "高考分数（数据） vs 按高考分数从高到低录取（策略）"——这不是一个东西。<br />
+          一个躺在工具箱里，一个站在赛场上当裁判。
+          <span class="src">— 5/24 D44 自创比喻</span>
+        </blockquote>
+
+        <p class="muted">▸ <strong>判断标准</strong>：底层工具是"被调用的操作动作"，B 维度兄弟是"使用工具的判断规则"。</p>
+      </section>
+
+      <!-- ─── SECTION 03: 上限机制 ASCII ─── -->
+      <section class="reveal">
+        <div class="sec-num">SECTION 03 ─── 因果链 · 性能上限的本质</div>
+        <h2>为什么 N &gt; ~400 之后，<em>性能反而下降</em>？</h2>
+        <p>OpenAI 实验里这个反直觉的现象，今天用大白话推出来了——5 步因果链全连通：</p>
+
+        <div class="ascii">
+<span class="em">  N 越大</span>
+        │
+        ▼
+  <span class="warn">候选里混进"长得对但其实错"的对抗性输出</span>
+        │
+        ▼
+  <span class="em">打分机制看的是"看起来对"</span>，不是"<span class="good">事实对</span>"
+        │
+        │     （← 5/11 金句的另一种说法：
+        │        "Best-of-N 本质上还是在看哪个模型最自信"）
+        ▼
+  打分机制被"长得对"骗 —— 选出错答案
+        │
+        ▼
+  <span class="warn">临界点</span>：
+  对抗候选带来的负收益 &gt; 多采样带来的正收益
+        │
+        ▼
+  <span class="warn">性能下降</span>
+        </div>
+
+        <blockquote class="kin">
+          "看起来对" ≠ "事实对" —— 这是整个推理时计算家族的<em>本质局限</em>。<br />
+          打分机制评估的永远是<em>模型自身的某种内部一致性</em>（logprob、reward、frequency），<br />
+          而不是<em>外部事实正确性</em>。
+          <span class="src">— 5/24 D44 总结判断</span>
+        </blockquote>
+      </section>
+
+      <!-- ─── SECTION 04: 跨章节洞察网络 ─── -->
+      <section class="reveal">
+        <div class="sec-num">SECTION 04 ─── 洞察网络 · 三个时间点的握手</div>
+        <h2>5/11 的金句 → 今天的答案 —— <em>跨时间发力</em></h2>
+        <p>今天 D44 最深的领悟：5/11 那天焊下的金句不是孤立的口号，<em>它是今天题目答案的种子</em>。</p>
+
+        <div class="network">
+          <div class="node">
+            <span class="date">5/11 · D30</span>
+            "Best-of-N 看哪个最自信"
+          </div>
+          <span class="arrow">───→</span>
+          <div class="node">
+            <span class="date">5/24 · D44 · 第 2 题</span>
+            "打分机制看'看起来对'"
+          </div>
+          <br />
+          <div class="node">
+            <span class="date">5/24 · D44 · 第 1 题</span>
+            "自洽性 = 跨维度组合"
+          </div>
+          <span class="arrow">───→</span>
+          <div class="node">
+            <span class="date">5/24 · D44 · 第 3 题</span>
+            "Best-of-N + 多数投票 = ?"
+          </div>
+        </div>
+
+        <p style="margin-top: 28px;">
+          🌟 <strong>这就是"间隔检索"的真正样子</strong>——不是"考你记不记得"，是<em>让过去的你和现在的你，反复在同一张知识网上握手</em>。
+          每握一次，网就更密一点。今天你<em>握了三次手</em>：5/11 ↔ 今天 ↔ 10 分钟前。
+        </p>
+      </section>
+
+      <!-- ─── SECTION 05: 数学辅导 Agent 决策卡 ─── -->
+      <section class="reveal">
+        <div class="sec-num">SECTION 05 ─── 第 3 题 · 数学辅导 Agent 决策卡</div>
+        <h2>"自信地答错" + "答案不一致" —— 推理时计算能 <em>缓解多少</em>？</h2>
+
+        <ol class="checklist">
+          <li><strong>生成方式：Best-of-N</strong>——数学题答案唯一，需要充分探索不同路径。集束搜索更适合开放式生成（写作、翻译）。</li>
+          <li><strong>打分方法：多数投票</strong>——"答案唯一确定"的场景标准答案。方差小、众数稳定。</li>
+          <li><strong>组合本质：自洽性</strong>——Best-of-N（生成）+ 多数投票（选择）的跨维度组合，不是新决策，是已经命名过的方案。</li>
+          <li><strong>能否彻底解决"自信地答错"？只能缓解</strong>——多数投票只对"偶然错误"有效。如果模型有<em>系统性错误倾向</em>（一致地把某类题理解错），多数投票会"投出错误回答"——频率 ≠ 真理。</li>
+          <li><strong>工程代价 ① · 成本</strong>——生成 N 个输出 ≈ N 倍计算费用。</li>
+          <li><strong>工程代价 ② · 延迟</strong>——用户等待时间随 N 线性增长。</li>
+          <li><strong>工程代价 ③ · 收益有上限</strong>——N &gt; ~400 时对抗性输出导致性能下降。<em>不能无限加 N</em>。</li>
+        </ol>
+      </section>
+
+      <!-- ─── SECTION 06: 三个红点（折叠面板） ─── -->
+      <section class="reveal">
+        <div class="sec-num">SECTION 06 ─── 暴露的 3 个红点 · D60 继续监控</div>
+        <h2>今日的 <em>真实状态</em> —— 不是"全焊死"，是"知道哪里还要再焊"</h2>
+
+        <div class="reds">
+          <details class="red">
+            <summary>红点 1 · 13 天不主动跑分层钥匙 → 钥匙生锈</summary>
+            <div class="body">
+              <p><strong>触发现场</strong>：第 1 题第一轮答"爷爷 = 集束搜索 / 兄弟 = 一锅乱炖 / 儿子 = 采样"——和 5/11 完全相反。</p>
+              <p><strong>本质</strong>：分层意识不会"留在身上"，必须每题主动启动"上下兄弟问三句"。</p>
+              <p><strong>D60 训练目标</strong>：每道题的第一句话先跑钥匙，再答内容。要求"作答前自检"成为肌肉。</p>
+            </div>
+          </details>
+
+          <details class="red">
+            <summary>红点 2 · 新焊点调取慢</summary>
+            <div class="body">
+              <p><strong>触发现场</strong>：第 1 题刚焊"自洽性 = Best-of-N + 多数投票"——10 分钟后第 3 题选了 Best-of-N + 多数投票，却没意识到这就是自洽性。需要老师反问 3 次才把名字调出来。</p>
+              <p><strong>本质</strong>：焊点新 → 调取通道未稳定 → 知道但说不出名字。</p>
+              <p><strong>D60 训练目标</strong>：每次"做出方案"后多问一句"这个方案有没有名字？"——主动调取已命名的零件。</p>
+            </div>
+          </details>
+
+          <details class="red">
+            <summary>红点 3 · 跨问一致性需要外部提醒</summary>
+            <div class="body">
+              <p><strong>触发现场</strong>：第 3 题三个子问混用了三个不同的打分方法（验证器 / 多数投票 / RLHF 偏自信），自检没启动。</p>
+              <p><strong>本质</strong>：和"分层一致性"是同一类元能力——切了就要一刀切到底，不混语境。</p>
+              <p><strong>D60 训练目标</strong>：答完一组多步问题后，回头检查"我每一步用的是不是同一套零件"。</p>
+            </div>
+          </details>
+        </div>
+      </section>
+
+      <!-- ─── SECTION 07: 元能力成长曲线 ─── -->
+      <section class="reveal">
+        <div class="sec-num">SECTION 07 ─── 元能力成长曲线 · 从 5/11 到 5/24</div>
+        <h2>分层钥匙 —— 13 天后 <em>多切了一刀</em></h2>
+
+        <div class="curve">
+          <div class="phase p1">
+            <div class="lbl">PHASE 01 · 5/11 · D30</div>
+            <h4>钥匙诞生</h4>
+            <p>"上下兄弟问三句" 焊死。三层结构（爷爷/儿子/工具）首次成型。金句："采样是自洽性实现的工具"。</p>
+          </div>
+          <div class="phase p2">
+            <div class="lbl">PHASE 02 · 5/24 · D44 起手</div>
+            <h4>钥匙生锈</h4>
+            <p>13 天没主动用 → 第 1 题第一轮全乱（集束搜索当爷爷、采样当儿子）。但被反问后立刻自我修正。</p>
+          </div>
+          <div class="phase p3">
+            <div class="lbl">PHASE 03 · 5/24 · D44 落幕</div>
+            <h4>钥匙进阶</h4>
+            <p>切到第四刀——双维度切片（生成 vs 选择）。又造出"方法名拆解"——把"对数概率"拆成数据原语 + 策略。这是 5/11 没到的深度。</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- ─── SECTION 08: 学习报告网格 ─── -->
+      <section class="reveal">
+        <div class="sec-num">SECTION 08 ─── 学习报告 · A/B/C 层 + 元能力</div>
+        <h2>本单元 <em>掌握全景</em></h2>
+
+        <div class="report">
+          <div class="card">
+            <div class="tier">A 层 · 已焊死</div>
+            <h4>三层家族结构</h4>
+            <p>爷爷=推理时计算 / 儿子=两个维度的兄弟 / 工具=采样。</p>
+          </div>
+          <div class="card">
+            <div class="tier">A 层 · 已焊死</div>
+            <h4>双维度切片</h4>
+            <p>维度 A=如何生成；维度 B=如何选择。两者正交可组合。</p>
+          </div>
+          <div class="card">
+            <div class="tier">A 层 · 已焊死</div>
+            <h4>自洽性 = 跨维度组合</h4>
+            <p>Best-of-N + 多数投票。链接 A 与 B 的方案。</p>
+          </div>
+          <div class="card">
+            <div class="tier">A 层 · 已焊死</div>
+            <h4>性能上限因果链</h4>
+            <p>对抗性输出 + 打分看"看起来对" → 临界点后下降。</p>
+          </div>
+          <div class="card">
+            <div class="tier">A 层 · 已焊死</div>
+            <h4>频率 ≠ 真理</h4>
+            <p>多数投票只能解决偶然错误，对系统性错误无效。</p>
+          </div>
+          <div class="card">
+            <div class="tier">元能力 · 新焊</div>
+            <h4>方法名拆解</h4>
+            <p>把"数据原语"和"使用策略"两种身份分开命名。</p>
+          </div>
+          <div class="card">
+            <div class="tier">元能力 · 新焊</div>
+            <h4>组合自查</h4>
+            <p>主动问"我从两个维度各拎一个，能不能拼？"</p>
+          </div>
+          <div class="card">
+            <div class="tier">元能力 · 新焊</div>
+            <h4>洞察累积</h4>
+            <p>5/11 金句变成今日答案种子——智慧跨时间发力。</p>
+          </div>
+          <div class="card">
+            <div class="tier">元能力 · 待练</div>
+            <h4>零件调取速度</h4>
+            <p>新焊概念的命名调取需要肌肉训练。</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- ─── SECTION 09: 横向连接（折叠） ─── -->
+      <section class="reveal">
+        <div class="sec-num">SECTION 09 ─── 横向连接 · 与既往知识的关系</div>
+        <h2>这一章 <em>站在哪些章节的肩膀上</em></h2>
+
+        <details class="red" style="border-left-color: var(--accent);">
+          <summary>与 4/13 LLM 幻觉 —— "自信地错"是同一根弦</summary>
+          <div class="body">
+            <p>"打分机制看'看起来对'" 的本质，等价于 4/13 学过的<strong>"模型可以自信地错"</strong>——LLM 幻觉的核心定义。</p>
+            <p>幻觉是模型生成层面的"自信地错"；推理时计算的上限是评估层面"奖励看起来对"的必然结果——<em>同一根弦的两次震动</em>。</p>
+          </div>
+        </details>
+
+        <details class="red" style="border-left-color: var(--accent); margin-top: 12px;">
+          <summary>与 5/17 RLHF 偏自信 —— 训练阶段的根源</summary>
+          <div class="body">
+            <p>RLHF 训练的偏好——"<em>越自信得分越高</em>"——给奖励模型注入了"奖励自信"的倾向。</p>
+            <p>所以"用奖励模型打分"也躲不过 5/11 金句——它在训练阶段就被刻进了"奖励看起来自信"的基因。</p>
+            <p>这一层连接今天没深挖，<strong>D60 可作为综合题考点</strong>。</p>
+          </div>
+        </details>
+
+        <details class="red" style="border-left-color: var(--accent); margin-top: 12px;">
+          <summary>与 4/14-15 RAG —— 同样的"分层钥匙"复用</summary>
+          <div class="body">
+            <p>5/11 焊钥匙的"事故现场"是两个：RAG 骨架题 + 推理时计算方法题。今天 D44 验证了钥匙在推理时计算上的进阶；<strong>RAG 那一侧的 D44 还没做</strong>，是已知短板。</p>
+            <p>D60 之前应安排 RAG 系列综合题，与今天对照看钥匙是否在两个家族都能跨刀。</p>
+          </div>
+        </details>
+      </section>
+
+      <!-- ─── SECTION 10: 复习计划 ─── -->
+      <section class="reveal">
+        <div class="sec-num">SECTION 10 ─── 间隔重复 · 下一站</div>
+        <h2>D60 综合题 · <em>2026 / 06 / 09</em></h2>
+
+        <div class="timeline">
+          <div class="timeline-item">
+            <div class="timeline-date">2026 · 04 · 10 · 学习日</div>
+            <div class="timeline-title">推理时计算 · 入门</div>
+            <div class="timeline-desc">Best-of-N、四种打分方法、对数概率数值稳定性</div>
+          </div>
+          <div class="timeline-item">
+            <div class="timeline-date">2026 · 05 · 11 · D30</div>
+            <div class="timeline-title">分层钥匙焊接 · "Best-of-N 看自信" 金句诞生 ✓</div>
+            <div class="timeline-desc">"采样是自洽性实现的工具" — 三层结构首次焊死</div>
+          </div>
+          <div class="timeline-item">
+            <div class="timeline-date">2026 · 05 · 24 · D44</div>
+            <div class="timeline-title">洞察网络闭环 · 双维度切片 ✓ 今日完成</div>
+            <div class="timeline-desc">3 综合题全焊死 + 5 元能力新焊 + 3 红点命名</div>
+          </div>
+          <div class="timeline-item next">
+            <div class="timeline-date">2026 · 06 · 09 · D60</div>
+            <div class="timeline-title">D60 综合题 · 跨章节大综合</div>
+            <div class="timeline-desc">考点：RLHF × 推理时计算交叉机制 / RAG 钥匙复用 / 红点 1-3 是否复发</div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ─── 启动金句 ─── -->
+      <section class="reveal">
+        <blockquote class="kin">
+          "D44 不是验证'你记不记得'——是验证'<em>13 天没用过的钥匙，主动启动后能不能切得更深</em>'。"
+          <span class="src">— 5/24 D44 总训</span>
+        </blockquote>
+      </section>
+
+      <!-- ─── 页脚 ─── -->
+      <footer>
+        <div class="tags">
+          <span>#推理时计算</span>
+          <span>#D44</span>
+          <span>#自洽性</span>
+          <span>#方法名拆解</span>
+          <span>#洞察网络闭环</span>
+        </div>
+        <div>2026 · 05 · 24 · LEARN-LLM / REVIEW · D44</div>
+      </footer>
+    </div>
+
+    <script>
+      // 滚动浮现
+      const io = new IntersectionObserver(
+        entries => {
+          entries.forEach(e => {
+            if (e.isIntersecting) {
+              e.target.classList.add("in");
+              io.unobserve(e.target);
+            }
+          });
+        },
+        { threshold: 0.12 }
+      );
+      document.querySelectorAll(".reveal").forEach(el => io.observe(el));
+
+      // 鼠标跟随光晕
+      document.addEventListener("mousemove", e => {
+        const x = (e.clientX / window.innerWidth) * 100;
+        const y = (e.clientY / window.innerHeight) * 100;
+        document.body.style.setProperty("--mx", x + "%");
+        document.body.style.setProperty("--my", y + "%");
+      });
+    </script>
+  </body>
+</html>

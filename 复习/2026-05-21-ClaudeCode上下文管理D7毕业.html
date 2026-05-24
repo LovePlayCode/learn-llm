@@ -1,0 +1,1403 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>5/21 · Claude Code 上下文管理 · D7 毕业</title>
+    <style>
+      :root {
+        --metal-100: #eef0f3;
+        --metal-200: #d8dde3;
+        --metal-300: #b6bec8;
+        --metal-400: #8993a3;
+        --metal-500: #5c6675;
+        --metal-600: #3f4754;
+        --metal-700: #2a313c;
+        --metal-800: #1a1f28;
+        --metal-900: #07090d;
+        --accent: #6b89a8;
+        --accent-dim: #4a6280;
+        --accent-glow: rgba(107, 137, 168, 0.15);
+        --warn: #a86b5c;
+        --warn-dim: #6b3f3a;
+        --good: #5a9a7a;
+        --gold: #a89270;
+        --thin: 200;
+        --reg: 300;
+        --med: 400;
+        --mono: ui-monospace, SFMono-Regular, "JetBrains Mono", Menlo, Consolas, monospace;
+        --sans: -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", system-ui, sans-serif;
+        --mx: 50%;
+        --my: 30%;
+      }
+
+      * { box-sizing: border-box; margin: 0; padding: 0; }
+
+      html, body {
+        background: linear-gradient(180deg, var(--metal-800) 0%, var(--metal-900) 100%);
+        color: var(--metal-200);
+        font-family: var(--sans);
+        font-weight: var(--thin);
+        line-height: 1.75;
+        letter-spacing: 0.02em;
+        overflow-x: hidden;
+        min-height: 100vh;
+      }
+
+      /* SVG 噪点纹理 · 金属磨砂质感 */
+      body::before {
+        content: "";
+        position: fixed;
+        inset: 0;
+        pointer-events: none;
+        z-index: 1;
+        opacity: 0.4;
+        mix-blend-mode: overlay;
+        background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='200' height='200'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 0.5  0 0 0 0 0.55  0 0 0 0 0.6  0 0 0 0.4 0'/></filter><rect width='100%25' height='100%25' filter='url(%23n)'/></svg>");
+      }
+
+      /* 鼠标跟随光晕 */
+      body::after {
+        content: "";
+        position: fixed;
+        inset: 0;
+        pointer-events: none;
+        z-index: 0;
+        background: radial-gradient(
+          600px circle at var(--mx) var(--my),
+          rgba(107, 137, 168, 0.10),
+          transparent 40%
+        );
+        transition: background 0.2s ease;
+      }
+
+      .container {
+        position: relative;
+        z-index: 2;
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 80px 32px 120px;
+      }
+
+      /* ─── HERO ─── */
+      .hero {
+        border: 1px solid var(--metal-700);
+        background: linear-gradient(135deg, var(--metal-800), var(--metal-900) 60%);
+        padding: 64px 56px;
+        position: relative;
+        overflow: hidden;
+        border-radius: 4px;
+      }
+      .hero::before {
+        content: "";
+        position: absolute;
+        inset: 0;
+        background: radial-gradient(circle at 80% 20%, rgba(107,137,168,0.07), transparent 50%);
+        pointer-events: none;
+      }
+      .hero .meta {
+        font-family: var(--mono);
+        font-size: 11px;
+        letter-spacing: 0.4em;
+        color: var(--metal-400);
+        text-transform: uppercase;
+        margin-bottom: 28px;
+      }
+      .hero h1 {
+        font-size: clamp(28px, 4vw, 48px);
+        font-weight: var(--thin);
+        letter-spacing: -0.01em;
+        color: var(--metal-100);
+        margin-bottom: 24px;
+        line-height: 1.2;
+      }
+      .hero .lead {
+        font-size: 15px;
+        color: var(--metal-300);
+        max-width: 800px;
+        line-height: 1.85;
+        border-left: 1px solid var(--accent-dim);
+        padding-left: 20px;
+        margin-top: 24px;
+        font-weight: var(--reg);
+      }
+      .hero .lead em {
+        color: var(--accent);
+        font-style: normal;
+      }
+      .hero .stats {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 0;
+        margin-top: 56px;
+        border-top: 1px solid var(--metal-700);
+        padding-top: 32px;
+      }
+      .hero .stats .stat {
+        border-right: 1px solid var(--metal-700);
+        padding: 0 24px;
+      }
+      .hero .stats .stat:last-child { border-right: none; }
+      .hero .stats .stat:first-child { padding-left: 0; }
+      .hero .stats .num {
+        font-family: var(--mono);
+        font-size: 32px;
+        font-weight: var(--thin);
+        color: var(--metal-100);
+        letter-spacing: -0.02em;
+      }
+      .hero .stats .lbl {
+        font-size: 10px;
+        letter-spacing: 0.3em;
+        color: var(--metal-400);
+        text-transform: uppercase;
+        margin-top: 8px;
+      }
+
+      /* ─── SECTION ─── */
+      section {
+        margin-top: 96px;
+        opacity: 0;
+        transform: translateY(28px);
+        transition: opacity 0.9s ease, transform 0.9s ease;
+      }
+      section.visible {
+        opacity: 1;
+        transform: translateY(0);
+      }
+      section .sec-num {
+        font-family: var(--mono);
+        font-size: 11px;
+        letter-spacing: 0.4em;
+        color: var(--accent);
+        margin-bottom: 16px;
+      }
+      section h2 {
+        font-size: 28px;
+        font-weight: var(--thin);
+        color: var(--metal-100);
+        letter-spacing: -0.01em;
+        border-bottom: 1px solid var(--metal-700);
+        padding-bottom: 20px;
+        margin-bottom: 36px;
+      }
+      section h3 {
+        font-size: 18px;
+        font-weight: var(--reg);
+        color: var(--metal-100);
+        margin-bottom: 16px;
+        margin-top: 28px;
+      }
+      section p {
+        color: var(--metal-300);
+        margin-bottom: 16px;
+        font-size: 14px;
+        font-weight: var(--reg);
+      }
+      section p strong { color: var(--metal-100); font-weight: var(--med); }
+      section em { color: var(--accent); font-style: normal; }
+
+      /* ─── 双卡并列 ─── */
+      .compare {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 24px;
+        margin: 32px 0;
+      }
+      @media (max-width: 768px) {
+        .compare { grid-template-columns: 1fr; }
+      }
+      .card {
+        background: var(--metal-800);
+        border: 1px solid var(--metal-700);
+        padding: 28px;
+        transition: all 0.3s ease;
+        position: relative;
+        border-radius: 4px;
+      }
+      .card:hover {
+        transform: translateY(-4px);
+        border-color: var(--accent-dim);
+        background: var(--metal-700);
+        box-shadow: 0 16px 40px rgba(0,0,0,0.5), inset 0 1px 0 rgba(107,137,168,0.15);
+      }
+      .card .tag {
+        font-family: var(--mono);
+        font-size: 10px;
+        letter-spacing: 0.25em;
+        color: var(--metal-400);
+        text-transform: uppercase;
+        margin-bottom: 14px;
+      }
+      .card.warn .tag { color: var(--warn); }
+      .card.good .tag { color: var(--good); }
+      .card.gold .tag { color: var(--gold); }
+      .card.accent .tag { color: var(--accent); }
+      .card h4 {
+        font-size: 17px;
+        font-weight: var(--reg);
+        color: var(--metal-100);
+        margin-bottom: 14px;
+      }
+      .card p {
+        font-size: 13px;
+        color: var(--metal-300);
+        line-height: 1.75;
+        font-weight: var(--reg);
+      }
+      .card.warn { border-color: var(--warn-dim); }
+      .card.good { border-color: rgba(90, 154, 122, 0.35); }
+      .card.gold { border-color: rgba(168, 146, 112, 0.35); }
+      .card.accent { border-color: var(--accent-dim); }
+
+      /* ─── 三栏分层 ─── */
+      .layers {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 1px;
+        background: var(--metal-700);
+        border: 1px solid var(--metal-700);
+        margin: 28px 0;
+        border-radius: 4px;
+        overflow: hidden;
+      }
+      @media (max-width: 768px) {
+        .layers { grid-template-columns: 1fr; }
+      }
+      .layer {
+        padding: 28px 24px;
+        transition: background 0.3s ease;
+      }
+      .layer-1 { background: var(--metal-800); }
+      .layer-2 { background: #232a36; }
+      .layer-3 { background: var(--metal-700); }
+      .layer:hover { background: var(--metal-600); }
+      .layer .lbl {
+        font-family: var(--mono);
+        font-size: 10px;
+        letter-spacing: 0.3em;
+        color: var(--accent);
+        text-transform: uppercase;
+        margin-bottom: 12px;
+      }
+      .layer h4 {
+        font-size: 16px;
+        font-weight: var(--reg);
+        color: var(--metal-100);
+        margin-bottom: 12px;
+      }
+      .layer p {
+        font-size: 12px;
+        color: var(--metal-300);
+        line-height: 1.7;
+        font-weight: var(--reg);
+      }
+      .layer code {
+        font-family: var(--mono);
+        font-size: 12px;
+        color: var(--accent);
+        background: rgba(107,137,168,0.08);
+        padding: 1px 6px;
+        border-radius: 2px;
+      }
+
+      /* ─── ASCII 代码块 ─── */
+      .ascii {
+        background: var(--metal-900);
+        border: 1px solid var(--metal-700);
+        padding: 28px 32px;
+        font-family: var(--mono);
+        font-size: 12px;
+        line-height: 1.7;
+        color: var(--metal-300);
+        white-space: pre;
+        overflow-x: auto;
+        margin: 28px 0;
+        box-shadow: inset 0 0 60px rgba(0,0,0,0.6);
+        position: relative;
+        border-radius: 4px;
+      }
+      .ascii::before {
+        content: "▎ ASCII";
+        position: absolute;
+        top: 12px;
+        right: 16px;
+        font-size: 9px;
+        letter-spacing: 0.3em;
+        color: var(--metal-500);
+      }
+      .ascii .hi { color: var(--accent); }
+      .ascii .em { color: var(--metal-100); font-weight: var(--med); }
+      .ascii .warn { color: var(--warn); }
+      .ascii .good { color: var(--good); }
+      .ascii .gold { color: var(--gold); }
+      .ascii .dim { color: var(--metal-500); }
+
+      /* ─── 折叠面板 ─── */
+      details {
+        border: 1px solid var(--metal-700);
+        background: var(--metal-800);
+        margin: 12px 0;
+        transition: background 0.3s ease;
+        border-radius: 4px;
+      }
+      details[open] {
+        background: var(--metal-700);
+        border-color: var(--accent-dim);
+      }
+      summary {
+        cursor: pointer;
+        padding: 18px 24px;
+        list-style: none;
+        display: flex;
+        align-items: center;
+        color: var(--metal-200);
+        font-size: 14px;
+        font-weight: var(--reg);
+        transition: color 0.2s ease;
+      }
+      summary::-webkit-details-marker { display: none; }
+      summary::before {
+        content: "+";
+        margin-right: 16px;
+        color: var(--accent);
+        font-weight: var(--thin);
+        font-size: 18px;
+        transition: transform 0.3s ease;
+        display: inline-block;
+        width: 16px;
+        text-align: center;
+      }
+      details[open] summary::before { transform: rotate(45deg); }
+      summary:hover { color: var(--metal-100); }
+      details .body {
+        padding: 0 24px 24px 56px;
+        color: var(--metal-300);
+        font-size: 13px;
+        line-height: 1.85;
+        font-weight: var(--reg);
+      }
+      details .body p { margin-bottom: 10px; font-size: 13px; }
+
+      /* ─── 决策清单 / 计数列表 ─── */
+      .checklist {
+        counter-reset: ck;
+        margin: 28px 0;
+      }
+      .checklist .item {
+        counter-increment: ck;
+        border-left: 2px solid var(--metal-700);
+        padding: 18px 24px;
+        margin-bottom: 8px;
+        background: var(--metal-800);
+        transition: all 0.25s ease;
+        display: flex;
+        align-items: flex-start;
+        gap: 24px;
+        border-radius: 0 4px 4px 0;
+      }
+      .checklist .item:hover {
+        border-left-color: var(--accent);
+        background: var(--metal-700);
+        transform: translateX(4px);
+      }
+      .checklist .item::before {
+        content: counter(ck, decimal-leading-zero);
+        font-family: var(--mono);
+        font-size: 22px;
+        font-weight: var(--thin);
+        color: var(--accent);
+        min-width: 36px;
+      }
+      .checklist .item .txt h4 {
+        font-size: 14px;
+        font-weight: var(--med);
+        color: var(--metal-100);
+        margin-bottom: 6px;
+      }
+      .checklist .item .txt p {
+        font-size: 12px;
+        color: var(--metal-400);
+        margin: 0;
+        line-height: 1.7;
+      }
+      .checklist .item.warn { border-left-color: var(--warn-dim); }
+      .checklist .item.warn::before { color: var(--warn); }
+      .checklist .item.gold { border-left-color: rgba(168, 146, 112, 0.4); }
+      .checklist .item.gold::before { color: var(--gold); }
+
+      /* ─── 学习报告网格 ─── */
+      .report-grid {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 16px;
+        margin: 28px 0;
+      }
+      @media (max-width: 768px) {
+        .report-grid { grid-template-columns: 1fr; }
+      }
+      .report-cell {
+        background: var(--metal-800);
+        border: 1px solid var(--metal-700);
+        padding: 24px;
+        transition: all 0.3s ease;
+        border-radius: 4px;
+      }
+      .report-cell:hover {
+        border-color: var(--accent-dim);
+        background: var(--metal-700);
+        transform: translateY(-2px);
+      }
+      .report-cell .hd {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 14px;
+        padding-bottom: 12px;
+        border-bottom: 1px dashed var(--metal-600);
+      }
+      .report-cell .lvl {
+        font-family: var(--mono);
+        font-size: 10px;
+        letter-spacing: 0.3em;
+        color: var(--accent);
+        text-transform: uppercase;
+      }
+      .report-cell .pct {
+        font-family: var(--mono);
+        font-size: 11px;
+        color: var(--metal-400);
+      }
+      .report-cell h4 {
+        font-size: 14px;
+        color: var(--metal-100);
+        font-weight: var(--reg);
+        margin-bottom: 8px;
+      }
+      .report-cell p {
+        font-size: 12px;
+        color: var(--metal-400);
+        line-height: 1.7;
+        margin: 0;
+      }
+      .report-cell.warn { border-color: var(--warn-dim); }
+      .report-cell.warn .lvl { color: var(--warn); }
+      .report-cell.good { border-color: rgba(90, 154, 122, 0.3); }
+      .report-cell.good .lvl { color: var(--good); }
+      .report-cell.gold { border-color: rgba(168, 146, 112, 0.35); }
+      .report-cell.gold .lvl { color: var(--gold); }
+
+      /* ─── 复习计划时间表 ─── */
+      .timeline {
+        border: 1px solid var(--metal-700);
+        background: var(--metal-800);
+        margin: 28px 0;
+        border-radius: 4px;
+        overflow: hidden;
+      }
+      .timeline .row {
+        display: grid;
+        grid-template-columns: 140px 110px 1fr;
+        align-items: center;
+        padding: 16px 24px;
+        border-bottom: 1px solid var(--metal-700);
+        transition: background 0.25s ease;
+      }
+      .timeline .row:last-child { border-bottom: none; }
+      .timeline .row:hover { background: var(--metal-700); }
+      .timeline .when {
+        font-family: var(--mono);
+        font-size: 11px;
+        letter-spacing: 0.2em;
+        color: var(--accent);
+        text-transform: uppercase;
+      }
+      .timeline .date {
+        font-family: var(--mono);
+        font-size: 12px;
+        color: var(--metal-300);
+      }
+      .timeline .what {
+        font-size: 13px;
+        color: var(--metal-200);
+        font-weight: var(--reg);
+      }
+      @media (max-width: 768px) {
+        .timeline .row { grid-template-columns: 1fr; gap: 6px; }
+      }
+
+      /* ─── 元层级 / 引用 ─── */
+      .meta-growth {
+        background: linear-gradient(180deg, var(--metal-800), var(--metal-900));
+        border: 1px solid var(--metal-700);
+        padding: 36px;
+        margin: 28px 0;
+        border-radius: 4px;
+      }
+      .meta-growth blockquote {
+        font-size: 16px;
+        font-weight: var(--thin);
+        color: var(--metal-200);
+        line-height: 1.85;
+        border-left: 2px solid var(--accent);
+        padding-left: 20px;
+        margin: 16px 0;
+        font-style: italic;
+      }
+      .meta-growth .src {
+        display: block;
+        margin-top: 8px;
+        font-family: var(--mono);
+        font-size: 11px;
+        letter-spacing: 0.1em;
+        color: var(--metal-500);
+        font-style: normal;
+      }
+
+      /* ─── Pills ─── */
+      .pill {
+        display: inline-block;
+        font-family: var(--mono);
+        font-size: 10px;
+        letter-spacing: 0.1em;
+        padding: 3px 10px;
+        border-radius: 20px;
+        margin-right: 6px;
+      }
+      .pill.warn { background: rgba(168,107,92,0.15); color: var(--warn); border: 1px solid rgba(168,107,92,0.3); }
+      .pill.good { background: rgba(90,154,122,0.15); color: var(--good); border: 1px solid rgba(90,154,122,0.3); }
+      .pill.info { background: rgba(107,137,168,0.15); color: var(--accent); border: 1px solid rgba(107,137,168,0.3); }
+      .pill.gold { background: rgba(168,146,112,0.15); color: var(--gold); border: 1px solid rgba(168,146,112,0.3); }
+
+      /* ─── Table ─── */
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        background: var(--metal-800);
+        border: 1px solid var(--metal-700);
+        margin: 18px 0;
+        border-radius: 4px;
+        overflow: hidden;
+      }
+      th {
+        font-family: var(--mono);
+        font-size: 10px;
+        letter-spacing: 0.2em;
+        color: var(--accent);
+        text-transform: uppercase;
+        font-weight: var(--med);
+        text-align: left;
+        padding: 14px 18px;
+        border-bottom: 1px solid var(--metal-700);
+        background: var(--metal-700);
+      }
+      td {
+        padding: 13px 18px;
+        border-bottom: 1px solid var(--metal-700);
+        color: var(--metal-300);
+        font-size: 13px;
+        font-weight: var(--reg);
+      }
+      tr:hover td { background: rgba(107,137,168,0.04); }
+      td strong { color: var(--metal-100); font-weight: var(--med); }
+
+      /* ─── 5 道题旅程时间线 ─── */
+      .journey {
+        border: 1px solid var(--metal-700);
+        background: var(--metal-800);
+        margin: 28px 0;
+        border-radius: 4px;
+        overflow: hidden;
+      }
+      .journey .step {
+        padding: 22px 28px;
+        border-bottom: 1px solid var(--metal-700);
+        display: grid;
+        grid-template-columns: 80px 1fr 200px;
+        gap: 24px;
+        align-items: center;
+        transition: background 0.25s ease;
+      }
+      .journey .step:last-child { border-bottom: none; }
+      .journey .step:hover { background: var(--metal-700); }
+      .journey .qid {
+        font-family: var(--mono);
+        font-size: 12px;
+        letter-spacing: 0.2em;
+        color: var(--accent);
+        text-transform: uppercase;
+      }
+      .journey .desc {
+        font-size: 13px;
+        color: var(--metal-200);
+        font-weight: var(--reg);
+        line-height: 1.7;
+      }
+      .journey .desc strong { color: var(--metal-100); font-weight: var(--med); }
+      .journey .status {
+        font-family: var(--mono);
+        font-size: 10px;
+        letter-spacing: 0.15em;
+        text-align: right;
+        color: var(--good);
+      }
+      @media (max-width: 768px) {
+        .journey .step { grid-template-columns: 1fr; }
+        .journey .status { text-align: left; }
+      }
+
+      /* ─── 页脚 ─── */
+      footer {
+        margin-top: 120px;
+        padding-top: 32px;
+        border-top: 1px solid var(--metal-700);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 16px;
+      }
+      footer .tags {
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+      }
+      footer .tag {
+        font-family: var(--mono);
+        font-size: 10px;
+        letter-spacing: 0.2em;
+        color: var(--metal-400);
+        text-transform: uppercase;
+        border: 1px solid var(--metal-700);
+        padding: 6px 12px;
+        transition: all 0.25s ease;
+        border-radius: 20px;
+      }
+      footer .tag:hover {
+        color: var(--accent);
+        border-color: var(--accent-dim);
+      }
+      footer .pos {
+        font-family: var(--mono);
+        font-size: 11px;
+        letter-spacing: 0.3em;
+        color: var(--metal-500);
+      }
+
+      @media (max-width: 768px) {
+        .container { padding: 48px 20px 80px; }
+        .hero { padding: 40px 28px; }
+        .hero .stats { grid-template-columns: repeat(2, 1fr); gap: 24px; }
+        .hero .stats .stat { border-right: none; padding: 0; }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <!-- ─── HERO ─── -->
+      <header class="hero">
+        <div class="meta">2026 · 05 · 21 ─── REVIEW NOTE / D7 GRADUATION</div>
+        <h1>Claude Code 上下文管理 · D7 毕业<br />—— 5 道题 · 22 回合 · 5 次糊弄词复发</h1>
+        <p class="lead">
+          D7 不是验证"你记不记得"，而是验证"<em>你能不能在没有提示的情况下用对</em>"。<br />
+          今天你被指出层级错位 5 次、被指出糊弄词 5 次、承认"忘记"1 次、自悟金句 2 个、跨章节连线 4 次。
+          安全带肌肉<em>首次自启动</em>。新红点<em>"句尾糊弄动词"</em>被命名并写入监控清单。
+          这不是答得最快的一次复习，但是<em>踩坑最有诚意、修正最干净、收获最深</em>的一次。
+        </p>
+
+        <div class="stats">
+          <div class="stat"><div class="num">5/5</div><div class="lbl">题目通过</div></div>
+          <div class="stat"><div class="num">22</div><div class="lbl">对话回合</div></div>
+          <div class="stat"><div class="num">5×</div><div class="lbl">糊弄词触发</div></div>
+          <div class="stat"><div class="num">2</div><div class="lbl">自悟金句</div></div>
+        </div>
+      </header>
+
+      <!-- ─── SECTION 1：核心三连焊死 ─── -->
+      <section>
+        <div class="sec-num">SECTION 01 ─── 核心知识 · 三连焊死</div>
+        <h2>D7 验证通过的 A 层全家</h2>
+
+        <p>
+          这一节 5/13 学的"<strong>context 是稀缺资源 · Lost in the Middle · 三工具分工</strong>"，
+          经过 D1 复述、D7 闭卷追问后已经全部站住。下面是焊死后的精炼版。
+        </p>
+
+        <div class="ascii">
+<span class="em">═══════════════════════════════════════════════════════════</span>
+<span class="em">  Claude Code Context 管理 · 三层家族图（D7 焊死版）</span>
+<span class="em">═══════════════════════════════════════════════════════════</span>
+
+<span class="hi">第3层（爷爷 · 理念）</span>
+                ┌──────────────────────────────────────┐
+                │  context 是【稀缺】的资源            │
+                │  所以两者都【只把精华放进 context】   │
+                └──────────────────┬───────────────────┘
+                                   │
+       ┌───────────────────────────┼───────────────────────────┐
+       ▼                           ▼                           ▼
+<span class="hi">第2层（兄弟 · 三工具）</span>
+   <span class="good">/clear</span>                   <span class="good">subagents</span>                 <span class="good">Plan Mode</span>
+   时间维度 · 清空           空间维度 · 外包          阶段维度 · 切换权限
+       │                           │                           │
+       └────────── 都使用 ─────────→ <span class="em">context window 管理</span> ←─── 底层操作
+<span class="hi">第1层（儿子 · 工具）</span>            （读 / 写 / 隔离 / 切换权限）
+        </div>
+
+        <p style="margin-top: 18px;">
+          5/13 那天的金句被 D7 重新激活：<br />
+          <strong style="color: var(--accent); font-style: italic;">
+            "稀缺的不是知识，是 context 的'卖场货架'。"
+          </strong>
+        </p>
+      </section>
+
+      <!-- ─── SECTION 2：开工 4 问 → 4 工具映射 ─── -->
+      <section>
+        <div class="sec-num">SECTION 02 ─── 工程映射 · 100% 准确率</div>
+        <h2>开工 4 问 → 4 工具完整映射</h2>
+
+        <p>
+          D7 题 5 综合应用题用 JWT 重构场景检验了这张映射表——4 问齐全、4 工具对应全准、
+          且第 3 问主动调用了题 4 自悟的金句"<em>回退成本降维</em>"。这是<strong>跨题搬运</strong>的真正发生。
+        </p>
+
+        <table>
+          <thead>
+            <tr>
+              <th>开工 4 问</th>
+              <th>对应工具</th>
+              <th>儿子层 · 具体动作</th>
+              <th>判定</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>① 当前任务和上一个任务相关吗？</strong></td>
+              <td><code style="color: var(--accent); font-family: var(--mono);">/clear</code></td>
+              <td>不启动新 agent；清空主 context，回到"刚打开"状态</td>
+              <td><span class="pill good">✓</span></td>
+            </tr>
+            <tr>
+              <td><strong>② 这个动作需要读很多文件吗？</strong></td>
+              <td><code style="color: var(--accent); font-family: var(--mono);">subagents</code></td>
+              <td>启动新 agent 实例 · 子 agent 在独立 context 里读文件 · 只回传摘要</td>
+              <td><span class="pill good">✓</span></td>
+            </tr>
+            <tr>
+              <td><strong>③ 这次改动跨了几个文件？</strong></td>
+              <td><code style="color: var(--accent); font-family: var(--mono);">Plan Mode</code></td>
+              <td>不启动新 agent；切只读权限 → 看完整计划 → 切回 Normal Mode 执行</td>
+              <td><span class="pill good">✓</span></td>
+            </tr>
+            <tr>
+              <td><strong>④ 关键信息我放在哪里？</strong></td>
+              <td>Lost in the Middle</td>
+              <td>核心约束放 prompt 开头或结尾，避开中段塌陷区</td>
+              <td><span class="pill good">✓</span></td>
+            </tr>
+          </tbody>
+        </table>
+      </section>
+
+      <!-- ─── SECTION 3：Lost in the Middle 钩子 ─── -->
+      <section>
+        <div class="sec-num">SECTION 03 ─── 钩子焊接 · D7 的关键时刻</div>
+        <h2>Lost in the Middle · U 型注意力曲线</h2>
+
+        <p>
+          D7 题 1 (a) 这个钩子曾经<strong>半松</strong>——你描述对了机制（"开头结尾比中间关注多"），
+          但<em>说不出术语本身</em>，并且尝试用爷爷"注意力机制"代替。最终通过<strong>承认"忘记"</strong>
+          + <strong>U 型曲线画面 + 模型主语</strong>三步焊死。
+        </p>
+
+        <div class="ascii">
+<span class="em">─────────────────────────────────────────────────</span>
+<span class="em">  注意力分布 · U 型曲线（"Lost in the Middle"）</span>
+<span class="em">─────────────────────────────────────────────────</span>
+
+  注意力 ▲
+   高   │ <span class="hi">●</span>                                    <span class="hi">●</span>
+        │  <span class="hi">●</span>                                  <span class="hi">●</span>
+        │   <span class="hi">●</span>                                <span class="hi">●</span>
+        │    <span class="hi">●</span>                              <span class="hi">●</span>
+        │     <span class="hi">●</span>                            <span class="hi">●</span>
+        │      <span class="hi">●●</span>                        <span class="hi">●●</span>
+        │        <span class="hi">●●●</span>                  <span class="hi">●●●</span>
+        │           <span class="warn">●●●●●●●●●●●●●●●●●</span>          ← <span class="warn">中段塌陷</span>
+   低   │
+        └──────────────────────────────────────▶
+         开头           中间             结尾
+                  context window 位置
+
+  ◀────────  Lost in the Middle  ────────▶
+        （中间迷失 · 信息被忽略的那一段）
+        </div>
+
+        <div class="card accent" style="margin-top: 28px;">
+          <div class="tag">焊死的钩子链条</div>
+          <h4>Lost in the Middle = U 型注意力曲线 = 模型对开头和结尾的关注大于中间</h4>
+          <p>
+            动作主语必须是<strong>模型</strong>，不是 "agent"——这是 D7 第二次踩到的爷爷化倾向。Agent 是上层包装，
+            真正分配注意力的是底下的 LLM。
+          </p>
+        </div>
+      </section>
+
+      <!-- ─── SECTION 4：今日红点 · 句尾糊弄动词 ─── -->
+      <section>
+        <div class="sec-num">SECTION 04 ─── 今日新发现红点 · 重重标记</div>
+        <h2>"句尾糊弄动词" · 触发 5 次 · 最顽固红点</h2>
+
+        <p>
+          这是今天 D7 之前没注意到的<strong>新元层级红点</strong>。它和 5/13 的"爷爷化倾向"、
+          5/14 的"经验模糊随便说"是同一家族里的<em>不同变种</em>——
+          <strong>你大脑的精度衰减不在概念层，在语言的尾段</strong>。
+        </p>
+
+        <div class="ascii">
+<span class="em">─────────────────────────────────────────────────</span>
+<span class="em">  今日"句尾糊弄动词"完整触发记录</span>
+<span class="em">─────────────────────────────────────────────────</span>
+
+  题 3 第 1 轮 ：上下文【<span class="warn">构建</span>】              第 1 次
+  题 3 第 2 轮 ：context 上【<span class="warn">优化</span>】          第 2 次
+  题 3 第 3 轮 ：对 context 进行【<span class="warn">处理</span>】      第 3 次  → <span class="hi">命名 + 焊死</span>
+  题 4 第 1 轮 ：在隔离上下文里【<span class="warn">做处理</span>】     第 4 次  → <span class="warn">红点立刻复发</span>
+  题 5 第 2 问 ：进行任务的【<span class="warn">处理</span>】           第 5 次  ⚠️
+        </div>
+
+        <p style="margin-top: 18px;">
+          <strong>家族总称</strong>：
+          <em>"句子末端的精度漏气"</em>——前半段努力精确，后半段用"构建/优化/处理/管理"自动填空。
+          这不是知识漏洞，是<strong>作答习惯</strong>。
+        </p>
+
+        <div class="compare" style="margin-top: 24px;">
+          <div class="card warn">
+            <div class="tag">糊弄词 · 不能再用</div>
+            <h4>构建 / 优化 / 处理 / 管理 / 进行</h4>
+            <p>
+              特征：动作类宽泛词，<em>任何对 context 做事都能用</em>这些词描述——
+              所以它们<strong>没有指向、没有信息量</strong>。
+            </p>
+          </div>
+          <div class="card good">
+            <div class="tag">具体动词 · 应替换</div>
+            <h4>读取 / 清空 / 切换 / 回传 / 节约 / 隔离 / 派发</h4>
+            <p>
+              特征：<em>能精准描述"信息从哪到哪"</em>的动词。
+              下次作答前先想三秒钟句尾动词，再下笔。
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <!-- ─── SECTION 5：5 道题旅程 ─── -->
+      <section>
+        <div class="sec-num">SECTION 05 ─── 5 道题旅程 · D7 的真实曲线</div>
+        <h2>每一题踩了什么坑、用什么方式爬出来</h2>
+
+        <div class="journey">
+          <div class="step">
+            <div class="qid">Q1</div>
+            <div class="desc">
+              <strong>三工具区别 · JWT 调试后切忘记密码场景</strong><br />
+              漏答 (b) → 救回；Plan Mode 用"也是一样"撒网 → 救回；
+              "Lost in the Middle"答成"注意力机制"（爷爷化）→ <em>承认忘记 → 焊死</em>。
+            </div>
+            <div class="status">✓ 通过 · 元学习胜利</div>
+          </div>
+
+          <div class="step">
+            <div class="qid">Q2</div>
+            <div class="desc">
+              <strong>context 隐藏来源 · 30 文件 OAuth 调研</strong><br />
+              第 1 轮跳过安全带 + 答工具名搪塞 → 救回；
+              第 2 轮主动打安全带（被催）+ subagent 三段式有序展开。
+            </div>
+            <div class="status">✓ 通过 · 三段式焊死</div>
+          </div>
+
+          <div class="step">
+            <div class="qid">Q3</div>
+            <div class="desc">
+              <strong>跨章节关联 · 与 RAG</strong><br />
+              第 1 轮信息流向反了（"任务注入主 agent"）→ 修正；
+              <em>糊弄词触发 3 次（构建→优化→处理）</em>→ 命名"句尾糊弄动词"红点 + 焊死。
+            </div>
+            <div class="status">✓ 通过 · 红点命名</div>
+          </div>
+
+          <div class="step">
+            <div class="qid">Q4</div>
+            <div class="desc">
+              <strong>跨章节关联 · 与 AI 智能体三要素</strong><br />
+              第 1 轮三红点同时触发 → 救回；
+              <em>第 2 轮安全带肌肉首次自启动</em>；
+              <em>自悟金句"回退成本从回退操作迁移到回退计划"</em>。
+            </div>
+            <div class="status">⭐ 自悟金句</div>
+          </div>
+
+          <div class="step">
+            <div class="qid">Q5</div>
+            <div class="desc">
+              <strong>综合应用 · JWT 鉴权重构</strong><br />
+              4 问齐全 + 4 工具映射 100% 对 + 跨题搬运（题 4 金句调用）；
+              但<em>糊弄词第 5 次复发</em>（"进行任务的处理"）+ 第 1 问撒网答法（无具体判断）。
+            </div>
+            <div class="status">⭐ 跨题搬运</div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ─── SECTION 6：今日金星 · 元学习胜利 ─── -->
+      <section>
+        <div class="sec-num">SECTION 06 ─── 元学习胜利时刻</div>
+        <h2>D7 焊死的元能力</h2>
+
+        <div class="checklist">
+          <div class="item gold">
+            <div class="txt">
+              <h4>"蒙错比蒙对珍贵" 二次落地</h4>
+              <p>
+                Q1 (a) 当你答不上 "Lost in the Middle" 这个术语时，没有继续往邻近概念上爬，
+                而是诚实地说出"<em>我这个真忘记了</em>"——5/14 D1 焊死的元学习信条在 D7 又一次自启动。
+                如果你硬蒙了一个邻近词，钩子会以错误形态留在脑子里——"承认"挽救了它。
+              </p>
+            </div>
+          </div>
+
+          <div class="item gold">
+            <div class="txt">
+              <h4>安全带肌肉首次自启动 ⭐⭐</h4>
+              <p>
+                5/14 D1 留下的训练目标是"作答前自己跑分层钥匙"，今天 5 题里 Q1-Q3 都需要催才打。
+                <em>Q4 第 2 轮 · 你主动 + 原样誊抄 + 完整三句的安全带</em>——这是今天 D7 第一次
+                "作答前主动跑分层钥匙"在你身上自启动。从 D1 训练到 D7 落地，肌肉走了 7 天。
+              </p>
+            </div>
+          </div>
+
+          <div class="item gold">
+            <div class="txt">
+              <h4>跨题金句搬运 ⭐</h4>
+              <p>
+                Q4 你自悟的金句"<em>把回退成本从回退操作迁移到回退计划</em>"——
+                Q5 第 3 问你<strong>主动调出来用了</strong>。没人提示，是你自己想到的。
+                这是 D7 最珍贵的能力：不是单题答对，是<em>跨题搬运</em>。
+              </p>
+            </div>
+          </div>
+
+          <div class="item gold">
+            <div class="txt">
+              <h4>自悟跨题连线 · "权限"线索</h4>
+              <p>
+                Q4 (a) 你答 Plan Mode 用"权限切换"——Q4 (b) 没人提示，
+                你<strong>自己把"权限"线索从 (a) 延伸到 (b)</strong>，
+                自创了"主 agent Plan Mode 只读 vs 子 agent 完整读写权限"的对比表。
+                这是真正的元工具能力。
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ─── SECTION 7：元层级红点全图 ─── -->
+      <section>
+        <div class="sec-num">SECTION 07 ─── 元层级红点 · 监控清单</div>
+        <h2>D7 暴露的 4 个红点 · 需要在 D30 继续监控</h2>
+
+        <div class="report-grid">
+          <div class="report-cell warn">
+            <div class="hd"><div class="lvl">红点 · 顽固</div><div class="pct">5 次 ⚠️⚠️</div></div>
+            <h4>句尾糊弄动词 🆕</h4>
+            <p>
+              构建/优化/处理/做处理/进行处理——前半段精确，句尾自动填空泛词。
+              <strong>D30 必测</strong>：是否还会自动从语言库里跳出来。
+            </p>
+          </div>
+
+          <div class="report-cell warn">
+            <div class="hd"><div class="lvl">红点 · 老顽固</div><div class="pct">3 次</div></div>
+            <h4>爷爷化倾向</h4>
+            <p>
+              答不上具体术语时往上爬一层："Lost in the Middle"→"注意力机制"；
+              "模型"→"agent"；"启动新 agent 实例"→"context 影响范围"。
+              5/13 起就在监控的老红点。
+            </p>
+          </div>
+
+          <div class="report-cell warn">
+            <div class="hd"><div class="lvl">红点 · 启动延迟</div><div class="pct">4 次</div></div>
+            <h4>安全带启动延迟</h4>
+            <p>
+              5 题里 4 题第 1 轮跳过安全带，需要被催才启动。
+              Q4 第 2 轮首次主动启动是真正的进步——但还要 D30 继续训练到"无提示也能启动"。
+            </p>
+          </div>
+
+          <div class="report-cell warn">
+            <div class="hd"><div class="lvl">红点 · 撒网</div><div class="pct">2 次</div></div>
+            <h4>撒网答法</h4>
+            <p>
+              "如果...如果..."列条件不下结论。Q1 (b) 和 Q5 第 1 问都触发——
+              题目要求具体判断时，习惯性给一般规则。
+              <strong>对策</strong>：作答前先问"题目要的是规则还是判断？"
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <!-- ─── SECTION 8：横向连接 ─── -->
+      <section>
+        <div class="sec-num">SECTION 08 ─── 横向连接 · 跨章节复用</div>
+        <h2>这一节和你以前学过的什么相关？</h2>
+
+        <details>
+          <summary>与 RAG 检索系统 —— 都在解决"context 太贵"</summary>
+          <div class="body">
+            <p>
+              <strong>同一爷爷理念</strong>：context 是稀缺的资源，所以两者都<em>只把精华放进 context</em>。
+            </p>
+            <p>
+              <strong>儿子层差异</strong>：
+              RAG 是<em>"内部精华化"</em>——脏活在 context 内部干，但只塞精华一小段；
+              subagent 是<em>"外部隔离化"</em>——脏活在另一个 context 里干，主对话只接摘要。
+            </p>
+            <p style="color: var(--accent);">
+              → D7 题 3 通过这一组对比焊死了"内部精华化 vs 外部隔离化"口诀。
+            </p>
+          </div>
+        </details>
+
+        <details>
+          <summary>与 AI 智能体三要素 —— Plan Mode 是规划/行动权限拆分的实例</summary>
+          <div class="body">
+            <p>
+              在 AI 智能体三要素里，"规划"和"行动"是两个独立要素。
+              Plan Mode 用<em>权限切换</em>把这两个要素显式拆成两个阶段——
+              只读权限阶段做规划，写权限阶段做行动。
+            </p>
+            <p>
+              <strong>Plan Mode 的工程价值</strong>（你 Q4 自悟的金句）：
+              <em>把回退成本从【回退操作】降级为【回退计划】</em>——
+              在动手之前发现错误，比动手之后回退便宜得多。
+            </p>
+            <p style="color: var(--accent);">
+              → 这是智能体设计原则在工具层的具体体现。下次自己设计 agent 时记得：
+              不是"一个 agent 干所有事"，是"规划阶段和行动阶段的权限要拆开"。
+            </p>
+          </div>
+        </details>
+
+        <details>
+          <summary>与 5/13 学习当天 —— 三个老坑 D7 全部复发或检测</summary>
+          <div class="body">
+            <p>
+              <strong>坑 1（把"现象"当"机制"）</strong>：
+              D7 触发——"Lost in the Middle"答成"注意力机制"。形式不同，本质相同。
+            </p>
+            <p>
+              <strong>坑 2（把 Plan Mode 当 subagent）</strong>：
+              D7 没触发——但通过"<em>subagent 启动新 agent 实例，Plan Mode 不启动新 agent，只切权限</em>"
+              这一句反向焊死。
+            </p>
+            <p>
+              <strong>坑 3（用术语贴标签代替展开解释）</strong>：
+              D7 触发——Q2 (b) 第 1 轮"开启 subAgents"一句话搪塞，被指出后展开三段式。
+            </p>
+            <p style="color: var(--accent);">
+              → 5/13 的三个老坑，D7 触发 2/3——说明"踩过的坑还会再踩"，但能更快爬出来。这就是 D7 的真实状态。
+            </p>
+          </div>
+        </details>
+
+        <details>
+          <summary>与 5/14 D1 元学习觉醒 —— "蒙错比蒙对珍贵" 二次落地</summary>
+          <div class="body">
+            <p>
+              5/14 D1 你给自己焊死的元学习信条是<em>"蒙错比蒙对珍贵 · 边界感比知识量更重要"</em>。
+              那次的具体场景是：老师给 (A)(B)(C) 三选时主动选 B = "我蒙的"。
+            </p>
+            <p>
+              <strong>D7 二次落地</strong>：
+              这次没有 (A)(B)(C) 选项，是你<em>自己主动划出"我不知道"的边界</em>——
+              "我这个真忘记了"。从被动选边界 → 主动划边界，是元意识更深一阶。
+            </p>
+            <p style="color: var(--accent);">
+              → 这件事比答对一道题珍贵 100 倍。你的元学习信条已经从"知道"变成"用得上"。
+            </p>
+          </div>
+        </details>
+
+        <details>
+          <summary>与 5/11 分层钥匙 —— "上下兄弟问三句"再次救命</summary>
+          <div class="body">
+            <p>
+              D7 题 1 (a) 把现象答成爷爷"注意力机制"——分层钥匙拎出"现象层 vs 爷爷层"边界，自我修正。
+            </p>
+            <p>
+              D7 题 1 (a) 把"模型"答成"agent"——分层钥匙拎出"儿子（LLM）vs 爷爷（Agent）"边界，自我修正。
+            </p>
+            <p>
+              D7 题 4 (b) 把"启动新 agent 实例"答成"context 影响范围"——分层钥匙拎出"儿子层 · 启动 vs 不启动"边界，由老师补刀焊死。
+            </p>
+            <p style="color: var(--accent);">
+              → 5/11 焊的分层钥匙，D7 跨章节复用救命 ×3。这把钥匙已经焊成本能。
+            </p>
+          </div>
+        </details>
+      </section>
+
+      <!-- ─── SECTION 9：元层级成长曲线 ─── -->
+      <section>
+        <div class="sec-num">SECTION 09 ─── 元层级成长曲线</div>
+        <h2>从 5/13 → 5/14 D1 → 5/21 D7 的真实进步</h2>
+
+        <div class="meta-growth">
+          <blockquote>
+            "D7 不是验证'你记不记得'——是验证'你能不能在没有提示的情况下用对'。"
+            <span class="src">— 5/21 D7 复习总训</span>
+          </blockquote>
+
+          <div class="layers" style="margin-top: 24px;">
+            <div class="layer layer-1">
+              <div class="lbl">PHASE 01 · 5/13</div>
+              <h4>学习当天</h4>
+              <p>
+                第一次接触 context 三连。踩了三个坑：把现象当机制、把 Plan Mode 当 subagent、术语贴标签代替展开。
+                "上下兄弟"工具第一次救命。
+              </p>
+            </div>
+            <div class="layer layer-2">
+              <div class="lbl">PHASE 02 · 5/14 D1</div>
+              <h4>D1 焊死 + 元学习觉醒</h4>
+              <p>
+                填回了"读文件 + 命令的输出"两个空白；首次主动选 B = "我蒙的"；
+                自创"打车比喻 + 点菜比喻"双钩子；首次反向用"开工 4 问"审计老师备课。
+              </p>
+            </div>
+            <div class="layer layer-3">
+              <div class="lbl">PHASE 03 · 5/21 D7</div>
+              <h4>D7 毕业 + 新红点命名</h4>
+              <p>
+                安全带肌肉首次自启动；自悟金句"回退成本降维"+ 跨题搬运；
+                "蒙错比蒙对珍贵"二次落地（主动承认"忘记"）；
+                <em>新红点"句尾糊弄动词"被命名并写入监控清单</em>。
+              </p>
+            </div>
+          </div>
+
+          <blockquote style="margin-top: 32px;">
+            "你不是答得最快的学生，但你是今天踩坑最有诚意、修正最干净、收获最深的人。
+            D7 毕业不是'你都会了'——D7 毕业是'你知道自己哪里还不会、哪里需要继续监控'。
+            这才是元学习的胜利。"
+            <span class="src">— 5/21 老师手记</span>
+          </blockquote>
+        </div>
+      </section>
+
+      <!-- ─── SECTION 10：学习报告网格 ─── -->
+      <section>
+        <div class="sec-num">SECTION 10 ─── 掌握度网格</div>
+        <h2>A / B / C 层 + 元层级</h2>
+
+        <div class="report-grid">
+          <div class="report-cell good">
+            <div class="hd"><div class="lvl">A 层 · 焊死</div><div class="pct">100%</div></div>
+            <h4>context 稀缺三连</h4>
+            <p>"稀缺的不是知识，是 context 的卖场货架" · context 隐藏来源（读文件 + 命令输出）· Lost in the Middle 钩子</p>
+          </div>
+
+          <div class="report-cell good">
+            <div class="hd"><div class="lvl">A 层 · 焊死</div><div class="pct">100%</div></div>
+            <h4>开工 4 问 → 4 工具映射</h4>
+            <p>相关？/clear · 读多？subagents · 跨几？Plan Mode · 放哪？Lost in the Middle</p>
+          </div>
+
+          <div class="report-cell good">
+            <div class="hd"><div class="lvl">A 层 · 焊死</div><div class="pct">100%</div></div>
+            <h4>三工具儿子层差异</h4>
+            <p>/clear 不启动新 agent，清空主 context · subagent 启动新 agent 实例 · Plan Mode 不启动新 agent，只切权限</p>
+          </div>
+
+          <div class="report-cell gold">
+            <div class="lvl">⭐ 自悟金句</div>
+            <h4>回退成本降维</h4>
+            <p>"把回退成本从【回退操作】迁移到【回退计划】"——Q4 自悟，Q5 跨题搬运。Plan Mode 工程价值的最佳总结。</p>
+          </div>
+
+          <div class="report-cell">
+            <div class="hd"><div class="lvl">B 层 · 待补</div><div class="pct">0%</div></div>
+            <h4>扩展机制全家</h4>
+            <p>CLAUDE.md / 权限模式 / MCP / hooks / skills / plugins / subagents 之间的分工——D30 之后再学</p>
+          </div>
+
+          <div class="report-cell">
+            <div class="hd"><div class="lvl">C 层 · 备查</div><div class="pct">—</div></div>
+            <h4>命令参数 & 脚本</h4>
+            <p>claude -p 参数 / Writer-Reviewer 脚本 / 跨文件 fan-out 模板——用时再翻</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- ─── SECTION 11：下次行动 ─── -->
+      <section>
+        <div class="sec-num">SECTION 11 ─── 间隔重复 · 下次复习</div>
+        <h2>D30 综合题 · 2026/06/12</h2>
+
+        <div class="timeline">
+          <div class="row">
+            <div class="when">第 1 天</div>
+            <div class="date">05/13</div>
+            <div class="what">学习当天 · 5 分钟回忆 ✓ 已完成</div>
+          </div>
+          <div class="row">
+            <div class="when">第 2 天</div>
+            <div class="date">05/14</div>
+            <div class="what">D1 · 三层连贯 + 元学习觉醒 ✓ 已完成</div>
+          </div>
+          <div class="row">
+            <div class="when">第 7 天</div>
+            <div class="date">05/21</div>
+            <div class="what">D7 · 5 道闭卷题 + 跨章节关联 ✓ 今日完成</div>
+          </div>
+          <div class="row">
+            <div class="when">第 30 天</div>
+            <div class="date">06/12</div>
+            <div class="what">
+              <strong>D30 综合题</strong>：用今天学的知识解决一个真实场景。
+              <em>必测</em>：句尾糊弄动词是否还会自动复发？爷爷化倾向是否减少？安全带能否无提示自启动？
+            </div>
+          </div>
+        </div>
+
+        <h3 style="margin-top: 36px;">📝 D7 → D30 之间的训练方向</h3>
+
+        <div class="checklist">
+          <div class="item">
+            <div class="txt">
+              <h4>每次写技术答案前，先想 3 秒钟句尾动词</h4>
+              <p>不许用"构建/优化/处理/管理/进行"。挑一个具体动词：读取/清空/切换/回传/隔离/派发/节约。</p>
+            </div>
+          </div>
+          <div class="item">
+            <div class="txt">
+              <h4>每次答跨章节题前，主动跑一遍"上下兄弟问三句"</h4>
+              <p>这道题问的是爷爷？兄弟？儿子？两者的爷爷是不是同一个？儿子层差异在哪里？</p>
+            </div>
+          </div>
+          <div class="item">
+            <div class="txt">
+              <h4>每次答"如何做"题前，先判断"是规则还是具体场景"</h4>
+              <p>具体场景必须下判断，不能用"如果...如果..."的撒网答法躲过去。</p>
+            </div>
+          </div>
+          <div class="item">
+            <div class="txt">
+              <h4>记住反向疫苗</h4>
+              <p>"<em>subagent 启动新 agent 实例，Plan Mode 不启动新 agent，只切权限</em>"——D30 之前每周念一遍。</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ─── SECTION 12：今日金句库 ─── -->
+      <section>
+        <div class="sec-num">SECTION 12 ─── 焊死的钩子库</div>
+        <h2>D7 之后再也丢不掉的 6 个钩子</h2>
+
+        <div class="card accent" style="margin-bottom: 12px;">
+          <div class="tag">钩子 1 · 爷爷理念</div>
+          <p style="font-size: 14px; color: var(--metal-100);">
+            <em>"稀缺的不是知识，是 context 的'卖场货架'。"</em>
+          </p>
+        </div>
+
+        <div class="card accent" style="margin-bottom: 12px;">
+          <div class="tag">钩子 2 · 现象画面</div>
+          <p style="font-size: 14px; color: var(--metal-100);">
+            <em>Lost in the Middle = U 型注意力曲线 = 模型对开头和结尾的关注大于中间</em>
+          </p>
+        </div>
+
+        <div class="card accent" style="margin-bottom: 12px;">
+          <div class="tag">钩子 3 · 隐藏来源</div>
+          <p style="font-size: 14px; color: var(--metal-100);">
+            <em>Claude Code 的隐藏 context = 读文件 + 命令的输出</em>
+          </p>
+        </div>
+
+        <div class="card accent" style="margin-bottom: 12px;">
+          <div class="tag">钩子 4 · 开工 4 问</div>
+          <p style="font-size: 14px; color: var(--metal-100);">
+            <em>相关？读多？跨几？放哪？ → /clear · subagents · Plan Mode · Lost in the Middle</em>
+          </p>
+        </div>
+
+        <div class="card accent" style="margin-bottom: 12px;">
+          <div class="tag">钩子 5 · 反向疫苗</div>
+          <p style="font-size: 14px; color: var(--metal-100);">
+            <em>subagent 启动新 agent 实例，Plan Mode 不启动新 agent，只切权限</em>
+          </p>
+        </div>
+
+        <div class="card gold" style="margin-bottom: 12px;">
+          <div class="tag">⭐ 自悟金句</div>
+          <p style="font-size: 14px; color: var(--metal-100);">
+            <em>Plan Mode 把回退成本从【回退操作】迁移到【回退计划】——这就是它存在的工程价值</em>
+          </p>
+        </div>
+
+        <div class="card warn" style="margin-bottom: 12px;">
+          <div class="tag">⚠️ 元学习信条 · 二次落地</div>
+          <p style="font-size: 14px; color: var(--metal-100);">
+            <em>"我这个真忘记了" · 蒙错比蒙对珍贵 · 边界感比知识量更重要</em>
+          </p>
+        </div>
+      </section>
+
+      <!-- ─── 页脚 ─── -->
+      <footer>
+        <div class="tags">
+          <div class="tag">Claude Code</div>
+          <div class="tag">Context · D7</div>
+          <div class="tag">Lost in the Middle</div>
+          <div class="tag">开工 4 问</div>
+          <div class="tag">句尾糊弄动词 🆕</div>
+          <div class="tag">回退成本降维</div>
+          <div class="tag">元学习信条 · 二次</div>
+          <div class="tag">5/5 通过</div>
+        </div>
+        <div class="pos">2026 / 05 / 21 ─── REVIEW · D7 GRADUATION</div>
+      </footer>
+    </div>
+
+    <script>
+      // 鼠标光晕
+      document.addEventListener("mousemove", (e) => {
+        const x = (e.clientX / window.innerWidth) * 100;
+        const y = (e.clientY / window.innerHeight) * 100;
+        document.documentElement.style.setProperty("--mx", x + "%");
+        document.documentElement.style.setProperty("--my", y + "%");
+      });
+
+      // 滚动浮现
+      const io = new IntersectionObserver(
+        (entries) => {
+          entries.forEach((e) => {
+            if (e.isIntersecting) {
+              e.target.classList.add("visible");
+              io.unobserve(e.target);
+            }
+          });
+        },
+        { threshold: 0.08 }
+      );
+      document.querySelectorAll("section").forEach((s) => io.observe(s));
+    </script>
+  </body>
+</html>

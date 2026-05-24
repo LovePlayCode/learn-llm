@@ -1,0 +1,1177 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>LLM 学习 · 知识思维导图</title>
+<script src="https://cdn.jsdelivr.net/npm/d3@7"></script>
+<style>
+:root {
+  --bg-0: #07090d;
+  --bg-1: #0f1319;
+  --bg-2: #1a1f28;
+  --bg-3: #2a303a;
+  --line: rgba(216,221,227,.08);
+  --line-strong: rgba(216,221,227,.18);
+  --txt-0: #eef0f3;
+  --txt-1: #d8dde3;
+  --txt-2: #b8bfc8;
+  --txt-3: #8e96a3;
+  --txt-4: #5c6675;
+  --accent: #6b89a8;
+  --accent-soft: rgba(107,137,168,.18);
+  --warn: #b0856a;
+  --green: #7a9b8a;
+  --mono: 'SF Mono','JetBrains Mono','Fira Code','Menlo',monospace;
+  --sans: -apple-system,'PingFang SC','Helvetica Neue',sans-serif;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+html, body {
+  background: var(--bg-0);
+  color: var(--txt-1);
+  font-family: var(--sans);
+  font-weight: 300;
+  height: 100%;
+  overflow: hidden;
+  letter-spacing: .015em;
+}
+
+body::before {
+  content: '';
+  position: fixed; inset: 0;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='200' height='200'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 0.6  0 0 0 0 0.65  0 0 0 0 0.72  0 0 0 0.45 0'/></filter><rect width='100%' height='100%' filter='url(%23n)' opacity='0.5'/></svg>");
+  mix-blend-mode: overlay;
+  opacity: .22;
+  pointer-events: none;
+  z-index: 1;
+}
+
+/* ===== HEADER ===== */
+header {
+  position: fixed;
+  top: 0; left: 0; right: 0;
+  z-index: 10;
+  padding: 18px 28px;
+  background: linear-gradient(180deg, rgba(7,9,13,.94) 0%, rgba(7,9,13,0) 100%);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  pointer-events: none;
+}
+header > * { pointer-events: auto; }
+header .title {
+  font-size: 17px;
+  font-weight: 300;
+  color: var(--txt-0);
+  letter-spacing: .01em;
+}
+header .title em {
+  font-style: normal;
+  color: var(--accent);
+}
+header .legend {
+  display: flex;
+  gap: 16px;
+  font-family: var(--mono);
+  font-size: 10px;
+  color: var(--txt-3);
+  letter-spacing: .15em;
+}
+header .legend span {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+header .legend i {
+  width: 8px; height: 8px;
+  border-radius: 50%;
+}
+.dot-grad { background: var(--green); box-shadow: 0 0 6px var(--green); }
+.dot-wip  { background: var(--accent); }
+.dot-warn { background: var(--warn); }
+
+header .meta {
+  font-family: var(--mono);
+  font-size: 10px;
+  color: var(--txt-4);
+  letter-spacing: .25em;
+}
+
+/* ===== MAIN CANVAS ===== */
+#mindmap {
+  position: absolute;
+  top: 0; left: 0; bottom: 0;
+  right: 488px; /* leave space for panel (440 width + 24 right + 24 gap) */
+  z-index: 2;
+}
+#mindmap svg { width: 100%; height: 100%; display: block; cursor: grab; }
+#mindmap svg:active { cursor: grabbing; }
+
+.link {
+  fill: none;
+  stroke-width: 1.5px;
+  opacity: .6;
+}
+
+.node circle {
+  cursor: pointer;
+  transition: r .25s ease, fill .25s ease, stroke .25s ease, filter .25s ease;
+}
+.node:hover circle { filter: drop-shadow(0 0 14px var(--accent)) brightness(1.2); }
+.node.selected circle {
+  stroke: var(--accent) !important;
+  stroke-width: 3px !important;
+  filter: drop-shadow(0 0 16px var(--accent)) brightness(1.3) !important;
+}
+.node.selected text { fill: var(--txt-0) !important; font-weight: 400 !important; }
+.node text {
+  font-family: var(--sans);
+  font-weight: 300;
+  fill: var(--txt-1);
+  pointer-events: none;
+  paint-order: stroke;
+  stroke: var(--bg-0);
+  stroke-width: 5px;
+  stroke-linejoin: round;
+  cursor: pointer;
+}
+
+.node.root text {
+  font-size: 19px;
+  fill: var(--txt-0);
+  font-weight: 400;
+  letter-spacing: .04em;
+}
+.node.family text {
+  font-size: 15px;
+  fill: var(--txt-0);
+  font-weight: 400;
+}
+.node.topic text {
+  font-size: 13px;
+  fill: var(--txt-1);
+}
+
+.node .badge {
+  font-family: var(--mono);
+  font-size: 9.5px;
+  letter-spacing: .12em;
+  paint-order: stroke;
+  stroke: var(--bg-0);
+  stroke-width: 4px;
+  pointer-events: none;
+}
+.node .badge.grad { fill: var(--green); }
+.node .badge.wip { fill: var(--accent); }
+.node .badge.warn { fill: var(--warn); }
+.node .badge.shal { fill: var(--txt-4); }
+
+.node .doccount {
+  font-family: var(--mono);
+  font-size: 9.5px;
+  fill: var(--txt-4);
+  paint-order: stroke;
+  stroke: var(--bg-0);
+  stroke-width: 4px;
+  pointer-events: none;
+}
+
+.has-children-marker {
+  font-family: var(--mono);
+  font-size: 11px;
+  fill: var(--txt-2);
+  pointer-events: none;
+  paint-order: stroke;
+  stroke: var(--bg-0);
+  stroke-width: 3px;
+  font-weight: 400;
+}
+
+/* ===== DETAIL PANEL ===== */
+#panel {
+  position: fixed;
+  right: 24px;
+  top: 76px;
+  bottom: 24px;
+  width: 440px;
+  background: linear-gradient(170deg, rgba(42,48,58,.88), rgba(15,19,25,.96));
+  border: 1px solid var(--accent);
+  border-radius: 4px;
+  backdrop-filter: blur(20px) saturate(140%);
+  -webkit-backdrop-filter: blur(20px) saturate(140%);
+  padding: 28px 26px 20px;
+  z-index: 20;
+  display: flex;
+  flex-direction: column;
+  box-shadow: -8px 0 30px rgba(0,0,0,.6), 0 0 0 4px rgba(107,137,168,.08);
+  transition: border-color .3s ease;
+}
+#panel.dim-ready { border-color: var(--line-strong); }
+#panel .empty-hint {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  color: var(--txt-3);
+  padding: 40px 20px;
+}
+#panel .empty-hint .arrow {
+  font-family: var(--mono);
+  font-size: 32px;
+  color: var(--accent);
+  margin-bottom: 18px;
+  animation: pointLeft 1.6s ease-in-out infinite;
+}
+@keyframes pointLeft {
+  0%, 100% { transform: translateX(0); }
+  50% { transform: translateX(-8px); }
+}
+#panel .empty-hint .big {
+  font-size: 16px;
+  color: var(--txt-1);
+  margin-bottom: 10px;
+  font-weight: 300;
+  letter-spacing: .02em;
+}
+#panel .empty-hint .small {
+  font-size: 12px;
+  color: var(--txt-4);
+  line-height: 1.85;
+}
+#panel .empty-hint .stats {
+  margin-top: 28px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  width: 100%;
+}
+#panel .empty-hint .stat {
+  background: rgba(255,255,255,.03);
+  border: 1px solid var(--line);
+  border-radius: 3px;
+  padding: 12px 14px;
+  text-align: left;
+}
+#panel .empty-hint .stat .v {
+  font-family: var(--mono);
+  font-size: 22px;
+  font-weight: 200;
+  color: var(--txt-0);
+  display: block;
+}
+#panel .empty-hint .stat .v small { font-size: 12px; color: var(--txt-4); margin-left: 4px; }
+#panel .empty-hint .stat .l {
+  font-family: var(--mono);
+  font-size: 9px;
+  color: var(--txt-4);
+  letter-spacing: .2em;
+  margin-top: 4px;
+  display: block;
+}
+
+#panel .close {
+  position: absolute;
+  top: 14px; right: 16px;
+  background: none;
+  border: none;
+  color: var(--txt-3);
+  font-family: var(--mono);
+  font-size: 18px;
+  cursor: pointer;
+  padding: 4px 8px;
+  border-radius: 2px;
+  transition: all .2s ease;
+}
+#panel .close:hover { color: var(--txt-0); background: var(--accent-soft); }
+
+#panel .pre {
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: .3em;
+  margin-bottom: 8px;
+}
+#panel h2 {
+  font-size: 22px;
+  font-weight: 300;
+  color: var(--txt-0);
+  margin-bottom: 6px;
+  line-height: 1.35;
+  letter-spacing: -.005em;
+}
+#panel .sub {
+  font-size: 12px;
+  color: var(--txt-3);
+  margin-bottom: 16px;
+  font-style: italic;
+}
+#panel .badges {
+  display: flex;
+  gap: 6px;
+  margin-bottom: 22px;
+  flex-wrap: wrap;
+}
+#panel .badge {
+  display: inline-block;
+  padding: 3px 10px;
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: .15em;
+  border-radius: 2px;
+  border: 1px solid;
+}
+.badge-grad { color: var(--green); border-color: rgba(122,155,138,.4); background: rgba(122,155,138,.12); }
+.badge-wip { color: var(--accent); border-color: rgba(107,137,168,.4); background: var(--accent-soft); }
+.badge-warn { color: var(--warn); border-color: rgba(176,133,106,.4); background: rgba(176,133,106,.12); }
+.badge-layer { color: var(--txt-2); border-color: var(--line-strong); background: rgba(255,255,255,.03); }
+
+#panel .section-title {
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: .25em;
+  color: var(--txt-4);
+  margin: 8px 0 10px;
+  padding-bottom: 6px;
+  border-bottom: 1px solid var(--line);
+}
+
+#panel .files {
+  flex: 1;
+  overflow-y: auto;
+  padding-right: 4px;
+}
+#panel .files::-webkit-scrollbar { width: 4px; }
+#panel .files::-webkit-scrollbar-thumb { background: var(--line-strong); border-radius: 2px; }
+
+.file {
+  display: block;
+  padding: 11px 14px;
+  margin-bottom: 6px;
+  background: rgba(255,255,255,.025);
+  border: 1px solid var(--line);
+  border-left: 2px solid var(--line-strong);
+  border-radius: 2px;
+  text-decoration: none;
+  color: var(--txt-1);
+  font-size: 13px;
+  transition: all .25s ease;
+  line-height: 1.5;
+}
+.file:hover {
+  background: var(--accent-soft);
+  border-left-color: var(--accent);
+  transform: translateX(3px);
+}
+.file.learn { border-left-color: var(--accent); }
+.file.review { border-left-color: var(--green); }
+.file.html { border-left-color: var(--warn); }
+
+.file .ftype {
+  display: inline-block;
+  font-family: var(--mono);
+  font-size: 9px;
+  letter-spacing: .2em;
+  padding: 2px 6px;
+  border-radius: 2px;
+  margin-right: 8px;
+  vertical-align: middle;
+}
+.file.learn .ftype { color: var(--accent); background: rgba(107,137,168,.15); }
+.file.review .ftype { color: var(--green); background: rgba(122,155,138,.15); }
+.file.html .ftype { color: var(--warn); background: rgba(176,133,106,.15); }
+
+.file .ftitle { color: var(--txt-1); font-size: 13px; }
+.file .fnote { color: var(--txt-3); font-size: 10.5px; margin-top: 4px; font-family: var(--mono); }
+
+/* ===== HINTS / CONTROLS ===== */
+.hint {
+  position: fixed;
+  left: 50%; bottom: 18px;
+  transform: translateX(-50%);
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: .3em;
+  color: var(--txt-4);
+  z-index: 10;
+  pointer-events: none;
+}
+
+.zoom-ctrl {
+  position: fixed;
+  left: 24px; bottom: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  z-index: 10;
+}
+.zoom-ctrl button {
+  width: 34px; height: 34px;
+  background: rgba(42,48,58,.7);
+  border: 1px solid var(--line-strong);
+  color: var(--txt-2);
+  font-family: var(--mono);
+  font-size: 14px;
+  cursor: pointer;
+  border-radius: 3px;
+  transition: all .2s ease;
+  backdrop-filter: blur(10px);
+}
+.zoom-ctrl button:hover { color: var(--txt-0); border-color: var(--accent); background: var(--accent-soft); }
+
+.action-bar {
+  position: fixed;
+  left: 50%;
+  bottom: 60px;
+  transform: translateX(-50%);
+  display: flex;
+  gap: 6px;
+  z-index: 9;
+}
+.action-bar.hidden { display: none; }
+.action-bar button {
+  background: rgba(42,48,58,.7);
+  border: 1px solid var(--line-strong);
+  color: var(--txt-2);
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: .15em;
+  padding: 8px 14px;
+  border-radius: 3px;
+  cursor: pointer;
+  backdrop-filter: blur(10px);
+  transition: all .2s ease;
+}
+.action-bar button:hover { color: var(--txt-0); border-color: var(--accent); background: var(--accent-soft); }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="title"><em>LLM</em> 学习 · 知识思维导图</div>
+  <div class="legend">
+    <span><i class="dot-grad"></i>已毕业</span>
+    <span><i class="dot-wip"></i>进行中</span>
+    <span><i class="dot-warn"></i>D30 待补</span>
+  </div>
+  <div class="meta">2026 · 03·19 → 05·21</div>
+</header>
+
+<div class="action-bar" id="action-bar">
+  <button id="expand-all">全部展开</button>
+  <button id="collapse-all">全部收起</button>
+</div>
+
+<div id="mindmap"></div>
+
+<div class="zoom-ctrl">
+  <button id="zoom-in" title="放大">+</button>
+  <button id="zoom-out" title="缩小">−</button>
+  <button id="zoom-reset" title="重置">·</button>
+</div>
+
+<div class="hint">点击家族节点展开/收起 · 点击知识点查看关联文档 · 滚轮缩放 · 拖拽空白</div>
+
+<aside id="panel">
+  <button class="close" onclick="resetPanel()" title="返回总览">↺</button>
+  <div id="panel-content"></div>
+</aside>
+
+<script>
+// ============================================================
+// DATA · 知识树
+// 路径：本 HTML 在 learn/ 目录下
+//   - 同目录 .md/.html  →  ./xxx
+//   - 复习/.md/.html    →  ../复习/xxx
+// ============================================================
+const TREE = {
+  name: 'LLM 学习',
+  children: [
+    {
+      name: '模型基础与架构',
+      color: '#6b89a8',
+      children: [
+        { name: 'Transformer · 注意力 QKV', layer: 'A', status: 'graduated', graduatedAt: '4-22',
+          files: [
+            { type: 'learn', title: '03-26 · Transformer 模型架构', path: '../learn/2026-03-26-Transformer模型架构.md' },
+            { type: 'review', title: '03-19 复习 · 注意力机制', path: '../复习/3-19复习记录.md' },
+            { type: 'review', title: '03-20 复习', path: '../复习/3-20复习记录.md' },
+            { type: 'review', title: '03-27 D2 复习', path: '../复习/3-27复习记录.md' },
+            { type: 'review', title: '04-02 D7 复习', path: '../复习/4-2复习记录.md' },
+            { type: 'review', title: '04-15 加权求和 vs 取最大', path: '../复习/4-15复习记录.md' },
+            { type: 'review', title: '04-22 毕业 ✓', path: '../复习/4-22复习记录.md' },
+            { type: 'review', title: '04-29 hidden state 翻盘', path: '../复习/4-29复习记录.md' },
+          ]},
+        { name: '自回归生成', layer: 'A', status: 'graduated', graduatedAt: '3-27',
+          files: [
+            { type: 'learn', title: '03-22 · LLM 入门学习总结', path: '../learn/2026-03-22-LLM入门学习总结.md' },
+            { type: 'learn', title: '03-22 · Karpathy LLM 演讲完整版', path: '../learn/2026-03-22.md' },
+            { type: 'review', title: '03-23 复习', path: '../复习/3-23复习记录.md' },
+            { type: 'review', title: '03-27 D7 复习', path: '../复习/3-27复习记录.md' },
+          ]},
+        { name: '采样 Sampling · 温度', layer: 'A', status: 'graduated', graduatedAt: '5-11',
+          files: [
+            { type: 'learn', title: '03-30 · 采样 Sampling', path: '../learn/2026-03-30-采样Sampling.md' },
+            { type: 'review', title: '03-31 D2 复习', path: '../复习/3-31复习记录.md' },
+            { type: 'review', title: '04-08 复习', path: '../复习/4-8复习记录.md' },
+            { type: 'review', title: '04-15 复习', path: '../复习/4-15复习记录.md' },
+            { type: 'review', title: '04-22 复习', path: '../复习/4-22复习记录.md' },
+            { type: 'review', title: '05-11 元学习觉醒 · 焊死塌缩本质', path: '../复习/5-11复习记录.md' },
+          ]},
+        { name: 'Karpathy LLM OS', layer: 'B', status: 'wip',
+          files: [
+            { type: 'learn', title: '03-22 · Karpathy LLM 演讲完整版', path: '../learn/2026-03-22.md' },
+            { type: 'learn', title: '03-22 · LLM 入门学习总结', path: '../learn/2026-03-22-LLM入门学习总结.md' },
+          ]},
+        { name: 'Scaling Laws · 有损压缩', layer: 'B', status: 'wip',
+          files: [
+            { type: 'learn', title: '03-22 · Karpathy LLM 演讲完整版', path: '../learn/2026-03-22.md' },
+          ]},
+      ]
+    },
+    {
+      name: '训练范式与对齐',
+      color: '#7a9b8a',
+      children: [
+        { name: '预训练 / 微调 / RLHF 三阶段', layer: 'A', status: 'wip', note: 'D30 待补',
+          files: [
+            { type: 'learn', title: '03-22 · LLM 入门学习总结', path: '../learn/2026-03-22-LLM入门学习总结.md' },
+            { type: 'learn', title: '03-23 · AI 工程第一章', path: '../learn/2026-03-23-AI工程第一章学习总结.md' },
+            { type: 'review', title: '03-23 D2 复习', path: '../复习/3-23复习记录.md' },
+            { type: 'review', title: '03-31 D7 复习', path: '../复习/3-31复习记录.md' },
+          ]},
+        { name: 'RLHF 偏向自信表达', layer: 'A', status: 'graduated', graduatedAt: '5-17',
+          files: [
+            { type: 'learn', title: '04-13 · LLM 幻觉成因与缓解', path: '../learn/2026-04-13-LLM幻觉成因与缓解.md' },
+            { type: 'review', title: '04-20 D7 复习', path: '../复习/4-20复习记录.md' },
+            { type: 'review', title: '05-07 复习', path: '../复习/5-7复习记录.md' },
+            { type: 'review', title: '05-11 复习', path: '../复习/5-11复习记录.md' },
+            { type: 'review', title: '05-12 D30 综合题（含焊死）', path: '../复习/2026-05-12-LLM幻觉第30天综合题.html' },
+            { type: 'review', title: '05-17 RLHF 毕业 + 路由器 D7', path: '../复习/2026-05-17-RLHF毕业+路由器D7全通过.html' },
+          ]},
+        { name: '自监督学习', layer: 'B', status: 'wip',
+          files: [
+            { type: 'learn', title: '03-23 · AI 工程第一章', path: '../learn/2026-03-23-AI工程第一章学习总结.md' },
+          ]},
+        { name: '安全攻击三类', layer: 'C', status: 'shallow',
+          files: [
+            { type: 'learn', title: '03-22 · LLM 入门学习总结', path: '../learn/2026-03-22-LLM入门学习总结.md' },
+            { type: 'learn', title: '03-22 · Karpathy LLM 演讲完整版', path: '../learn/2026-03-22.md' },
+          ]},
+      ]
+    },
+    {
+      name: '提示工程',
+      color: '#a89c6b',
+      children: [
+        { name: '零样本 CoT', layer: 'A', status: 'wip', note: 'D30 待补',
+          files: [
+            { type: 'learn', title: '03-19 · 零样本思维链', path: '../learn/2026-03-19-零样本思维链.md' },
+            { type: 'review', title: '03-20 D1 复习', path: '../复习/3-20复习记录.md' },
+            { type: 'review', title: '03-27 D7 复习', path: '../复习/3-27复习记录.md' },
+          ]},
+        { name: '少样本学习 · ICL', layer: 'A', status: 'wip',
+          files: [
+            { type: 'learn', title: '03-19 · 零样本思维链', path: '../learn/2026-03-19-零样本思维链.md' },
+            { type: 'review', title: '03-20 D1 复习', path: '../复习/3-20复习记录.md' },
+            { type: 'review', title: '03-27 D7 复习', path: '../复习/3-27复习记录.md' },
+          ]},
+        { name: '三种适配技术', layer: 'B', status: 'graduated',
+          files: [
+            { type: 'learn', title: '03-23 · AI 工程第一章', path: '../learn/2026-03-23-AI工程第一章学习总结.md' },
+            { type: 'review', title: '03-24 复习', path: '../复习/3-24复习记录.md' },
+            { type: 'review', title: '03-31 复习', path: '../复习/3-31复习记录.md' },
+            { type: 'review', title: '04-08 复习', path: '../复习/4-8复习记录.md' },
+          ]},
+      ]
+    },
+    {
+      name: '推理优化与解码',
+      color: '#8a7aa8',
+      children: [
+        { name: 'Best-of-N · 集束搜索', layer: 'A', status: 'graduated', graduatedAt: '5-11',
+          files: [
+            { type: 'learn', title: '04-10 · 推理时计算', path: '../learn/2026-04-10-推理时计算.md' },
+            { type: 'review', title: '04-13 D2 复习', path: '../复习/4-13复习记录.md' },
+            { type: 'review', title: '04-19 D7 复习', path: '../复习/4-19复习记录.md' },
+            { type: 'review', title: '05-11 D30 综合题闭环 · 元学习觉醒 ⭐', path: '../复习/5-11复习记录.md' },
+          ]},
+        { name: '验证器收益', layer: 'B', status: 'wip',
+          files: [
+            { type: 'learn', title: '04-10 · 推理时计算', path: '../learn/2026-04-10-推理时计算.md' },
+          ]},
+        { name: '采样塌缩不确定性', layer: 'A', status: 'graduated', graduatedAt: '5-11',
+          files: [
+            { type: 'learn', title: '04-10 · 推理时计算', path: '../learn/2026-04-10-推理时计算.md' },
+            { type: 'review', title: '05-11 元学习觉醒 · 焊死本质', path: '../复习/5-11复习记录.md' },
+          ]},
+        { name: '成本上限（N>400）', layer: 'C', status: 'wip',
+          files: [
+            { type: 'learn', title: '04-10 · 推理时计算', path: '../learn/2026-04-10-推理时计算.md' },
+          ]},
+      ]
+    },
+    {
+      name: '评估与可靠性',
+      color: '#b0856a',
+      children: [
+        { name: '困惑度 PPL = 2^交叉熵', layer: 'A', status: 'graduated', graduatedAt: '5-11',
+          files: [
+            { type: 'learn', title: '04-13 · 语言建模指标', path: '../learn/2026-04-13-语言建模指标.md' },
+            { type: 'review', title: '04-14 D2 复习', path: '../复习/4-14复习记录.md' },
+            { type: 'review', title: '04-20 D7 复习', path: '../复习/4-20复习记录.md' },
+            { type: 'review', title: '04-29 复习', path: '../复习/4-29复习记录.md' },
+            { type: 'review', title: '05-06 复习', path: '../复习/5-6复习记录.md' },
+            { type: 'review', title: '05-07 复习', path: '../复习/5-7复习记录.md' },
+            { type: 'review', title: '05-11 PPL 毕业 ⭐', path: '../复习/5-11复习记录.md' },
+          ]},
+        { name: '幻觉双假设', layer: 'A', status: 'graduated', graduatedAt: '5-12',
+          files: [
+            { type: 'learn', title: '04-13 · LLM 幻觉成因与缓解', path: '../learn/2026-04-13-LLM幻觉成因与缓解.md' },
+            { type: 'review', title: '04-14 D2 复习', path: '../复习/4-14复习记录.md' },
+            { type: 'review', title: '04-20 D7 复习', path: '../复习/4-20复习记录.md' },
+            { type: 'review', title: '05-07 复习', path: '../复习/5-7复习记录.md' },
+            { type: 'review', title: '05-12 LLM 幻觉 D30 综合题闭环', path: '../复习/2026-05-12-LLM幻觉第30天综合题.html' },
+          ]},
+        { name: '滚雪球幻觉', layer: 'A', status: 'graduated',
+          files: [
+            { type: 'learn', title: '04-13 · LLM 幻觉成因与缓解', path: '../learn/2026-04-13-LLM幻觉成因与缓解.md' },
+            { type: 'review', title: '04-20 D7 复习', path: '../复习/4-20复习记录.md' },
+            { type: 'review', title: '05-12 D30 综合题', path: '../复习/2026-05-12-LLM幻觉第30天综合题.html' },
+          ]},
+        { name: 'RLHF 矛盾', layer: 'B', status: 'graduated',
+          files: [
+            { type: 'learn', title: '04-13 · LLM 幻觉成因与缓解', path: '../learn/2026-04-13-LLM幻觉成因与缓解.md' },
+          ]},
+        { name: '幻觉缓解五条', layer: 'A', status: 'graduated', graduatedAt: '5-12',
+          files: [
+            { type: 'learn', title: '04-13 · LLM 幻觉成因与缓解', path: '../learn/2026-04-13-LLM幻觉成因与缓解.md' },
+            { type: 'review', title: '04-20 D7 复习', path: '../复习/4-20复习记录.md' },
+            { type: 'review', title: '05-07 复习', path: '../复习/5-7复习记录.md' },
+            { type: 'review', title: '05-12 D30 综合题闭环', path: '../复习/2026-05-12-LLM幻觉第30天综合题.html' },
+          ]},
+      ]
+    },
+    {
+      name: 'RAG · 检索增强',
+      color: '#6ba89c',
+      children: [
+        { name: '双组件：检索器 + 生成器', layer: 'A', status: 'wip', note: '并行结构待重测',
+          files: [
+            { type: 'learn', title: '04-14 · RAG 系统基础架构', path: '../learn/2026-04-14-RAG系统基础架构.md' },
+            { type: 'review', title: '04-15 复习', path: '../复习/4-15复习记录.md' },
+            { type: 'review', title: '04-22 复习（暴露认知扭曲）', path: '../复习/4-22复习记录.md' },
+          ]},
+        { name: '检索算法 BM25/kNN/混合', layer: 'A', status: 'graduated', graduatedAt: '5-11',
+          files: [
+            { type: 'learn', title: '04-14 · RAG 检索算法', path: '../learn/2026-04-14-RAG检索算法.md' },
+            { type: 'review', title: '04-15 复习', path: '../复习/4-15复习记录.md' },
+            { type: 'review', title: '04-22 复习', path: '../复习/4-22复习记录.md' },
+            { type: 'review', title: '05-11 kNN 毕业 ⭐', path: '../复习/5-11复习记录.md' },
+          ]},
+        { name: '离线四步：拆补嵌存', layer: 'A', status: 'graduated', graduatedAt: '5-11',
+          files: [
+            { type: 'learn', title: '04-14 · RAG 系统基础架构', path: '../learn/2026-04-14-RAG系统基础架构.md' },
+            { type: 'learn', title: '04-15 · RAG 检索优化', path: '../learn/2026-04-15-RAG检索优化.md' },
+            { type: 'review', title: '04-19 复习', path: '../复习/4-19复习记录.md' },
+            { type: 'review', title: '04-22 复习', path: '../复习/4-22复习记录.md' },
+            { type: 'review', title: '04-27 复习（跨章节串线治疗）', path: '../复习/4-27复习记录.md' },
+            { type: 'review', title: '04-29 复习', path: '../复习/4-29复习记录.md' },
+            { type: 'review', title: '05-11 骨架毕业 ⭐', path: '../复习/5-11复习记录.md' },
+          ]},
+        { name: '在线四步：改搜排生', layer: 'A', status: 'graduated', graduatedAt: '5-11',
+          files: [
+            { type: 'learn', title: '04-15 · RAG 检索优化', path: '../learn/2026-04-15-RAG检索优化.md' },
+            { type: 'review', title: '04-19 复习', path: '../复习/4-19复习记录.md' },
+            { type: 'review', title: '04-22 复习', path: '../复习/4-22复习记录.md' },
+            { type: 'review', title: '04-27 复习', path: '../复习/4-27复习记录.md' },
+            { type: 'review', title: '05-11 骨架毕业 ⭐', path: '../复习/5-11复习记录.md' },
+          ]},
+        { name: 'Contextual Retrieval', layer: 'B', status: 'graduated', graduatedAt: '5-11',
+          files: [
+            { type: 'learn', title: '04-15 · RAG 检索优化', path: '../learn/2026-04-15-RAG检索优化.md' },
+            { type: 'review', title: '04-19 复习', path: '../复习/4-19复习记录.md' },
+            { type: 'review', title: '04-22 复习', path: '../复习/4-22复习记录.md' },
+            { type: 'review', title: '05-11 英文原名毕业', path: '../复习/5-11复习记录.md' },
+          ]},
+        { name: '分块大小权衡', layer: 'A', status: 'wip', note: '分块坏处仍弱',
+          files: [
+            { type: 'learn', title: '04-15 · RAG 检索优化', path: '../learn/2026-04-15-RAG检索优化.md' },
+            { type: 'review', title: '04-19 复习', path: '../复习/4-19复习记录.md' },
+            { type: 'review', title: '04-22 复习', path: '../复习/4-22复习记录.md' },
+            { type: 'review', title: '05-11 复习（仍偏挤占窗口）', path: '../复习/5-11复习记录.md' },
+          ]},
+      ]
+    },
+    {
+      name: 'Agent · AI 工程实践',
+      color: '#8e96a3',
+      children: [
+        { name: 'Agent 三要素', layer: 'A', status: 'graduated', graduatedAt: '5-6',
+          files: [
+            { type: 'learn', title: '04-20 · AI 智能体概述', path: '../learn/2026-04-20-AI智能体概述.md' },
+            { type: 'learn', title: '04-27 · Agent 定义与三要素', path: '../learn/2026-04-27-AI代理入门-第一课-Agent定义与三要素.md' },
+            { type: 'review', title: '04-29 D2 复习', path: '../复习/4-29复习记录.md' },
+            { type: 'review', title: '05-06 D7 复习', path: '../复习/5-6复习记录.md' },
+          ]},
+        { name: '解耦三条工程好处', layer: 'A', status: 'graduated', graduatedAt: '5-16',
+          files: [
+            { type: 'learn', title: '04-27 · AI 代理设计原则', path: '../learn/2026-04-27-AI代理设计原则.md' },
+            { type: 'review', title: '04-27 复习', path: '../复习/4-27复习记录.md' },
+            { type: 'review', title: '04-29 复习', path: '../复习/4-29复习记录.md' },
+            { type: 'review', title: '05-06 复习', path: '../复习/5-6复习记录.md' },
+            { type: 'review', title: '05-07 复习', path: '../复习/5-7复习记录.md' },
+            { type: 'review', title: '05-11 复习', path: '../复习/5-11复习记录.md' },
+            { type: 'review', title: '05-16 解耦三条毕业 ⭐', path: '../复习/2026-05-16-TCC-TiM-解耦三条毕业.html' },
+          ]},
+        { name: 'TCC 设计三准则', layer: 'A', status: 'graduated', graduatedAt: '5-16',
+          files: [
+            { type: 'learn', title: '04-27 · AI 代理设计原则', path: '../learn/2026-04-27-AI代理设计原则.md' },
+            { type: 'review', title: '04-29 复习', path: '../复习/4-29复习记录.md' },
+            { type: 'review', title: '05-06 复习', path: '../复习/5-6复习记录.md' },
+            { type: 'review', title: '05-07 复习', path: '../复习/5-7复习记录.md' },
+            { type: 'review', title: '05-11 复习', path: '../复习/5-11复习记录.md' },
+            { type: 'review', title: '05-16 TCC 毕业 ⭐', path: '../复习/2026-05-16-TCC-TiM-解耦三条毕业.html' },
+          ]},
+        { name: 'Time/Space/Core 三维度', layer: 'B', status: 'wip', note: 'Time·未来仍弱',
+          files: [
+            { type: 'learn', title: '04-27 · AI 代理设计原则', path: '../learn/2026-04-27-AI代理设计原则.md' },
+            { type: 'review', title: '04-29 复习', path: '../复习/4-29复习记录.md' },
+            { type: 'review', title: '05-06 复习', path: '../复习/5-6复习记录.md' },
+            { type: 'review', title: '05-11 复习', path: '../复习/5-11复习记录.md' },
+            { type: 'review', title: '05-17 Time 钩子建立', path: '../复习/2026-05-17-RLHF毕业+路由器D7全通过.html' },
+          ]},
+        { name: '记忆机制（短/长/TiM）', layer: 'A', status: 'graduated', graduatedAt: '5-16',
+          files: [
+            { type: 'learn', title: '04-16 · AI 模型记忆机制', path: '../learn/2026-04-16-AI模型记忆机制.md' },
+            { type: 'review', title: '04-19 复习', path: '../复习/4-19复习记录.md' },
+            { type: 'review', title: '04-29 复习', path: '../复习/4-29复习记录.md' },
+            { type: 'review', title: '05-06 复习', path: '../复习/5-6复习记录.md' },
+            { type: 'review', title: '05-07 复习', path: '../复习/5-7复习记录.md' },
+            { type: 'review', title: '05-11 复习', path: '../复习/5-11复习记录.md' },
+            { type: 'review', title: '05-16 TiM 毕业 ⭐', path: '../复习/2026-05-16-TCC-TiM-解耦三条毕业.html' },
+          ]},
+        { name: '路由器 + 模型网关', layer: 'A', status: 'graduated', graduatedAt: '5-17',
+          files: [
+            { type: 'learn', title: '05-08 · 路由器和模型网关', path: '../learn/2026-05-08-路由器和模型网关.md' },
+            { type: 'review', title: '05-17 D7 全通过 5/5 ⭐', path: '../复习/2026-05-17-RLHF毕业+路由器D7全通过.html' },
+          ]},
+        { name: '缓存 · 精确 vs 语义', layer: 'A', status: 'graduated', graduatedAt: '5-21',
+          files: [
+            { type: 'learn', title: '05-12 · 缓存技术降低延迟', path: '../learn/2026-05-12-缓存技术降低延迟.html' },
+            { type: 'review', title: '05-13 缓存 D1 + ClaudeCode', path: '../复习/2026-05-13-缓存技术D1+ClaudeCode当天回忆.html' },
+            { type: 'review', title: '05-14 缓存 D1+ + 元学习觉醒', path: '../复习/2026-05-14-ClaudeCode缓存D1+元学习觉醒.html' },
+            { type: 'review', title: '05-21 缓存 D7 毕业 · 12 轮淬炼 ⭐', path: '../复习/2026-05-21-缓存D7毕业.html' },
+          ]},
+        { name: 'Claude Code · Context 管理', layer: 'A', status: 'wip', note: 'D7 待考',
+          files: [
+            { type: 'learn', title: '05-13 · Claude Code 最佳实践与 Context 管理', path: '../learn/2026-05-13-ClaudeCode最佳实践与Context管理.html' },
+            { type: 'review', title: '05-13 ClaudeCode D0 当天回忆', path: '../复习/2026-05-13-缓存技术D1+ClaudeCode当天回忆.html' },
+            { type: 'review', title: '05-14 ClaudeCode D1 + 元学习觉醒', path: '../复习/2026-05-14-ClaudeCode缓存D1+元学习觉醒.html' },
+          ]},
+      ]
+    },
+  ]
+};
+
+// ============================================================
+// SETUP
+// ============================================================
+function getCSS(name) {
+  return getComputedStyle(document.documentElement).getPropertyValue(name).trim();
+}
+
+const container = d3.select('#mindmap');
+const containerEl = document.getElementById('mindmap');
+let width = containerEl.clientWidth;
+let height = containerEl.clientHeight;
+
+const svg = container.append('svg').attr('width', width).attr('height', height);
+const defs = svg.append('defs');
+
+// glow filter
+defs.append('filter')
+  .attr('id', 'glow')
+  .attr('x', '-60%').attr('y', '-60%').attr('width', '220%').attr('height', '220%')
+  .html('<feGaussianBlur stdDeviation="3.5" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>');
+
+const g = svg.append('g');
+const linksLayer = g.append('g').attr('class', 'links');
+const nodesLayer = g.append('g').attr('class', 'nodes');
+
+// zoom behavior
+const zoom = d3.zoom()
+  .scaleExtent([0.3, 2.5])
+  .on('zoom', (e) => g.attr('transform', e.transform));
+
+svg.call(zoom);
+
+// ============================================================
+// INIT HIERARCHY · 默认家族节点 collapsed（_children）
+// ============================================================
+const root = d3.hierarchy(TREE);
+
+// 默认折叠所有 family 节点的 children
+root.children.forEach(family => {
+  family._children = family.children;
+  family.children = null;
+});
+
+// 用稳定的 id（路径串）做 enter/update/exit
+let counter = 0;
+root.eachBefore(d => { d.id = ++counter; });
+
+// 横向树布局：vertical-size 控制节点上下间距，horizontal-size 控制层级宽度
+const treeLayout = d3.tree().nodeSize([56, 280]).separation((a, b) => {
+  return a.parent === b.parent ? 1 : 1.4;
+});
+
+// link generator
+const linkGen = d3.linkHorizontal().x(d => d.y).y(d => d.x);
+// 注意：d3.tree 默认布局是垂直的（x = horizontal-pos, y = depth），
+// 我们要做水平树，所以渲染时把 x/y 互换即可（不修改原始数据）
+
+const DURATION = 400;
+
+let lastInitial = null;
+
+function update(source) {
+  // 计算布局
+  treeLayout(root);
+
+  const nodes = root.descendants();
+  const links = root.links();
+
+  // 计算 viewport 中心，让 source 对齐
+  if (!lastInitial) {
+    // 第一次：把 root 放到屏幕左 120px、垂直居中
+    const rootNode = root;
+    const tx = 120 - rootNode.y;
+    const ty = height / 2 - rootNode.x;
+    lastInitial = d3.zoomIdentity.translate(tx, ty).scale(1);
+    svg.call(zoom.transform, lastInitial);
+  }
+
+  // ===== NODES =====
+  const nodeSel = nodesLayer.selectAll('g.node')
+    .data(nodes, d => d.id);
+
+  // ENTER
+  const nodeEnter = nodeSel.enter().append('g')
+    .attr('class', d => {
+      if (d.depth === 0) return 'node root';
+      if (d.depth === 1) return 'node family';
+      return 'node topic';
+    })
+    .attr('transform', d => {
+      const x0 = source.y0 != null ? source.y0 : (source.parent ? source.parent.y : source.y);
+      const y0 = source.x0 != null ? source.x0 : (source.parent ? source.parent.x : source.x);
+      return `translate(${x0},${y0})`;
+    })
+    .style('opacity', 0)
+    .on('click', (event, d) => {
+      event.stopPropagation();
+      handleClick(d);
+    });
+
+  nodeEnter.append('circle')
+    .attr('r', d => d.depth === 0 ? 16 : (d.depth === 1 ? 11 : 7))
+    .attr('fill', d => {
+      if (d.depth === 0) return getCSS('--bg-2');
+      if (d.depth === 1) return d.data.color;
+      const fam = ancestorFamily(d);
+      if (d.data.status === 'graduated') return fam.data.color;
+      if (d.data.status === 'shallow') return getCSS('--bg-2');
+      return getCSS('--bg-3');
+    })
+    .attr('stroke', d => {
+      if (d.depth === 0) return getCSS('--accent');
+      if (d.depth === 1) return d.data.color;
+      if (d.data.status === 'graduated') return getCSS('--green');
+      if (d.data.note && d.data.note.includes('D30')) return getCSS('--warn');
+      const fam = ancestorFamily(d);
+      return fam ? fam.data.color : getCSS('--txt-3');
+    })
+    .attr('stroke-width', d => d.depth === 0 ? 2.4 : (d.data.status === 'graduated' ? 2 : 1.4))
+    .style('filter', d => d.data.status === 'graduated' ? 'url(#glow)' : 'none')
+    .style('opacity', d => d.data.status === 'shallow' ? 0.55 : 1);
+
+  // node label
+  nodeEnter.append('text')
+    .attr('dy', '.32em')
+    .attr('x', d => {
+      if (d.depth === 0) return 0;
+      if (d.depth === 1) return 18;
+      return 14;
+    })
+    .attr('text-anchor', d => d.depth === 0 ? 'middle' : 'start')
+    .attr('y', d => d.depth === 0 ? -28 : 0)
+    .text(d => d.data.name);
+
+  // expand/collapse marker for nodes that have children (or _children)
+  nodeEnter.filter(d => d._children || d.children)
+    .filter(d => d.depth === 1) // only show on family nodes (root is implicit)
+    .append('text')
+    .attr('class', 'has-children-marker')
+    .attr('text-anchor', 'middle')
+    .attr('dy', '.35em')
+    .attr('x', 0)
+    .attr('y', 0)
+    .text(d => d._children ? '+' : '−');
+
+  // topic-level: show layer + status badge
+  nodeEnter.filter(d => d.depth === 2)
+    .append('text')
+    .attr('class', d => {
+      if (d.data.status === 'graduated') return 'badge grad';
+      if (d.data.note && d.data.note.includes('D30')) return 'badge warn';
+      if (d.data.status === 'shallow') return 'badge shal';
+      return 'badge wip';
+    })
+    .attr('x', 14)
+    .attr('y', 16)
+    .text(d => {
+      const layer = `[${d.data.layer || '?'}]`;
+      if (d.data.status === 'graduated') return `${layer} ✓ 毕业 ${d.data.graduatedAt || ''}`;
+      if (d.data.status === 'shallow') return `${layer} 浅尝`;
+      if (d.data.note) return `${layer} ${d.data.note}`;
+      return `${layer} 进行中`;
+    });
+
+  // topic-level: doc count
+  nodeEnter.filter(d => d.depth === 2)
+    .append('text')
+    .attr('class', 'doccount')
+    .attr('x', 14)
+    .attr('y', -12)
+    .text(d => `${d.data.files ? d.data.files.length : 0} docs · 点击查看`);
+
+  // family node: doc count summary
+  nodeEnter.filter(d => d.depth === 1)
+    .append('text')
+    .attr('class', 'doccount')
+    .attr('x', 18)
+    .attr('y', 22)
+    .text(d => {
+      const kids = d._children || d.children || [];
+      const grad = kids.filter(k => k.data.status === 'graduated').length;
+      return `${kids.length} 知识点 · ${grad} 已毕业`;
+    });
+
+  // UPDATE
+  const nodeUpdate = nodeEnter.merge(nodeSel);
+  nodeUpdate.transition().duration(DURATION)
+    .attr('transform', d => `translate(${d.y},${d.x})`)
+    .style('opacity', 1);
+
+  // toggle marker
+  nodeUpdate.selectAll('.has-children-marker')
+    .text(d => d._children ? '+' : (d.children ? '−' : ''));
+
+  // EXIT
+  nodeSel.exit().transition().duration(DURATION)
+    .attr('transform', d => `translate(${source.y},${source.x})`)
+    .style('opacity', 0)
+    .remove();
+
+  // ===== LINKS =====
+  const linkSel = linksLayer.selectAll('path.link')
+    .data(links, d => d.target.id);
+
+  const linkEnter = linkSel.enter().insert('path', ':first-child')
+    .attr('class', 'link')
+    .attr('d', () => {
+      const x0 = source.y0 != null ? source.y0 : source.y;
+      const y0 = source.x0 != null ? source.x0 : source.x;
+      const o = { source: { x: y0, y: x0 }, target: { x: y0, y: x0 } };
+      return linkGen(o);
+    })
+    .attr('stroke', d => {
+      const fam = ancestorFamily(d.target);
+      return fam ? fam.data.color : 'rgba(216,221,227,.18)';
+    })
+    .style('opacity', 0);
+
+  linkEnter.merge(linkSel).transition().duration(DURATION)
+    .attr('d', linkGen)
+    .style('opacity', 0.6);
+
+  linkSel.exit().transition().duration(DURATION)
+    .attr('d', () => {
+      const o = { source: { x: source.x, y: source.y }, target: { x: source.x, y: source.y } };
+      return linkGen(o);
+    })
+    .style('opacity', 0)
+    .remove();
+
+  // 记录每个节点的旧位置
+  root.each(d => { d.x0 = d.x; d.y0 = d.y; });
+}
+
+// ============================================================
+// HELPERS
+// ============================================================
+function ancestorFamily(d) {
+  let cur = d;
+  while (cur && cur.depth > 1) cur = cur.parent;
+  return cur && cur.depth === 1 ? cur : null;
+}
+
+function handleClick(d) {
+  if (d.depth === 0) {
+    // root：toggle 全部家族
+    const allCollapsed = root.children.every(f => !f.children);
+    root.children.forEach(f => {
+      if (allCollapsed) {
+        if (f._children) { f.children = f._children; f._children = null; }
+      } else {
+        if (f.children) { f._children = f.children; f.children = null; }
+      }
+    });
+    update(d);
+  } else if (d.depth === 1) {
+    // family：toggle 该家族
+    if (d.children) {
+      d._children = d.children;
+      d.children = null;
+    } else {
+      d.children = d._children;
+      d._children = null;
+    }
+    update(d);
+  } else if (d.depth === 2) {
+    // topic：弹出详情面板
+    showPanel(d);
+  }
+}
+
+// ============================================================
+// PANEL
+// ============================================================
+function renderOverview() {
+  // 统计 7 大家族
+  let totalTopics = 0;
+  let totalGrad = 0;
+  let totalDocs = 0;
+  TREE.children.forEach(fam => {
+    fam.children.forEach(t => {
+      totalTopics++;
+      if (t.status === 'graduated') totalGrad++;
+      totalDocs += (t.files || []).length;
+    });
+  });
+
+  const html = `
+    <div class="empty-hint">
+      <div class="arrow">←</div>
+      <div class="big">点击任意知识点节点</div>
+      <div class="small">先点击左侧家族圆圈展开<br/>再点击具体的知识点节点<br/>这里会列出所有关联的笔记和复习记录</div>
+      <div class="stats">
+        <div class="stat"><span class="v">${TREE.children.length}<small>家族</small></span><span class="l">FAMILIES</span></div>
+        <div class="stat"><span class="v">${totalTopics}<small>知识点</small></span><span class="l">TOPICS</span></div>
+        <div class="stat"><span class="v">${totalGrad}<small>已毕业</small></span><span class="l">GRADUATED</span></div>
+        <div class="stat"><span class="v">${totalDocs}<small>文档</small></span><span class="l">DOCS</span></div>
+      </div>
+    </div>
+  `;
+  document.getElementById('panel-content').innerHTML = html;
+}
+
+function showPanel(d) {
+  const data = d.data;
+  const family = ancestorFamily(d);
+  const famName = family ? family.data.name : '';
+  const famColor = family ? family.data.color : getCSS('--accent');
+
+  // 高亮当前选中节点（清除之前的高亮，给当前加 .selected）
+  d3.selectAll('.node').classed('selected', false);
+  d3.selectAll('.node').filter(n => n === d).classed('selected', true);
+
+  let subText = '';
+  if (data.status === 'graduated' && data.graduatedAt) subText = `于 ${data.graduatedAt} 毕业`;
+  else if (data.note) subText = data.note;
+  else if (data.status === 'shallow') subText = '浅尝即止';
+
+  let badges = `<span class="badge badge-layer">层级 · ${data.layer || '—'}</span>`;
+  if (data.status === 'graduated') badges += `<span class="badge badge-grad">已毕业</span>`;
+  else if (data.note && data.note.includes('D30')) badges += `<span class="badge badge-warn">D30 待补</span>`;
+  else if (data.status === 'shallow') badges += `<span class="badge badge-layer">浅尝</span>`;
+  else badges += `<span class="badge badge-wip">进行中</span>`;
+
+  const filesHtml = (data.files || []).map(f => {
+    const isHtml = f.path.endsWith('.html');
+    const cls = isHtml ? 'html' : f.type;
+    const typeLabel = isHtml ? 'HTML' : (f.type === 'learn' ? 'LEARN' : 'REVIEW');
+    return `<a class="file ${cls}" href="${f.path}" target="_blank" rel="noopener"><span class="ftype">${typeLabel}</span><span class="ftitle">${f.title}</span><div class="fnote">${f.path}</div></a>`;
+  }).join('');
+
+  const docCount = (data.files || []).length;
+
+  const html = `
+    <div class="pre" style="color:${famColor}">${famName.toUpperCase()}</div>
+    <h2>${data.name}</h2>
+    <div class="sub">${subText}</div>
+    <div class="badges">${badges}</div>
+    <div class="section-title">关联文档 · ${docCount} 篇 · 点击新标签页打开</div>
+    <div class="files">${filesHtml || '<div style="color:var(--txt-4);font-style:italic;padding:20px 0;">暂无关联文档</div>'}</div>
+  `;
+  document.getElementById('panel-content').innerHTML = html;
+}
+
+function resetPanel() {
+  d3.selectAll('.node').classed('selected', false);
+  renderOverview();
+}
+window.resetPanel = resetPanel;
+window.closePanel = resetPanel;
+
+// 初始渲染 overview
+renderOverview();
+
+// 移除空白区域点击关闭 panel 的行为（panel 现在常驻）
+// svg.on('click') 不再处理 panel
+
+// ============================================================
+// CONTROLS
+// ============================================================
+document.getElementById('zoom-in').addEventListener('click', () => {
+  svg.transition().duration(300).call(zoom.scaleBy, 1.3);
+});
+document.getElementById('zoom-out').addEventListener('click', () => {
+  svg.transition().duration(300).call(zoom.scaleBy, 1 / 1.3);
+});
+document.getElementById('zoom-reset').addEventListener('click', () => {
+  if (lastInitial) svg.transition().duration(500).call(zoom.transform, lastInitial);
+});
+
+document.getElementById('expand-all').addEventListener('click', () => {
+  root.children.forEach(f => {
+    if (f._children) { f.children = f._children; f._children = null; }
+  });
+  update(root);
+});
+document.getElementById('collapse-all').addEventListener('click', () => {
+  root.children.forEach(f => {
+    if (f.children) { f._children = f.children; f.children = null; }
+  });
+  update(root);
+});
+
+window.addEventListener('resize', () => {
+  width = containerEl.clientWidth;
+  height = containerEl.clientHeight;
+  svg.attr('width', width).attr('height', height);
+});
+
+// ============================================================
+// FIRST RENDER
+// ============================================================
+root.x0 = height / 2;
+root.y0 = 120;
+update(root);
+</script>
+
+</body>
+</html>
