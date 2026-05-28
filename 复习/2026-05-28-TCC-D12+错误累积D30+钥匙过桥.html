@@ -1,0 +1,927 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1.0" />
+<title>2026-05-28 · TCC D12 + 错误累积 D30 + 钥匙过桥</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@200;300;400;500&family=JetBrains+Mono:wght@200;300;400&display=swap" rel="stylesheet">
+<style>
+:root {
+  --silver-1: #eef0f3;
+  --silver-2: #d8dde3;
+  --silver-3: #b6bdc7;
+  --steel-1: #8a929e;
+  --steel-2: #5c6675;
+  --steel-3: #3f4754;
+  --slate-1: #2a2f38;
+  --slate-2: #1a1f28;
+  --slate-3: #0f1319;
+  --void:    #07090d;
+  --accent:  #6b89a8;
+  --accent-dim: #4a6378;
+  --warn:    #b07a5a;
+  --good:    #7a9985;
+  --gold:    #c9b687;
+  --mx: 50%;
+  --my: 50%;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+html, body {
+  background: var(--void);
+  color: var(--silver-2);
+  font-family: 'Inter', -apple-system, sans-serif;
+  font-weight: 300;
+  line-height: 1.7;
+  letter-spacing: 0.02em;
+  overflow-x: hidden;
+}
+
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  background: radial-gradient(
+    600px circle at var(--mx) var(--my),
+    rgba(107, 137, 168, 0.08),
+    transparent 40%
+  );
+  z-index: 1;
+}
+
+body::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 2;
+  opacity: 0.5;
+  mix-blend-mode: overlay;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='220' height='220'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 0.6  0 0 0 0 0.65  0 0 0 0 0.72  0 0 0 0.55 0'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>");
+}
+
+main { position: relative; z-index: 3; }
+
+/* ─────────── HERO ─────────── */
+.hero {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 8vh 8vw;
+  background: linear-gradient(180deg, var(--slate-3) 0%, var(--void) 100%);
+  position: relative;
+  border-bottom: 1px solid rgba(107, 137, 168, 0.12);
+}
+
+.hero .stamp {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  letter-spacing: 0.5em;
+  text-transform: uppercase;
+  color: var(--steel-1);
+  margin-bottom: 40px;
+}
+
+.hero h1 {
+  font-size: clamp(36px, 6vw, 84px);
+  font-weight: 200;
+  line-height: 1.05;
+  color: var(--silver-1);
+  letter-spacing: -0.02em;
+  margin-bottom: 32px;
+}
+
+.hero h1 em {
+  font-style: normal;
+  color: var(--accent);
+  font-weight: 300;
+}
+
+.hero .lead {
+  font-size: clamp(15px, 1.5vw, 19px);
+  color: var(--silver-3);
+  max-width: 720px;
+  font-weight: 300;
+  margin-bottom: 64px;
+  line-height: 1.7;
+}
+
+.hero .stats {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1px;
+  background: rgba(107, 137, 168, 0.15);
+  margin-top: 40px;
+  max-width: 1100px;
+}
+.hero .stats .cell {
+  background: var(--slate-2);
+  padding: 32px 24px;
+  transition: background 0.4s;
+}
+.hero .stats .cell:hover {
+  background: var(--slate-1);
+}
+.hero .stats .num {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: clamp(28px, 3.5vw, 48px);
+  font-weight: 200;
+  color: var(--silver-1);
+  letter-spacing: -0.02em;
+  display: block;
+  margin-bottom: 8px;
+}
+.hero .stats .num.warn { color: var(--warn); }
+.hero .stats .num.acc { color: var(--accent); }
+.hero .stats .num.good { color: var(--good); }
+.hero .stats .label {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--steel-1);
+}
+
+@media (max-width: 720px) {
+  .hero .stats { grid-template-columns: repeat(2, 1fr); }
+}
+
+/* ─────────── SECTION ─────────── */
+section {
+  padding: 14vh 8vw;
+  border-bottom: 1px solid rgba(107, 137, 168, 0.08);
+  position: relative;
+  background: linear-gradient(180deg, var(--void) 0%, var(--slate-3) 100%);
+}
+
+section.alt {
+  background: linear-gradient(180deg, var(--slate-3) 0%, var(--void) 100%);
+}
+
+.sec-num {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  letter-spacing: 0.5em;
+  text-transform: uppercase;
+  color: var(--steel-1);
+  margin-bottom: 32px;
+}
+
+.sec-title {
+  font-size: clamp(28px, 4vw, 56px);
+  font-weight: 200;
+  color: var(--silver-1);
+  letter-spacing: -0.02em;
+  line-height: 1.1;
+  margin-bottom: 48px;
+  max-width: 900px;
+}
+.sec-title em {
+  font-style: normal;
+  color: var(--accent);
+  font-weight: 300;
+}
+
+p {
+  max-width: 880px;
+  margin-bottom: 20px;
+  color: var(--silver-3);
+  font-size: 15px;
+}
+
+p strong { color: var(--silver-1); font-weight: 500; }
+p em { color: var(--accent); font-style: normal; }
+p .warn { color: var(--warn); font-weight: 400; }
+p .acc { color: var(--accent); font-weight: 400; }
+p .good { color: var(--good); font-weight: 400; }
+
+/* ─────────── REVEAL ─────────── */
+.reveal {
+  opacity: 0;
+  transform: translateY(30px);
+  transition: opacity 0.9s ease, transform 0.9s ease;
+}
+.reveal.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* ─────────── CARDS ─────────── */
+.cards {
+  display: grid;
+  gap: 24px;
+  margin-top: 32px;
+}
+.cards.col-2 { grid-template-columns: repeat(2, 1fr); }
+.cards.col-3 { grid-template-columns: repeat(3, 1fr); }
+
+@media (max-width: 900px) {
+  .cards.col-2, .cards.col-3 { grid-template-columns: 1fr; }
+}
+
+.card {
+  background: var(--slate-2);
+  border: 1px solid rgba(107, 137, 168, 0.12);
+  padding: 32px 28px;
+  transition: all 0.4s ease;
+  position: relative;
+  overflow: hidden;
+}
+.card::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, rgba(107, 137, 168, 0.04), transparent 60%);
+  opacity: 0;
+  transition: opacity 0.4s;
+  pointer-events: none;
+}
+.card:hover {
+  transform: translateY(-3px);
+  background: var(--slate-1);
+  border-color: rgba(107, 137, 168, 0.32);
+  box-shadow: 0 24px 48px -24px rgba(0, 0, 0, 0.6);
+}
+.card:hover::before { opacity: 1; }
+
+.card .label {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--steel-1);
+  margin-bottom: 16px;
+}
+.card h3 {
+  font-size: 20px;
+  font-weight: 300;
+  color: var(--silver-1);
+  margin-bottom: 16px;
+  letter-spacing: -0.01em;
+}
+.card p { font-size: 14px; margin-bottom: 12px; }
+
+/* ─────────── ASCII BLOCK ─────────── */
+pre.ascii {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 12px;
+  line-height: 1.65;
+  color: var(--silver-2);
+  background: var(--slate-3);
+  padding: 28px 32px;
+  border: 1px solid rgba(107, 137, 168, 0.16);
+  box-shadow: inset 0 2px 12px rgba(0, 0, 0, 0.4);
+  overflow-x: auto;
+  margin: 32px 0;
+  white-space: pre;
+}
+pre.ascii .hl { color: var(--accent); font-weight: 400; }
+pre.ascii .warn { color: var(--warn); }
+pre.ascii .good { color: var(--good); }
+pre.ascii .gold { color: var(--gold); }
+pre.ascii .dim { color: var(--steel-1); }
+
+/* ─────────── CODE BLOCK ─────────── */
+pre.code {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 13px;
+  line-height: 1.7;
+  color: var(--silver-1);
+  background: var(--slate-3);
+  padding: 32px 36px;
+  border-left: 3px solid var(--accent);
+  box-shadow: inset 0 2px 12px rgba(0, 0, 0, 0.4);
+  overflow-x: auto;
+  margin: 32px 0;
+}
+pre.code .kw { color: var(--accent); }
+pre.code .com { color: var(--steel-1); font-style: italic; }
+pre.code .str { color: var(--good); }
+pre.code .num { color: var(--gold); }
+
+/* ─────────── DETAILS ─────────── */
+details {
+  background: var(--slate-2);
+  border: 1px solid rgba(107, 137, 168, 0.12);
+  margin: 16px 0;
+  padding: 20px 28px;
+  transition: all 0.3s;
+}
+details[open] {
+  background: var(--slate-1);
+  border-color: rgba(107, 137, 168, 0.28);
+}
+details summary {
+  cursor: pointer;
+  list-style: none;
+  font-weight: 400;
+  color: var(--silver-1);
+  font-size: 15px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+details summary::-webkit-details-marker { display: none; }
+details summary::before {
+  content: '+';
+  font-family: 'JetBrains Mono', monospace;
+  color: var(--accent);
+  font-size: 18px;
+  transition: transform 0.3s;
+  display: inline-block;
+}
+details[open] summary::before { transform: rotate(45deg); }
+details > *:not(summary) { margin-top: 16px; }
+details p { font-size: 14px; }
+
+/* ─────────── TIMELINE ─────────── */
+.timeline {
+  margin-top: 40px;
+}
+.timeline .row {
+  display: grid;
+  grid-template-columns: 140px 1fr;
+  gap: 32px;
+  padding: 20px 0;
+  border-bottom: 1px solid rgba(107, 137, 168, 0.08);
+  transition: all 0.3s;
+}
+.timeline .row:hover {
+  padding-left: 12px;
+  background: rgba(107, 137, 168, 0.04);
+}
+.timeline .ts {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 12px;
+  color: var(--accent);
+  letter-spacing: 0.05em;
+}
+.timeline .desc {
+  color: var(--silver-3);
+  font-size: 14px;
+}
+.timeline .desc strong { color: var(--silver-1); font-weight: 500; }
+.timeline .desc em { color: var(--accent); font-style: normal; }
+.timeline .desc .warn { color: var(--warn); }
+.timeline .desc .acc { color: var(--accent); }
+
+@media (max-width: 720px) {
+  .timeline .row { grid-template-columns: 1fr; gap: 8px; }
+}
+
+/* ─────────── CHECKLIST ─────────── */
+ol.checklist {
+  list-style: none;
+  counter-reset: ck;
+  margin: 24px 0;
+}
+ol.checklist li {
+  counter-increment: ck;
+  padding: 16px 24px 16px 64px;
+  position: relative;
+  background: var(--slate-2);
+  margin-bottom: 8px;
+  border-left: 2px solid transparent;
+  transition: all 0.3s;
+  font-size: 14px;
+  color: var(--silver-3);
+}
+ol.checklist li::before {
+  content: counter(ck, decimal-leading-zero);
+  position: absolute;
+  left: 24px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 12px;
+  color: var(--steel-1);
+  letter-spacing: 0.1em;
+}
+ol.checklist li:hover {
+  background: var(--slate-1);
+  border-left-color: var(--accent);
+  padding-left: 72px;
+}
+ol.checklist li strong { color: var(--silver-1); font-weight: 500; }
+ol.checklist li em { color: var(--accent); font-style: normal; }
+
+/* ─────────── REPORT GRID ─────────── */
+.report-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1px;
+  background: rgba(107, 137, 168, 0.12);
+  margin-top: 32px;
+}
+.report-grid .cell {
+  background: var(--slate-2);
+  padding: 28px;
+  transition: background 0.3s;
+}
+.report-grid .cell:hover { background: var(--slate-1); }
+.report-grid .cell .tag {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--accent);
+  margin-bottom: 12px;
+}
+.report-grid .cell h4 {
+  font-size: 16px;
+  font-weight: 400;
+  color: var(--silver-1);
+  margin-bottom: 12px;
+}
+.report-grid .cell ul {
+  list-style: none;
+  font-size: 13px;
+  color: var(--silver-3);
+}
+.report-grid .cell ul li {
+  padding-left: 16px;
+  position: relative;
+  margin-bottom: 6px;
+}
+.report-grid .cell ul li::before {
+  content: '·';
+  position: absolute;
+  left: 0;
+  color: var(--accent);
+}
+
+@media (max-width: 720px) {
+  .report-grid { grid-template-columns: 1fr; }
+}
+
+/* ─────────── FOOTER ─────────── */
+footer {
+  padding: 60px 8vw 40px;
+  background: var(--void);
+  border-top: 1px solid rgba(107, 137, 168, 0.16);
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  color: var(--steel-1);
+  letter-spacing: 0.1em;
+}
+footer .row {
+  display: flex;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 16px;
+  margin-bottom: 32px;
+}
+footer .tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+footer .tags span {
+  padding: 6px 12px;
+  background: var(--slate-2);
+  border: 1px solid rgba(107, 137, 168, 0.12);
+  color: var(--silver-3);
+  text-transform: uppercase;
+  font-size: 10px;
+}
+</style>
+</head>
+<body>
+<main>
+
+<!-- ═══════════════ HERO ═══════════════ -->
+<section class="hero">
+  <div class="stamp">REVIEW · 2026 · 05 · 28 · 钥匙过桥日</div>
+  <h1>从"<em>慢就慢了</em>"<br>到"<em>拼命设 checkpoint</em>"</h1>
+  <p class="lead">
+    上半场 TCC 三大准则 D12 第二次毕业（含 Consistency 跳层修复）。<br>
+    下半场错误累积 D30 子④ 跨章节综合题——97.18% 的"几乎必错"焊进数字直觉。<br>
+    最大成就：5/11 元层级钥匙跨第三章节实战 · 1 次提示自检 · 正式过桥 🎓
+  </p>
+
+  <div class="stats">
+    <div class="cell">
+      <span class="num warn">97.18%</span>
+      <div class="label">10步累积错误率</div>
+    </div>
+    <div class="cell">
+      <span class="num acc">1</span>
+      <div class="label">钥匙提示次数</div>
+    </div>
+    <div class="cell">
+      <span class="num good">3</span>
+      <div class="label">章节跨界过桥</div>
+    </div>
+    <div class="cell">
+      <span class="num">9</span>
+      <div class="label">轮次磨穿到底</div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════ SECTION 01 · TCC 三大准则 ═══════════════ -->
+<section class="reveal">
+  <div class="sec-num">SECTION 01 ─── TCC 三大准则 · D12 二次毕业</div>
+  <h1 class="sec-title">三人组的<em>灵魂</em>是"信任"</h1>
+
+  <p>5/16 那次毕业账本上写着"<span class="warn">英文缩写 4 次全丢</span>"。今天 D12 回访，
+    <span class="acc">一字不差、不打磕巴</span>——transparent / control / consistency 三个 C 全说对。</p>
+
+  <p>但真正的金光时刻不在英文，是在<strong>三人组的递进</strong>这一格——你自己拼出了"<em>观测 → 控制 → 信任</em>"
+    的三层递进，没人提示。</p>
+
+  <pre class="ascii">
+              <span class="hl">┌────────────────────────────────────────────┐</span>
+              <span class="hl">│   TCC · 让人类敢把任务交给智能体的三件套     │</span>
+              <span class="hl">└────────────────────────────────────────────┘</span>
+                              │
+        ┌─────────────────────┼─────────────────────┐
+        │                     │                     │
+   <span class="gold">Transparent</span>            <span class="gold">Control</span>            <span class="gold">Consistency</span>
+   （透明）               （可控）             （一致）
+        │                     │                     │
+   决策对人类透明         可中断 · 可恢复 · 可指导    行为模式 · 说话语气稳定
+        │                     │                     │
+        ▼                     ▼                     ▼
+     人能 <span class="good">观测</span>              人能 <span class="good">控制</span>              人能 <span class="good">信任</span>
+     （看得见）             （管得住）             （敢撒手）
+
+        └───────────────── 三个递进 ────────────────┘
+                  视觉级 → 动作级 → 情感级
+                          │
+                          ▼
+                  最终落点：交付 = 信任
+  </pre>
+
+  <div class="cards col-2">
+    <div class="card">
+      <div class="label">CONSISTENCY · 跳层修复</div>
+      <h3>三轮迭代才跳出"产出层"</h3>
+      <p><strong>第 1 轮</strong>：效果一致 ❌（在产出层）</p>
+      <p><strong>第 2 轮</strong>：结果一致 ❌（换字游戏，仍在产出层）</p>
+      <p><strong>第 3 轮</strong>：<span class="acc">行为模式 · 说话语气</span> ✅（跳到行为层）</p>
+      <p>—— 这不是同层左右移动，是<em>纵向往上一层</em>。</p>
+    </div>
+    <div class="card">
+      <div class="label">控制三件套 · 工程 vs 原义</div>
+      <h3>"可纠错" vs "可指导"的口味</h3>
+      <p><strong>可指导</strong> → <em>主动</em>告诉它该走哪条路（人类发指令）</p>
+      <p><strong>可纠错</strong> → <em>被动</em>修它已经犯的错（错了再补救）</p>
+      <p>5/16 原词是"可指导"。checkpoint 偏纠错那一面，但 TCC 原义是<span class="acc">指导</span>——别记混。</p>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════ SECTION 02 · 错误累积数学 ═══════════════ -->
+<section class="alt reveal">
+  <div class="sec-num">SECTION 02 ─── 错误累积 · 数字直觉</div>
+  <h1 class="sec-title">单步 30% · 十步<em>几乎必错</em></h1>
+
+  <p>上一轮我留下的硬伤：<span class="warn">0.3 × 10 = 3</span>——突破物理学的概率值。今天用乘法定律重算，
+    把"加法直觉"彻底拔掉、把<em>正确率的 N 次方</em>焊进肌肉。</p>
+
+  <pre class="ascii">
+═══════════════════════════════════════════════════════════════════
+                数字直觉 · 完整对账（请念三遍）
+═══════════════════════════════════════════════════════════════════
+
+  最初的直觉：     0.3 × 10 = 3        <span class="warn">❌ 「物理学崩塌版」</span>
+  修正的公式：     1 - 0.7¹⁰           <span class="good">✅ 「乘法定律」</span>
+  真相数字：       <span class="warn">97.18%</span>              🚨 「几乎必错」
+
+  距离 100% 还有：   2.82%
+  距离直觉 30%：    ×3.24 倍
+  距离 "3"（笑）：   再也回不去了
+═══════════════════════════════════════════════════════════════════</pre>
+
+  <pre class="ascii">
+  推导链路（焊死这条传递）：
+
+  单步错误率  p = 0.3
+        │
+        ▼
+  单步正确率  1 - p = 0.7
+        │
+        ▼  乘法定律
+  N 步全对率  (1 - p)<span class="hl">^N</span>  =  0.7¹⁰  ≈  0.0282
+        │
+        ▼  补集
+  N 步至少错一次  =  1 - (1 - p)^N  ≈  <span class="warn">0.9718</span>
+                                          ↑
+                                   <span class="dim">这才是"累积错误率"</span></pre>
+
+  <p><strong>为什么 30% 直觉骗人？</strong> 因为大脑天生用<em>加法</em>感知风险（"30% × 10 = 300%? 不对就 100% 吧"），
+    但概率世界用的是<em>乘法</em>——错误不是叠加，是<span class="warn">"全对" 一次次贬值</span>。</p>
+</section>
+
+<!-- ═══════════════ SECTION 03 · 三层分层图 ═══════════════ -->
+<section class="reveal">
+  <div class="sec-num">SECTION 03 ─── 5/11 钥匙 · 错误累积家族图</div>
+  <h1 class="sec-title">爷爷 / 父母 / 儿子 / <em>孙子</em></h1>
+
+  <p>5/11 那把"上下兄弟问三句"钥匙，今天在第三个章节实战。第一轮还是踩了同一个坑——
+    把 token 自回归（孙子辈）当成错误累积（父母辈）的儿子。</p>
+
+  <p>但今天的修复不一样：<span class="acc">老师只用 1 次提示</span>，让你"用兄弟那一格当镜子"。
+    你<em>自己看见了矛盾</em>——既然兄弟（上下文溢出 / 工具调用失败 / 规划偏移）都在步骤级，
+    儿子怎么会跑到 token 级？这种<strong>自检</strong>是过去三个月没出现过的能力。</p>
+
+  <pre class="ascii">
+<span class="gold">爷爷 ▼ 智能体处理多步任务（multi-step sequential decision）</span>
+        │
+   <span class="hl">父母 ▼ 错误累积  ── 兄弟 ── 上下文溢出 / 工具调用失败 / 规划偏移</span>
+        │                       <span class="dim">（步骤之间的事故）</span>
+        │
+   <span class="good">儿子 ▼ 每一步的 LLM 调用 · 步骤间状态传递 · 工具调用</span>
+        │  <span class="dim">（步骤级零件）</span>
+        │
+   <span class="warn">孙子 ▼ token 自回归 · 注意力计算 · 解码温度</span>
+           <span class="dim">（单次 LLM 推理内部 · 隔了两层）</span></pre>
+
+  <details>
+    <summary>展开 · 钥匙提示量的指数级下降</summary>
+    <div class="timeline">
+      <div class="row">
+        <div class="ts">2026-05-11</div>
+        <div class="desc"><strong>钥匙诞生日</strong> · RAG 章节 + 推理时计算章节同日两次踩坑——把"采样工具"当成"自洽性方法"。元学习觉醒。</div>
+      </div>
+      <div class="row">
+        <div class="ts">2026-05-24 · D44</div>
+        <div class="desc">集束搜索 vs 采样反向 · 老师反问<span class="warn">3 次</span>才修复。</div>
+      </div>
+      <div class="row">
+        <div class="ts">2026-05-25 · D2</div>
+        <div class="desc">钥匙主动调用 · 老师对话<span class="acc">3 句</span>修复。</div>
+      </div>
+      <div class="row">
+        <div class="ts">2026-05-28 · 今天</div>
+        <div class="desc">自回归 vs 步骤级累积 · 老师<span class="good">1 次提示</span>，<em>自己用兄弟那格当镜子</em>，<em>自己看见矛盾</em>。<strong>正式过桥 🎓</strong></div>
+      </div>
+    </div>
+  </details>
+</section>
+
+<!-- ═══════════════ SECTION 04 · 跨章节传递链 ═══════════════ -->
+<section class="alt reveal">
+  <div class="sec-num">SECTION 04 ─── 跨章节关联 · 传递链</div>
+  <h1 class="sec-title">每一跳<em>不能跳步</em></h1>
+
+  <p>子问 ④ 第一轮里两条传递链都"模糊掉了"——用泛词"减少错误"代替了"单步错误率 / 累积错误率"的精度。
+    第二轮重写后，两条链路都讲清了。</p>
+
+  <div class="cards col-2">
+    <div class="card">
+      <div class="label">链路 A · 自洽性</div>
+      <h3>降的是单步基数</h3>
+      <pre class="ascii">
+自洽性
+  │
+  ▼ 单步内多次采样取多数票
+单步错误率 ↓ <span class="dim">(0.3 → 0.1)</span>
+  │
+  ▼ 等价表达
+单步正确率 ↑ <span class="dim">(0.7 → 0.9)</span>
+  │
+  ▼ 乘法定律
+正确率^N <span class="good">↑ 变大</span>
+<span class="dim">(0.7^10 = 2.8% → 0.9^10 = 35%)</span>
+  │
+  ▼ 1 - 上面那个
+累积错误率 <span class="good">↓ 变小</span>
+<span class="dim">(97.2% → 65%)</span></pre>
+      <p>关键洞察：自洽性<em>不是直接治累积</em>，是<em>让累积分母变小</em>。</p>
+    </div>
+    <div class="card">
+      <div class="label">链路 B · RAG</div>
+      <h3>减的是单步错误源</h3>
+      <pre class="ascii">
+RAG
+  │
+  ▼ 检索外部知识库
+找到与问题相关的事实
+  │
+  ▼ 注入上下文窗口
+喂给模型当输入
+  │
+  ▼ 模型 grounded 在事实上
+减少幻觉
+  │
+  ▼ 单步错误源 ↓
+单步错误率 ↓
+  │
+  ▼ 乘法定律传导
+累积错误率 <span class="good">↓ 变小</span></pre>
+      <p>"<em>真实的、有依据的上下文</em>"——你给的这个翻译比术语 grounded 更精准。</p>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════ SECTION 05 · checkpoint 缝合 ═══════════════ -->
+<section class="reveal">
+  <div class="sec-num">SECTION 05 ─── 跨章节连接构建 · 你自己问出的金钩</div>
+  <h1 class="sec-title">checkpoint = Control 的<em>工程实现</em></h1>
+
+  <p>"设 checkpoint 是为了重跑吗？"——这个问题不是我引导你问的，是你<strong>自己问出来的</strong>。
+    它把今天上下半场两个家族图<em>缝在一起</em>：</p>
+
+  <pre class="ascii">
+═══════════════════════════════════════════════════════════════════
+   场景 A · 10 步 · 无 checkpoint
+   ─────────────────────────────────────────────────────────────
+   累积错误率 = 1 - 0.7¹⁰ ≈ <span class="warn">97.18%</span>       🚨 几乎必错
+═══════════════════════════════════════════════════════════════════
+   场景 B · 10 步 · 第 5 步设一个 checkpoint
+   （checkpoint 处「验证 + 纠错」 → 错误率重置为 0）
+   ─────────────────────────────────────────────────────────────
+   第一段 5 步：1 - 0.7⁵ ≈ <span class="warn">83.2%</span>   →   纠错  →  归零
+   第二段 5 步：1 - 0.7⁵ ≈ <span class="warn">83.2%</span>   →   终点
+
+   把「几乎必错」切成「两个还能挽救的小段」 ✂️
+═══════════════════════════════════════════════════════════════════</pre>
+
+  <pre class="code"><span class="com">// TypeScript · checkpoint 骨架（5 行核心逻辑）</span>
+<span class="kw">type</span> AgentState = { <span class="com">/* 任务中间状态 */</span> };
+<span class="kw">type</span> Step = (state: AgentState) =&gt; <span class="kw">Promise</span>&lt;AgentState&gt;;
+
+<span class="kw">async function</span> runAgent(steps: Step[]): <span class="kw">Promise</span>&lt;AgentState&gt; {
+  <span class="kw">let</span> state: AgentState = initialState();
+  <span class="kw">let</span> lastCheckpoint: AgentState = state;            <span class="com">// ① 兜底快照</span>
+
+  <span class="kw">for</span> (<span class="kw">const</span> step <span class="kw">of</span> steps) {
+    state = <span class="kw">await</span> step(state);                       <span class="com">// ② 单步 LLM 调用 ← 错误累积的儿子</span>
+
+    <span class="kw">if</span> (validate(state)) {                           <span class="com">// ③ 可中断 ← Control</span>
+      lastCheckpoint = structuredClone(state);       <span class="com">// ④ 可恢复（存档）</span>
+    } <span class="kw">else</span> {
+      state = structuredClone(lastCheckpoint);       <span class="com">// ⑤ 可恢复（读档）</span>
+      <span class="com">// 也可在此处呼叫人类介入：human_in_the_loop</span>
+    }
+  }
+  <span class="kw">return</span> state;
+}</pre>
+
+  <details>
+    <summary>展开 · 三连问的精确映射（语义微调）</summary>
+    <p><strong>Q1 · 哪一行是"每一步的 LLM 调用"？</strong> → ② <code>state = await step(state)</code>。
+      它就是错误累积家族图里的"儿子"层级。</p>
+    <p><strong>Q2 · ④⑤ 在 Control 三件套中映射？</strong> → ④ <em>存档</em>是"可恢复"的<strong>前置准备</strong>，
+      ⑤ <em>读档</em>是"可恢复"的<strong>实施</strong>——<span class="acc">两行其实都属于"可恢复"两面</span>。
+      "可中断"在 ③ 行的 <code>validate</code> 判断里，"可指导"对应的是"也可在此处呼叫人类介入"那一行。</p>
+    <p><strong>Q3 · 第 7 步失败回滚到第 5 步，累积分母切到几步？</strong> → <span class="acc">5 步</span>。
+      因为回滚后第 6、7 步的累积被擦除，所有累积链路都从 checkpoint 重新开始，分母永远 ≤ 5。
+      这才是 checkpoint 治错误累积的<em>核心机制</em>——不是"重跑"，是"<strong>把累积分母切短</strong>"。</p>
+  </details>
+</section>
+
+<!-- ═══════════════ SECTION 06 · 学习报告网格 ═══════════════ -->
+<section class="alt reveal">
+  <div class="sec-num">SECTION 06 ─── 本单元学习报告</div>
+  <h1 class="sec-title">9 轮磨穿 · <em>金光与盲点</em>对账</h1>
+
+  <div class="report-grid">
+    <div class="cell">
+      <div class="tag">A 层 · 必须焊死</div>
+      <h4>已焊住 ✅</h4>
+      <ul>
+        <li>TCC 三个英文缩写（D12 一字不差）</li>
+        <li>TCC 三人组递进逻辑（观测→控制→信任）</li>
+        <li>Consistency 锁的是行为模式 · 不是结果</li>
+        <li>错误累积层级（步骤级 · 不是 token 级）</li>
+        <li>累积错误率 = 1 - (1-p)^N（乘法定律）</li>
+        <li>5/11 钥匙跨章节调用（1 次提示自检）</li>
+      </ul>
+    </div>
+    <div class="cell">
+      <div class="tag">B 层 · 已通透</div>
+      <h4>理解到位 ✅</h4>
+      <ul>
+        <li>RAG 传递链四跳（检索→注入→grounded→减幻）</li>
+        <li>checkpoint = Control 的工程实现</li>
+        <li>checkpoint 的本质 = 切短累积分母（不是重跑）</li>
+        <li>跨章节缝合：TCC × 错误累积 × checkpoint</li>
+      </ul>
+    </div>
+    <div class="cell">
+      <div class="tag">⚠️ 本日盲点</div>
+      <h4>需要 D2 / D7 回访</h4>
+      <ul>
+        <li>概率累积数学：0.3×10=3 这种加法直觉必须根除</li>
+        <li>表达精度：用泛词"错误"代替"单步/累积错误率"</li>
+        <li>自洽性传递链中"正确率^N 变大"的方向感</li>
+        <li>"可纠错" vs "可指导"的语义区分</li>
+      </ul>
+    </div>
+    <div class="cell">
+      <div class="tag">💎 元层级成长</div>
+      <h4>跨日期对账</h4>
+      <ul>
+        <li>5/24 · 老师反问 3 次 → 修复</li>
+        <li>5/25 · 老师对话 3 句 → 修复</li>
+        <li><strong>5/28 · 老师 1 次提示 → 自检修复 🎓</strong></li>
+        <li>钥匙提示量：3 次 → 3 句 → 1 次（指数级）</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════ SECTION 07 · 复习计划 ═══════════════ -->
+<section class="reveal">
+  <div class="sec-num">SECTION 07 ─── 复习计划 · 间隔重复时间表</div>
+  <h1 class="sec-title">下一站<em>该回访谁</em></h1>
+
+  <div class="timeline">
+    <div class="row">
+      <div class="ts">5/29 (T+1)</div>
+      <div class="desc"><strong>不复习</strong> · 让今天 4 个新焊点稳一稳。<em>大脑需要无干扰整合时间</em>。</div>
+    </div>
+    <div class="row">
+      <div class="ts">5/30 (D2)</div>
+      <div class="desc"><strong>错误累积数学闭眼默写</strong> · 1 - 0.97¹⁰ 和 1 - 0.7¹⁰ 各一次，5 分钟。<em class="warn">把乘法定律焊进肌肉</em>。</div>
+    </div>
+    <div class="row">
+      <div class="ts">6/4 (D7)</div>
+      <div class="desc"><strong>TCC 三人组 + 错误累积传递链</strong> · 包含 checkpoint = Control 的跨章节综合题。</div>
+    </div>
+    <div class="row">
+      <div class="ts">6/9</div>
+      <div class="desc"><strong>推理时计算 D60 综合压测</strong>（5/25 已排）· RLHF × 推理时计算交叉。</div>
+    </div>
+    <div class="row">
+      <div class="ts">6/12</div>
+      <div class="desc"><strong>缓存 + Claude Code 上下文管理</strong>（5/21 双毕业项 D30 回访）。</div>
+    </div>
+    <div class="row">
+      <div class="ts">6/16</div>
+      <div class="desc"><strong>RLHF 偏向自信</strong>（5/17 毕业项 D30 回访）。</div>
+    </div>
+    <div class="row">
+      <div class="ts">6/27 (D30)</div>
+      <div class="desc"><strong>错误累积 D30 综合压测</strong> · 含 checkpoint 工程场景题。</div>
+    </div>
+    <div class="row">
+      <div class="ts">下一新单元</div>
+      <div class="desc"><strong>checkpoint 工程实战</strong>（按阶段零启动）· 入场券："我学 checkpoint 是为了解决什么具体问题？" 想清楚了再来。</div>
+    </div>
+  </div>
+
+  <h2 style="margin-top: 56px; font-size: 22px; font-weight: 300; color: var(--silver-1);">下一步行动 · 不强制、但建议</h2>
+  <ol class="checklist">
+    <li><strong>明天 (5/29) 不学不复习</strong> — 让今天 4 个新焊点稳一稳。<em>大脑需要无干扰整合时间</em>。</li>
+    <li><strong>5/30 闭眼默写两次</strong> — 1 - 0.97¹⁰（≈26%）和 1 - 0.7¹⁰（≈97%）。把乘法定律刻进肌肉记忆。</li>
+    <li><strong>checkpoint 工程实战</strong> — 想清楚学习目的再开新单元，不要为学而学。</li>
+    <li><strong>每次进入新主题第一题</strong> — 主动跑钥匙（上下兄弟问三句），把"作答前自检"焊成肌肉。</li>
+  </ol>
+</section>
+
+<!-- ═══════════════ FOOTER ═══════════════ -->
+<footer>
+  <div class="row">
+    <div>2026 · 05 · 28 · TCC D12 · 错误累积 D30 · 钥匙过桥</div>
+    <div>SECTION 01–07 · 9 轮磨穿 · 4 个新焊点</div>
+    <div>NEXT: 2026 · 05 · 30 · 错误累积数学闭眼默写</div>
+  </div>
+  <div class="tags">
+    <span>TCC</span>
+    <span>Transparent</span>
+    <span>Control</span>
+    <span>Consistency</span>
+    <span>错误累积</span>
+    <span>累积错误率</span>
+    <span>乘法定律</span>
+    <span>checkpoint</span>
+    <span>分段重置</span>
+    <span>5/11 钥匙</span>
+    <span>跨章节过桥</span>
+    <span>1 次提示自检</span>
+    <span>元学习</span>
+    <span>数字直觉</span>
+  </div>
+</footer>
+
+</main>
+
+<script>
+// 鼠标跟随光晕
+document.addEventListener('mousemove', (e) => {
+  document.documentElement.style.setProperty('--mx', e.clientX + 'px');
+  document.documentElement.style.setProperty('--my', e.clientY + 'px');
+});
+
+// 滚动浮现
+const io = new IntersectionObserver((entries) => {
+  entries.forEach(e => {
+    if (e.isIntersecting) {
+      e.target.classList.add('visible');
+      io.unobserve(e.target);
+    }
+  });
+}, { threshold: 0.1 });
+
+document.querySelectorAll('.reveal').forEach(el => io.observe(el));
+</script>
+
+</body>
+</html>

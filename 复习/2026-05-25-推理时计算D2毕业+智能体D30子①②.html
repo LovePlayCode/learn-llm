@@ -1,0 +1,1056 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1.0" />
+<title>2026-05-25 · 推理时计算 D2 毕业 + 智能体 D30 子①②</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@200;300;400;500&family=JetBrains+Mono:wght@200;300;400&display=swap" rel="stylesheet">
+<style>
+:root {
+  --silver-1: #eef0f3;
+  --silver-2: #d8dde3;
+  --silver-3: #b6bdc7;
+  --steel-1: #8a929e;
+  --steel-2: #5c6675;
+  --steel-3: #3f4754;
+  --slate-1: #2a2f38;
+  --slate-2: #1a1f28;
+  --slate-3: #0f1319;
+  --void:    #07090d;
+  --accent:  #6b89a8;
+  --accent-dim: #4a6378;
+  --warn:    #b07a5a;
+  --good:    #7a9985;
+  --gold:    #c9b687;
+  --mx: 50%;
+  --my: 50%;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+html, body {
+  background: var(--void);
+  color: var(--silver-2);
+  font-family: 'Inter', -apple-system, sans-serif;
+  font-weight: 300;
+  line-height: 1.7;
+  letter-spacing: 0.02em;
+  overflow-x: hidden;
+}
+
+/* 鼠标跟随光晕视差 */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  background: radial-gradient(
+    600px circle at var(--mx) var(--my),
+    rgba(107, 137, 168, 0.08),
+    transparent 40%
+  );
+  z-index: 1;
+}
+
+/* SVG 噪点纹理叠加 */
+body::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 2;
+  opacity: 0.5;
+  mix-blend-mode: overlay;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='220' height='220'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 0.6  0 0 0 0 0.65  0 0 0 0 0.72  0 0 0 0.55 0'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>");
+}
+
+main { position: relative; z-index: 3; }
+
+/* ─────────── HERO ─────────── */
+.hero {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 8vh 8vw;
+  background:
+    linear-gradient(180deg, var(--slate-3) 0%, var(--void) 100%);
+  position: relative;
+  border-bottom: 1px solid rgba(107, 137, 168, 0.12);
+}
+
+.hero .stamp {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  letter-spacing: 0.5em;
+  text-transform: uppercase;
+  color: var(--steel-1);
+  margin-bottom: 40px;
+}
+
+.hero h1 {
+  font-size: clamp(36px, 6vw, 84px);
+  font-weight: 200;
+  line-height: 1.05;
+  color: var(--silver-1);
+  letter-spacing: -0.02em;
+  margin-bottom: 32px;
+}
+.hero h1 em {
+  font-style: normal;
+  color: var(--accent);
+  font-weight: 300;
+}
+
+.hero .subtitle {
+  font-size: 16px;
+  color: var(--steel-1);
+  max-width: 720px;
+  font-weight: 300;
+  line-height: 1.8;
+  margin-bottom: 80px;
+}
+
+.hero .stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 1px;
+  background: rgba(107, 137, 168, 0.18);
+  border: 1px solid rgba(107, 137, 168, 0.18);
+  max-width: 960px;
+}
+.stats .stat {
+  background: var(--slate-2);
+  padding: 28px 24px;
+  transition: all .3s;
+}
+.stats .stat:hover {
+  background: var(--slate-1);
+  transform: translateY(-2px);
+}
+.stats .num {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 38px;
+  font-weight: 200;
+  color: var(--silver-1);
+  margin-bottom: 6px;
+  letter-spacing: -0.03em;
+}
+.stats .label {
+  font-size: 11px;
+  color: var(--steel-1);
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+}
+
+/* ─────────── SECTIONS ─────────── */
+section {
+  padding: 14vh 8vw;
+  border-bottom: 1px solid rgba(107, 137, 168, 0.08);
+  position: relative;
+}
+section:nth-child(odd)  { background: linear-gradient(180deg, var(--void), var(--slate-3)); }
+section:nth-child(even) { background: linear-gradient(180deg, var(--slate-3), var(--slate-2)); }
+
+.sec-num {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  letter-spacing: 0.4em;
+  color: var(--accent);
+  margin-bottom: 24px;
+  text-transform: uppercase;
+}
+.sec-title {
+  font-size: clamp(28px, 3.5vw, 48px);
+  font-weight: 200;
+  color: var(--silver-1);
+  margin-bottom: 16px;
+  line-height: 1.15;
+  letter-spacing: -0.01em;
+}
+.sec-title em {
+  font-style: normal;
+  color: var(--accent);
+}
+.sec-lede {
+  color: var(--steel-1);
+  font-size: 15px;
+  max-width: 760px;
+  margin-bottom: 56px;
+}
+
+/* 滚动浮现 */
+.reveal {
+  opacity: 0;
+  transform: translateY(30px);
+  transition: opacity 1s ease, transform 1s ease;
+}
+.reveal.in {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* ─────────── 双卡并列 ─────────── */
+.compare {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 24px;
+  margin-bottom: 48px;
+}
+.card {
+  background: var(--slate-2);
+  border: 1px solid rgba(107, 137, 168, 0.12);
+  padding: 36px 32px;
+  transition: all .35s ease;
+  position: relative;
+  overflow: hidden;
+}
+.card::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, transparent 60%, rgba(107, 137, 168, 0.04));
+  opacity: 0;
+  transition: opacity .35s;
+}
+.card:hover {
+  transform: translateY(-4px);
+  border-color: rgba(107, 137, 168, 0.4);
+  background: var(--slate-1);
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.4);
+}
+.card:hover::before { opacity: 1; }
+
+.card h4 {
+  font-size: 13px;
+  font-weight: 400;
+  color: var(--accent);
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  margin-bottom: 18px;
+}
+.card .label {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  color: var(--steel-1);
+  letter-spacing: 0.18em;
+  margin-top: 18px;
+  margin-bottom: 4px;
+  text-transform: uppercase;
+}
+.card .val {
+  color: var(--silver-2);
+  font-size: 14px;
+  line-height: 1.7;
+}
+.card .val em {
+  font-style: normal;
+  color: var(--gold);
+}
+.card .val strong {
+  color: var(--silver-1);
+  font-weight: 400;
+}
+
+/* ─────────── ASCII 流程图 ─────────── */
+.ascii {
+  background: var(--slate-3);
+  border: 1px solid rgba(107, 137, 168, 0.14);
+  box-shadow: inset 0 2px 30px rgba(0, 0, 0, 0.55);
+  padding: 36px 30px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 13px;
+  line-height: 1.65;
+  color: var(--silver-3);
+  overflow-x: auto;
+  white-space: pre;
+  letter-spacing: 0.02em;
+}
+.ascii .em   { color: var(--accent); font-weight: 400; }
+.ascii .good { color: var(--good); }
+.ascii .gold { color: var(--gold); }
+.ascii .warn { color: var(--warn); }
+.ascii .dim  { color: var(--steel-1); }
+
+/* ─────────── 分层 (爷爷/兄弟/儿子) ─────────── */
+.lineage {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 1px;
+  background: rgba(107, 137, 168, 0.18);
+  border: 1px solid rgba(107, 137, 168, 0.18);
+  margin-bottom: 36px;
+}
+.lineage .level {
+  padding: 32px 28px;
+  transition: all .3s;
+}
+.lineage .level:hover {
+  transform: translateY(-2px);
+}
+.lineage .l-grandpa { background: var(--slate-1); }
+.lineage .l-bro     { background: var(--slate-2); }
+.lineage .l-son     { background: var(--slate-3); }
+
+.lineage .tier {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  color: var(--steel-1);
+  letter-spacing: 0.22em;
+  margin-bottom: 14px;
+  text-transform: uppercase;
+}
+.lineage h5 {
+  font-size: 18px;
+  color: var(--silver-1);
+  font-weight: 300;
+  margin-bottom: 14px;
+  letter-spacing: -0.01em;
+}
+.lineage p {
+  font-size: 13px;
+  color: var(--steel-1);
+  line-height: 1.6;
+}
+.lineage p strong {
+  color: var(--accent);
+  font-weight: 400;
+}
+
+/* ─────────── 红点 / 折叠面板 ─────────── */
+.reds { display: flex; flex-direction: column; gap: 14px; }
+.red {
+  background: var(--slate-2);
+  border: 1px solid rgba(107, 137, 168, 0.14);
+  border-left: 2px solid var(--warn);
+  transition: all .3s;
+}
+.red:hover {
+  background: var(--slate-1);
+  border-left-color: var(--accent);
+}
+.red summary {
+  cursor: pointer;
+  padding: 22px 28px;
+  font-size: 15px;
+  color: var(--silver-2);
+  list-style: none;
+  position: relative;
+  font-weight: 300;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+.red summary::-webkit-details-marker { display: none; }
+.red summary::before {
+  content: '+';
+  font-family: 'JetBrains Mono', monospace;
+  color: var(--accent);
+  font-size: 20px;
+  transition: transform .3s ease;
+  display: inline-block;
+  width: 18px;
+}
+.red[open] summary::before {
+  transform: rotate(45deg);
+}
+.red .body {
+  padding: 4px 28px 28px 62px;
+  color: var(--steel-1);
+  font-size: 14px;
+  border-top: 1px dashed rgba(107, 137, 168, 0.12);
+  margin-top: 0;
+}
+.red .body p { margin-bottom: 10px; }
+.red .body strong { color: var(--accent); font-weight: 400; }
+
+/* ─────────── 行动清单 ─────────── */
+.checklist {
+  list-style: none;
+  counter-reset: cnt;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.checklist li {
+  counter-increment: cnt;
+  background: var(--slate-2);
+  border: 1px solid rgba(107, 137, 168, 0.1);
+  padding: 22px 32px 22px 84px;
+  position: relative;
+  transition: all .3s;
+  font-size: 14px;
+  color: var(--silver-2);
+}
+.checklist li::before {
+  content: counter(cnt, decimal-leading-zero);
+  position: absolute;
+  left: 28px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  color: var(--accent);
+  letter-spacing: 0.2em;
+}
+.checklist li:hover {
+  background: var(--slate-1);
+  padding-left: 92px;
+  border-color: rgba(107, 137, 168, 0.3);
+}
+.checklist li strong { color: var(--silver-1); font-weight: 400; }
+
+/* ─────────── 元层级网格 ─────────── */
+.grid-3 {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 1px;
+  background: rgba(107, 137, 168, 0.16);
+  border: 1px solid rgba(107, 137, 168, 0.16);
+}
+.grid-3 .cell {
+  background: var(--slate-2);
+  padding: 32px 28px;
+  transition: all .3s;
+}
+.grid-3 .cell:hover {
+  background: var(--slate-1);
+  transform: translateY(-2px);
+}
+.grid-3 .cell h5 {
+  font-size: 12px;
+  color: var(--accent);
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  margin-bottom: 14px;
+}
+.grid-3 .cell h6 {
+  font-size: 17px;
+  color: var(--silver-1);
+  font-weight: 300;
+  margin-bottom: 10px;
+}
+.grid-3 .cell p {
+  font-size: 13px;
+  color: var(--steel-1);
+  line-height: 1.65;
+}
+
+/* ─────────── 时间轴 ─────────── */
+.timeline {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: 36px;
+}
+.timeline .row {
+  display: grid;
+  grid-template-columns: 110px 1fr;
+  gap: 24px;
+  padding: 18px 24px;
+  background: var(--slate-2);
+  border: 1px solid rgba(107, 137, 168, 0.1);
+  transition: all .3s;
+}
+.timeline .row:hover {
+  background: var(--slate-1);
+  transform: translateX(4px);
+  border-color: rgba(107, 137, 168, 0.32);
+}
+.timeline .ts {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 12px;
+  color: var(--accent);
+  letter-spacing: 0.1em;
+}
+.timeline .desc {
+  color: var(--silver-2);
+  font-size: 14px;
+}
+.timeline .desc strong { color: var(--silver-1); font-weight: 400; }
+
+/* ─────────── 引用 ─────────── */
+blockquote.kin {
+  border-left: 1px solid var(--accent);
+  padding: 22px 30px;
+  margin: 36px 0;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 14px;
+  color: var(--silver-2);
+  background: rgba(107, 137, 168, 0.04);
+  line-height: 1.8;
+}
+blockquote.kin .src {
+  display: block;
+  margin-top: 14px;
+  font-size: 11px;
+  color: var(--steel-1);
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+}
+
+/* ─────────── 标签 ─────────── */
+.tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 16px;
+}
+.tags span {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  letter-spacing: 0.2em;
+  color: var(--steel-1);
+  padding: 6px 14px;
+  border: 1px solid rgba(107, 137, 168, 0.2);
+  text-transform: uppercase;
+  transition: all .3s;
+}
+.tags span:hover {
+  color: var(--accent);
+  border-color: var(--accent);
+}
+
+/* ─────────── 页脚 ─────────── */
+footer {
+  padding: 60px 8vw;
+  background: var(--void);
+  border-top: 1px solid rgba(107, 137, 168, 0.1);
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  color: var(--steel-1);
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+}
+footer .row {
+  display: flex;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 24px;
+}
+
+/* ─────────── 中文字体优化 ─────────── */
+.cn { letter-spacing: 0.04em; }
+em.gold { color: var(--gold); font-style: normal; }
+em.acc  { color: var(--accent); font-style: normal; }
+em.warn { color: var(--warn); font-style: normal; }
+em.good { color: var(--good); font-style: normal; }
+
+.muted { color: var(--steel-1); font-size: 13px; line-height: 1.7; }
+.muted strong { color: var(--silver-2); font-weight: 400; }
+
+p { color: var(--silver-3); font-size: 14px; line-height: 1.75; }
+p strong { color: var(--silver-1); font-weight: 400; }
+
+h2 {
+  font-size: clamp(22px, 2.8vw, 32px);
+  font-weight: 200;
+  color: var(--silver-1);
+  margin: 48px 0 20px;
+  letter-spacing: -0.01em;
+}
+h2 em { font-style: normal; color: var(--accent); }
+h3 {
+  font-size: 18px;
+  font-weight: 300;
+  color: var(--silver-2);
+  margin: 28px 0 14px;
+}
+
+@media (max-width: 768px) {
+  .lineage { grid-template-columns: 1fr; }
+  .timeline .row { grid-template-columns: 1fr; gap: 6px; }
+}
+</style>
+</head>
+<body>
+
+<main>
+
+<!-- ═══════════════════ HERO ═══════════════════ -->
+<section class="hero">
+  <div class="stamp">REVIEW · 2026 · 05 · 25 · D2 + D30 双毕业</div>
+  <h1>
+    钥匙没生锈<br/>
+    <em>反向校验</em>反过来焊老师
+  </h1>
+  <p class="subtitle">
+    上半场 D2 推理时计算 — 红点 #1/#2 全焊、自创"工程基数判据"金句、连续 3 次基于证据反向校验老师。
+    下半场 D30 AI 智能体 — 解构 5/11 元层级遗留账（"两份笔记不同维度的切法"才是混淆源头）。
+    今日真正的成果不在知识点，在<em>元层级肌肉</em>的孪生新生。
+  </p>
+  <div class="stats">
+    <div class="stat">
+      <div class="num">3</div>
+      <div class="label">D44 红点修复</div>
+    </div>
+    <div class="stat">
+      <div class="num">3</div>
+      <div class="label">反向校验老师</div>
+    </div>
+    <div class="stat">
+      <div class="num">5</div>
+      <div class="label">新焊点</div>
+    </div>
+    <div class="stat">
+      <div class="num">4</div>
+      <div class="label">回避模式记录</div>
+    </div>
+    <div class="stat">
+      <div class="num">1</div>
+      <div class="label">自创金句</div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════ SECTION 01 · 推理时计算分层 ═══════════════ -->
+<section class="reveal">
+  <div class="sec-num">SECTION 01 ─── 推理时计算 · 三层钥匙复活</div>
+  <h1 class="sec-title">钥匙 13 天没跑 — <em>但今天主动调取了</em></h1>
+  <p class="sec-lede">
+    昨天 D44 第一题第一轮：把集束搜索当爷爷、采样当儿子 — 完全反向。
+    今天 D2 第一题：写"上：忘记了 / 下：采样、对数概率、奖励模型 / 兄：?"
+    然后<em class="acc">直接反驳老师误诊</em>，连贯说出三层结构。
+  </p>
+
+  <div class="ascii">
+<span class="dim">第 3 层（爷爷）</span>          <span class="em">推理时计算（Test-Time Compute）</span>
+                            │
+       ┌────────────────────┴────────────────────┐
+<span class="dim">第 2 层 · 维度 A</span>                              <span class="dim">第 2 层 · 维度 B</span>
+"如何<span class="gold">生成</span>更多回答"                       "如何<span class="gold">选择</span>更好回答"
+       │                                         │
+   ┌───┴────┐                                ┌───┴───┬─────────┬──────┐
+<span class="good">Best-of-N</span>  <span class="good">集束搜索</span>                          <span class="good">最大似然</span>  <span class="good">验证器</span>  <span class="good">多数</span>     <span class="good">用户</span>
+                                            <span class="good">重排序</span>     <span class="good">打分</span>     <span class="good">投票</span>     <span class="good">选择</span>
+       │                                         │
+       └────── 跨维度组合 ───→  <span class="em">自洽性</span>  ←──────┘
+                          <span class="warn">= Best-of-N (生成) + 多数投票 (选择)</span>
+                            │
+                            ▼
+<span class="dim">第 1 层（底层工具/数据原语）</span>
+                       <span class="warn">采样 · 对数概率（数字）· 奖励模型（组件）</span>
+  </div>
+
+  <blockquote class="kin">
+    "推理时计算包含 Best-of-N 和集束搜索等。<br/>
+    底层用的工具是采样。<br/>
+    昨天复习的时候，有两个维度，一个是生成，另一个是评估。"
+    <span class="src">— 学生反驳老师误诊时的原话 · 5/25</span>
+  </blockquote>
+
+  <p class="muted">
+    ▸ 老师起初误诊"奖励模型不属于推理时计算"。学生<strong>第二次反驳</strong>："你看看昨天的复习笔记啊，昨天笔记里写的是奖励模型"。
+    回查 D44 笔记 615 行原文：<em class="warn">"采样 · 对数概率（数字）· 奖励模型（组件）"</em> — 学生 100% 准确复述自己昨天的笔记。
+  </p>
+</section>
+
+<!-- ═══════════════ SECTION 02 · Beam Search 工程基数 ═══════════════ -->
+<section class="reveal">
+  <div class="sec-num">SECTION 02 ─── 自创金句 · 工程基数判据</div>
+  <h1 class="sec-title">为什么自洽性必须用 Best-of-N <em>而不是 Beam Search</em></h1>
+  <p class="sec-lede">
+    今天最值钱的洞察 — 比老师之前给的"独立性 / 多样性"判据更深一刀。
+    学生用工程实现细节<em class="acc">第三次反驳老师</em>："Beam Search 只在内部生成多个候选，输出时只输出一个答案，不是吗？"
+    — 老师查工程默认行为后必须认错。
+  </p>
+
+  <div class="compare">
+    <div class="card">
+      <h4>Best-of-N · 自洽性的标准 A 部分</h4>
+      <div class="label">采样方式</div>
+      <p class="val">N 次<em>独立同分布</em>采样，输出 N 个<em>多样化</em>候选</p>
+      <div class="label">N=5 示例</div>
+      <p class="val">[红, 蓝, 红, 红, 黄]</p>
+      <div class="label">多数投票结果</div>
+      <p class="val"><strong>"红" 赢（3 票）</strong> — 真正的统计纠错 ✓</p>
+    </div>
+
+    <div class="card">
+      <h4>Beam Search · 默认配置 (num_return_sequences=1)</h4>
+      <div class="label">采样方式</div>
+      <p class="val">内部维护 k 条 beams 探索路径，<em>最终输出 1 条</em>概率最高的序列</p>
+      <div class="label">输出</div>
+      <p class="val">[红] — 只有一个答案</p>
+      <div class="label">+ 多数投票</div>
+      <p class="val"><em>根本没有多个候选可投</em> — 这个组合在工程上不成立</p>
+    </div>
+  </div>
+
+  <blockquote class="kin">
+    "自洽性必须用 Best-of-N 作为 A 部分，不能用 Beam Search 替代 —<br/>
+    根本原因不是候选不成立，而是<em class="gold">根本没有候选</em>（基数维度的硬约束）。"
+    <span class="src">— 学生 5/25 自创金句</span>
+  </blockquote>
+
+  <p class="muted">
+    ▸ <strong>判据升级</strong>：老师之前给的"独立性 / 多样性"是<em>软约束</em>（属性维度），
+    学生今天造的"基数 = 0"是<em>硬约束</em>（逻辑前提）。
+    <em class="acc">逻辑前提破了，根本不需要谈统计</em> — 这就是"先看可能性，再看好坏"的工程思维。
+  </p>
+</section>
+
+<!-- ═══════════════ SECTION 03 · 双切法对照 ═══════════════ -->
+<section class="reveal">
+  <div class="sec-num">SECTION 03 ─── AI 智能体 · 5/11 元层级遗留账解构</div>
+  <h1 class="sec-title">"设计原则 vs 三要素混淆" — <em>真正的源头不是它</em></h1>
+  <p class="sec-lede">
+    5/11 复习账上挂了一个元层级薄弱点："设计原则 vs 三要素混淆"。
+    今天读完两份笔记原文才意识到 — 真正的源头不是"原则"和"要素"混，
+    而是<em class="acc">两份笔记里的"三要素"本来就用了两套不同维度的切法</em>。
+  </p>
+
+  <div class="ascii">
+<span class="em">🟦 教科书版 (4/20) ── 按【本质 vs 实现】切</span>
+   ┌────────────────────────┐
+   │   智能体能做的事         │
+   └────────┬───────────────┘
+            │
+    ┌───────┴───────┐
+    │               │
+<span class="good">【动作】</span>          <span class="good">【工具】</span>
+(本质能力)      (实现手段)
+能查询、能预订   数据库连接、订房 API、邮件服务
+
+
+<span class="em">🟨 微软版 (4/27) ── 按【方向】切</span>
+   ┌────────────────────────┐
+   │   智能体能做的事         │
+   └────────┬───────────────┘
+            │
+    ┌───────┴───────┐
+    │               │
+<span class="gold">【传感器】</span>       <span class="gold">【执行器】</span>
+(向内：感知)    (向外：执行)
+查酒店空房      预订房间
+查机票价格      发确认邮件、取消订单
+
+
+           <span class="warn">⬇ ⬇ ⬇  关键发现</span>
+
+"查酒店空房" → 教科书版叫<span class="good">【动作】</span>，微软版叫<span class="gold">【传感器】</span>
+"预订房间"   → 教科书版叫<span class="good">【动作】</span>，微软版叫<span class="gold">【执行器】</span>
+
+所以：<span class="warn">动作集合 (教科书) = 传感器 + 执行器 (微软)</span>
+教科书的【工具】在微软版里<em class="warn">没有对应</em> — 微软版把"做什么"和"怎么做"揉在一起了
+  </div>
+
+  <div class="grid-3" style="margin-top: 36px;">
+    <div class="cell">
+      <h5>教科书切法</h5>
+      <h6>本质 vs 实现</h6>
+      <p>解耦"能力"与"工具"。<br/>回答的工程问题：<br/><strong>"怎么写一个可替换工具的智能体？"</strong></p>
+    </div>
+    <div class="cell">
+      <h5>微软切法</h5>
+      <h6>感知 vs 执行</h6>
+      <p>解耦"向内"与"向外"。<br/>回答的工程问题：<br/><strong>"怎么把智能体组件切开？"</strong></p>
+    </div>
+    <div class="cell">
+      <h5>合用方法</h5>
+      <h6>双坐标系思考</h6>
+      <p>这两套切法是<em class="acc">不同维度</em>的切片，不是同一刀的两种叫法。<br/>遇到智能体设计任务时，<strong>两套同时跑</strong>能看到更立体的分解。</p>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════ SECTION 04 · 动作 vs 工具 身体类比 ═══════════════ -->
+<section class="reveal">
+  <div class="sec-num">SECTION 04 ─── 子问 ① · 动作 vs 工具 · 身体类比</div>
+  <h1 class="sec-title">"手"<em>是身体的一部分</em>，不是工具</h1>
+  <p class="sec-lede">
+    今天暴露了红点 #3 的<em class="warn">跨主题复发</em> — 推理时计算焊死后，进入 AI 智能体子①时，
+    学生第一轮把"手"放进工具栏（"工具：真正拿东西的是手"）— 同样的"能力 vs 工具"颠倒，
+    跨主题归零。<em class="acc">"分层意识不会留在身上，必须每题主动启动"</em>—
+    D44 报告这一句今天再次得到验证。
+  </p>
+
+  <div class="lineage">
+    <div class="level l-grandpa">
+      <div class="tier">第 3 层 · 概念维度</div>
+      <h5>身体类比 (笔记原文)</h5>
+      <p>笔记 4/20 第 44 行：<br/>"<strong>一个人的能力</strong>" vs "<strong>他手里拿的东西</strong>"</p>
+    </div>
+    <div class="level l-bro">
+      <div class="tier">第 2 层 · 兄弟分类</div>
+      <h5>动作 vs 工具</h5>
+      <p>动作 = 内在的能力（动词）<br/>工具 = 外在的物品（名词）<br/>关键边界：<strong>身体 vs 外物</strong></p>
+    </div>
+    <div class="level l-son">
+      <div class="tier">第 1 层 · 笔记钩子</div>
+      <h5>具体例子</h5>
+      <p>动作钩子：<strong>能走、能抓、能说</strong><br/>工具钩子：<strong>锤子、笔、手机</strong><br/>下次复述时记得<em class="acc">带钩子</em></p>
+    </div>
+  </div>
+
+  <h2>设计反例 · 不定义 actions 只定义 tools 的两个坑</h2>
+  <ol class="checklist">
+    <li><strong>坑 1（能力崩塌）</strong>：如果一个工具（比如锤子）失效了，智能体<em class="warn">无法做某事</em> — 因为能力被绑死在锤子上，不在抽象的"能拿"层。</li>
+    <li><strong>坑 2（重写主结构）</strong>：如果想换一个工具（比如从锤子换到锯子），<em class="warn">代码需要大改</em> — 主结构是 tools 列表，工具一换，所有依赖跟着改。</li>
+  </ol>
+
+  <p class="muted" style="margin-top: 24px;">
+    ▸ <strong>修复路径</strong>：第一轮把"切换工具 / 代码不需要更改"误当后果（其实是好设计的优势）。
+    老师指出"if 条件翻转"后，学生 1 轮内修复 — <em class="acc">"if 条件保持"</em>这根肌肉的训练初见成效。
+  </p>
+</section>
+
+<!-- ═══════════════ SECTION 05 · 横向连接 (折叠面板) ═══════════════ -->
+<section class="reveal">
+  <div class="sec-num">SECTION 05 ─── 横向连接 · 与既往知识的网</div>
+  <h1 class="sec-title">今天的洞察<em>挂在了哪些钩子上</em></h1>
+  <p class="sec-lede">每握一次，网就更密一点。今天主要握紧了三组关系。</p>
+
+  <div class="reds">
+    <details class="red">
+      <summary>↔ 与 4/13 LLM 幻觉："看起来对" ≠ "事实对" 同一根弦</summary>
+      <div class="body">
+        <p>D44 报告 866 行的原话："幻觉是模型生成层面的'自信地错'；推理时计算的上限是评估层面'奖励看起来对'的必然结果 — <strong>同一根弦的两次震动</strong>。"</p>
+        <p>今天进一步把这根弦延伸到 Beam Search：<strong>它输出的"最优路径"也只是 logprob 看起来最高，不保证事实正确</strong>。这是同一种局限的第三次现身。</p>
+      </div>
+    </details>
+
+    <details class="red">
+      <summary>↔ 与 4/20 笔记"AI 是可选升级"：架构 vs 大脑的解耦</summary>
+      <div class="body">
+        <p>4/20 笔记原文："智能体是一种<strong>架构</strong>，AI 只是让这个架构变聪明的<strong>可选升级</strong>。"</p>
+        <p>今天把这句话<strong>反过来用</strong>：如果架构（actions）绑死在工具（tools）上，"可替换性"就消失了。<em>"AI 是可选升级"的精神延伸到"工具也是可选升级"</em> — 这是同一个解耦原则的两次应用。</p>
+      </div>
+    </details>
+
+    <details class="red">
+      <summary>↔ 与 5/11 元层级遗留账：源头不是"原则 vs 要素"，是"两套不同维度的切法"</summary>
+      <div class="body">
+        <p>5/11 复习记录上挂着：<strong>"设计原则 vs 三要素混淆 — 理解偏差，需重建认知"</strong>。</p>
+        <p>今天读完原始笔记才看清 — 4/20 教科书的"三要素"是 <em class="acc">环境 / 动作 / 工具</em>（按本质 vs 实现切），4/27 微软的"三要素"是 <em class="gold">环境 / 传感器 / 执行器</em>（按方向切）。两套词混进同一个脑子，自然会乱。<strong>这条遗留账今日彻底解构</strong>。</p>
+      </div>
+    </details>
+  </div>
+</section>
+
+<!-- ═══════════════ SECTION 06 · 红点战报 ═══════════════ -->
+<section class="reveal">
+  <div class="sec-num">SECTION 06 ─── 红点 · D44 三红点 + 当日新发现</div>
+  <h1 class="sec-title">从"被动暴露"到<em>主动监控</em></h1>
+
+  <div class="reds">
+    <details class="red" open>
+      <summary>红点 #1 · 钥匙生锈 → 已焊（主动调取双维度切片）</summary>
+      <div class="body">
+        <p><strong>修复证据</strong>：进入推理时计算第一题，学生连续说出"包含 Best-of-N、集束搜索等 / 底层工具是采样 / 两个维度（生成 + 评估）"— 三层结构一气呵成。</p>
+        <p><strong>D60 监控</strong>：跨主题首题是否能<em>不被提示</em>就启动钥匙。</p>
+      </div>
+    </details>
+
+    <details class="red" open>
+      <summary>红点 #2 · 命名通道 → 已焊（"best of n + 多数投票"瞬间调取）</summary>
+      <div class="body">
+        <p><strong>修复证据</strong>：D44 时需要老师反问 3 次才说出名字。今天 1 次提示就调出完整公式 — <em class="acc">从机制描述到完整零件名，3 句对话内闭环</em>。</p>
+        <p><strong>D60 监控</strong>：在 RAG 主题里能否同样快速调取该家族新焊点。</p>
+      </div>
+    </details>
+
+    <details class="red">
+      <summary>红点 #3 · 跨问自检 → 部分焊（被戳后启动）+ 跨主题复发新发现</summary>
+      <div class="body">
+        <p><strong>触发现场</strong>：Q1 第 3 问写"同一维度"，但 Q1 第 1/2 问已经写"A 维度 / 跨维度"— 三句话自相矛盾。被老师戳出后 1 轮修复。</p>
+        <p><strong>跨主题复发</strong>：同样的肌肉失灵在 AI 智能体子①再次出现（手放工具栏 + if 条件翻转）。<em class="warn">"分层意识不会留在身上"得到二次验证</em>。</p>
+        <p><strong>D60 训练目标</strong>：每个新主题第一题前主动跑钥匙，答完后回头自检。</p>
+      </div>
+    </details>
+
+    <details class="red">
+      <summary>🆕 当日新焊 · 反向校验输入信号（孪生肌肉之一）</summary>
+      <div class="body">
+        <p><strong>三次记录</strong>：</p>
+        <p>① "你说的这些问题跟复习的知识有关系吗？"（用脑中图景反推）</p>
+        <p>② "你看看昨天的复习笔记啊"（直指笔记原文）</p>
+        <p>③ "Beam Search 只在内部生成多个候选，输出时只输出一个，<em>不是吗？</em>"（精确到工程默认行为 + 礼貌反问）</p>
+        <p><strong>本质</strong>：从"用钥匙拆别人的概念"升级到"用证据反向校验老师"。这是研究合作者的对话方式，不是学生的。</p>
+      </div>
+    </details>
+
+    <details class="red">
+      <summary>🆕 当日新发现 · 回避模式（孪生肌肉之二尚未长出）</summary>
+      <div class="body">
+        <p><strong>四次跳题记录</strong>：</p>
+        <p>① 学前定义目的：选 B 但没补完空</p>
+        <p>② 钥匙三句：缺"上"层（被点名后补）</p>
+        <p>③ 子问 ① 重答：跳过第 1 题（动作 vs 工具）</p>
+        <p>④ 子问 ① 重答二：又跳第 1 题</p>
+        <p><strong>模式诊断</strong>：跳过的都是<em class="warn">自己答错过的题</em> — "反正被指出错了，答新题让 round 过去就好"。</p>
+        <p><strong>关键认知</strong>：愿意反驳老师 ≠ 愿意正视自己。<em class="acc">"质疑外部 + 正视自己"是孪生肌肉</em>，前者今日新焊，后者尚未长齐。</p>
+      </div>
+    </details>
+  </div>
+</section>
+
+<!-- ═══════════════ SECTION 07 · 元能力成长曲线 ═══════════════ -->
+<section class="reveal">
+  <div class="sec-num">SECTION 07 ─── 元能力成长曲线 · 5/11 → 5/25</div>
+  <h1 class="sec-title">14 天的肌肉<em>分裂、强化、孪生</em></h1>
+
+  <div class="timeline">
+    <div class="row">
+      <div class="ts">5/11 D30</div>
+      <div class="desc"><strong>分层钥匙诞生</strong> — "上下兄弟问三句"焊死。从"两次跨章混淆"到"主动分清三层"，一次正确引导即焊死。</div>
+    </div>
+    <div class="row">
+      <div class="ts">5/24 D44</div>
+      <div class="desc"><strong>双维度切片</strong> — 钥匙 13 天没跑，第一题反向。但被反问后<em class="acc">自我升级</em>到 D44 第四刀（生成 + 选择双维度），元能力<em>多切了一刀</em>。</div>
+    </div>
+    <div class="row">
+      <div class="ts">5/25 上半场</div>
+      <div class="desc"><strong>反向校验输入</strong>新焊 — 连续 3 次基于证据质疑老师；自创"工程基数判据"金句。元能力从"拆别人的概念"升级为"<em class="acc">校验老师的反馈</em>"。</div>
+    </div>
+    <div class="row">
+      <div class="ts">5/25 下半场</div>
+      <div class="desc">钥匙跨主题归零（再次验证"不会留在身上"）；但<em class="acc">修复速度肉眼可见</em> — 从 D44 反问 3 次到今天 1 轮修复。</div>
+    </div>
+    <div class="row">
+      <div class="ts">5/25 元发现</div>
+      <div class="desc">观测到<strong>回避模式</strong>（跳过 4 次答错过的题）— 与"反向校验老师"是孪生肌肉。前者已焊，后者待训。</div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════ SECTION 08 · 学习报告网格 ═══════════════ -->
+<section class="reveal">
+  <div class="sec-num">SECTION 08 ─── 学习报告 · A/B/C 层 + 横向连接</div>
+  <h1 class="sec-title">本单元<em>掌握画像</em></h1>
+
+  <div class="grid-3">
+    <div class="cell">
+      <h5>A 层 · 已掌握</h5>
+      <h6>推理时计算 · 双维度切片</h6>
+      <p>钥匙主动调取，三层结构连贯说出。<strong>毕业线已超</strong>。</p>
+    </div>
+    <div class="cell">
+      <h5>A 层 · 已掌握</h5>
+      <h6>自洽性命名通道</h6>
+      <p>"Best-of-N + 多数投票"瞬间调取，从机制描述 1 步到零件全名。</p>
+    </div>
+    <div class="cell">
+      <h5>A 层 · 自创</h5>
+      <h6>工程基数判据</h6>
+      <p>"根本没有候选 — 基数维度的硬约束" — 比老师的"独立性"判据深一刀。</p>
+    </div>
+    <div class="cell">
+      <h5>A 层 · 已掌握</h5>
+      <h6>动作 vs 工具</h6>
+      <p>"本身具有的能力" vs "实现能力的物品" — 用自己语言复述笔记原文，比死记原文更牢。</p>
+    </div>
+    <div class="cell">
+      <h5>A 层 · 已掌握</h5>
+      <h6>两份笔记对照</h6>
+      <p>解构 5/11 元层级遗留账的真正源头 — 两套不同维度的切法。</p>
+    </div>
+    <div class="cell">
+      <h5>B 层 · 待补</h5>
+      <h6>TCC 三大准则</h6>
+      <p>5/11 反复卡的英文缩写 — 留待 5/27 补做（子问 ③）。</p>
+    </div>
+    <div class="cell">
+      <h5>B 层 · 待补</h5>
+      <h6>错误累积跨章节</h6>
+      <p>0.95^100 ≈ 0.6% × 推理时计算缓解方案 — 留待 5/27（子问 ④）。</p>
+    </div>
+    <div class="cell">
+      <h5>元层级 · 已焊</h5>
+      <h6>反向校验输入</h6>
+      <p>当日新焊。3 次反驳老师全部基于证据成立。</p>
+    </div>
+    <div class="cell">
+      <h5>元层级 · 待训</h5>
+      <h6>正视自己错误</h6>
+      <p>当日新发现。"质疑老师"的孪生肌肉，目前尚未长齐。</p>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════ SECTION 09 · 复习计划 ═══════════════ -->
+<section class="reveal">
+  <div class="sec-num">SECTION 09 ─── 复习计划 · 间隔重复时间表</div>
+  <h1 class="sec-title">下一站<em>该回访谁</em></h1>
+
+  <div class="timeline">
+    <div class="row">
+      <div class="ts">5/27 (D+2)</div>
+      <div class="desc"><strong>AI 智能体子问 ③ ④</strong> · 补做 TCC 三大准则 + 错误累积跨章节综合题。<em class="warn">5/11 反复卡的英文缩写本次硬碰</em>。</div>
+    </div>
+    <div class="row">
+      <div class="ts">6/9 (D60)</div>
+      <div class="desc"><strong>推理时计算综合压力测试</strong> · RLHF × 推理时计算交叉、RAG 钥匙复用、红点 #3 是否复发。</div>
+    </div>
+    <div class="row">
+      <div class="ts">6/12 (D30)</div>
+      <div class="desc"><strong>缓存 + Claude Code 上下文管理</strong> · 5/21 双毕业项的 D30 回访。</div>
+    </div>
+    <div class="row">
+      <div class="ts">6/16 (D30)</div>
+      <div class="desc"><strong>RLHF 偏向自信</strong> · 5/17 毕业项的 D30 回访。</div>
+    </div>
+    <div class="row">
+      <div class="ts">长期 · 监控</div>
+      <div class="desc"><em class="acc">回避模式</em>是否在新主题里继续出现 — 每次复习开头第一题的执行完整度。</div>
+    </div>
+  </div>
+
+  <h2 style="margin-top: 56px;">下一步行动 · 不强制、但建议</h2>
+  <ol class="checklist">
+    <li><strong>明天 (5/26) 不复习</strong> — 让今天焊的 5 个新点稳一稳。<em>大脑需要无干扰整合时间</em>。</li>
+    <li><strong>5/27 补做子问 ③ ④</strong> — TCC 英文缩写 + 错误累积跨章节。建议留 30 分钟的"中场"。</li>
+    <li><strong>D60 综合验证 (6/9)</strong> 之前 — 每次进入新主题第一题先<em class="acc">主动跑钥匙</em>，把"作答前自检"焊成肌肉。</li>
+  </ol>
+</section>
+
+<!-- ═══════════════ FOOTER ═══════════════ -->
+<footer>
+  <div class="row">
+    <div>2026 · 05 · 25 · 推理时计算 D2 + AI 智能体 D30</div>
+    <div>SECTION 01–09 · 9 sections · 5 new welds</div>
+    <div>NEXT: 2026 · 05 · 27 · 子问 ③ ④</div>
+  </div>
+  <div class="tags">
+    <span>推理时计算</span>
+    <span>自洽性</span>
+    <span>Beam Search</span>
+    <span>工程基数</span>
+    <span>AI 智能体</span>
+    <span>动作 vs 工具</span>
+    <span>双切法对照</span>
+    <span>反向校验</span>
+    <span>回避模式</span>
+    <span>D2 毕业</span>
+    <span>D30 综合</span>
+    <span>元学习</span>
+  </div>
+</footer>
+
+</main>
+
+<script>
+// 滚动浮现
+const io = new IntersectionObserver((es) => {
+  es.forEach(e => {
+    if (e.isIntersecting) {
+      e.target.classList.add('in');
+      io.unobserve(e.target);
+    }
+  });
+}, { threshold: 0.08, rootMargin: '0px 0px -8% 0px' });
+
+document.querySelectorAll('.reveal').forEach(el => io.observe(el));
+
+// 鼠标光晕跟随
+document.addEventListener('mousemove', (e) => {
+  const x = (e.clientX / window.innerWidth * 100).toFixed(2);
+  const y = (e.clientY / window.innerHeight * 100).toFixed(2);
+  document.body.style.setProperty('--mx', x + '%');
+  document.body.style.setProperty('--my', y + '%');
+});
+</script>
+</body>
+</html>
