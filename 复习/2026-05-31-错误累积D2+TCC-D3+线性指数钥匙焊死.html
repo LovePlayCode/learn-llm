@@ -1,0 +1,1005 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1.0" />
+<title>2026-05-31 · 错误累积 D2 · TCC D3 · 线性 vs 指数钥匙焊死</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@200;300;400;500&family=JetBrains+Mono:wght@200;300;400&display=swap" rel="stylesheet">
+<style>
+:root {
+  --silver-1: #eef0f3;
+  --silver-2: #d8dde3;
+  --silver-3: #b6bdc7;
+  --steel-1: #8a929e;
+  --steel-2: #5c6675;
+  --steel-3: #3f4754;
+  --slate-1: #2a2f38;
+  --slate-2: #1a1f28;
+  --slate-3: #0f1319;
+  --void:    #07090d;
+  --accent:  #6b89a8;
+  --accent-dim: #4a6378;
+  --warn:    #b07a5a;
+  --good:    #7a9985;
+  --gold:    #c9b687;
+  --mx: 50%;
+  --my: 50%;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+html, body {
+  background: var(--void);
+  color: var(--silver-2);
+  font-family: 'Inter', -apple-system, sans-serif;
+  font-weight: 300;
+  line-height: 1.7;
+  letter-spacing: 0.02em;
+  overflow-x: hidden;
+}
+
+/* 鼠标跟随光晕视差 */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  background: radial-gradient(
+    600px circle at var(--mx) var(--my),
+    rgba(107, 137, 168, 0.08),
+    transparent 40%
+  );
+  z-index: 1;
+}
+
+/* SVG 噪点纹理叠加 */
+body::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 2;
+  opacity: 0.5;
+  mix-blend-mode: overlay;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='220' height='220'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 0.6  0 0 0 0 0.65  0 0 0 0 0.72  0 0 0 0.55 0'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>");
+}
+
+main { position: relative; z-index: 3; }
+
+/* ─────────── HERO ─────────── */
+.hero {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 8vh 8vw;
+  background: linear-gradient(180deg, var(--slate-3) 0%, var(--void) 100%);
+  position: relative;
+  border-bottom: 1px solid rgba(107, 137, 168, 0.12);
+}
+
+.hero .stamp {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  letter-spacing: 0.5em;
+  text-transform: uppercase;
+  color: var(--steel-1);
+  margin-bottom: 40px;
+}
+
+.hero h1 {
+  font-size: clamp(36px, 6vw, 84px);
+  font-weight: 200;
+  line-height: 1.05;
+  color: var(--silver-1);
+  letter-spacing: -0.02em;
+  margin-bottom: 32px;
+}
+
+.hero h1 em {
+  font-style: normal;
+  color: var(--accent);
+  font-weight: 300;
+}
+
+.hero .lead {
+  font-size: clamp(15px, 1.5vw, 19px);
+  color: var(--silver-3);
+  max-width: 720px;
+  font-weight: 300;
+  margin-bottom: 64px;
+  line-height: 1.7;
+}
+
+.hero .stats {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1px;
+  background: rgba(107, 137, 168, 0.15);
+  margin-top: 40px;
+  max-width: 1100px;
+  border: 1px solid rgba(107, 137, 168, 0.18);
+}
+.hero .stats .cell {
+  background: var(--slate-2);
+  padding: 28px 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  transition: background 0.4s ease;
+}
+.hero .stats .cell:hover {
+  background: var(--slate-1);
+}
+.hero .stats .num {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 38px;
+  font-weight: 200;
+  color: var(--silver-1);
+  letter-spacing: -0.02em;
+}
+.hero .stats .lbl {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.2em;
+  color: var(--steel-1);
+}
+
+/* ─────────── SECTIONS ─────────── */
+section {
+  padding: 14vh 8vw;
+  position: relative;
+  border-bottom: 1px solid rgba(107, 137, 168, 0.08);
+}
+
+.sec-num {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  letter-spacing: 0.4em;
+  text-transform: uppercase;
+  color: var(--steel-2);
+  margin-bottom: 32px;
+}
+
+.sec-title {
+  font-size: clamp(28px, 4vw, 52px);
+  font-weight: 200;
+  color: var(--silver-1);
+  letter-spacing: -0.02em;
+  margin-bottom: 56px;
+  line-height: 1.15;
+  max-width: 920px;
+}
+.sec-title em {
+  font-style: normal;
+  color: var(--accent);
+  font-weight: 300;
+}
+
+p { color: var(--silver-3); margin-bottom: 18px; max-width: 780px; }
+p strong { color: var(--silver-1); font-weight: 400; }
+p em { color: var(--accent); font-style: normal; font-weight: 400; }
+
+.warn { color: var(--warn); }
+.good { color: var(--good); }
+.acc  { color: var(--accent); }
+.gold { color: var(--gold); }
+
+/* 滚动浮现动画 */
+.reveal {
+  opacity: 0;
+  transform: translateY(40px);
+  transition: opacity 1s ease, transform 1s ease;
+}
+.reveal.in {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* 双卡并列 */
+.dualcard {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
+  margin: 40px 0;
+}
+.dualcard .card {
+  background: var(--slate-2);
+  padding: 36px 32px;
+  border: 1px solid rgba(107, 137, 168, 0.12);
+  border-radius: 2px;
+  transition: transform 0.4s ease, border-color 0.4s ease, background 0.4s ease;
+  position: relative;
+}
+.dualcard .card:hover {
+  transform: translateY(-6px);
+  border-color: rgba(107, 137, 168, 0.4);
+  background: var(--slate-1);
+}
+.dualcard .card h3 {
+  font-size: 18px;
+  font-weight: 400;
+  color: var(--silver-1);
+  margin-bottom: 18px;
+  letter-spacing: 0.02em;
+}
+.dualcard .card .tag {
+  display: inline-block;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  letter-spacing: 0.3em;
+  color: var(--steel-1);
+  text-transform: uppercase;
+  margin-bottom: 16px;
+  padding: 4px 10px;
+  border: 1px solid rgba(107, 137, 168, 0.2);
+}
+.dualcard .card p {
+  font-size: 14px;
+  margin-bottom: 12px;
+}
+@media (max-width: 720px) {
+  .dualcard { grid-template-columns: 1fr; }
+}
+
+/* 多栏色调微差 */
+.tier-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1px;
+  background: rgba(107, 137, 168, 0.1);
+  margin: 40px 0;
+}
+.tier-grid .tier {
+  padding: 32px 28px;
+  transition: background 0.4s ease;
+}
+.tier-grid .t1 { background: var(--slate-3); }
+.tier-grid .t2 { background: var(--slate-2); }
+.tier-grid .t3 { background: var(--slate-1); }
+.tier-grid .tier:hover { background: var(--steel-3); }
+.tier-grid .tier h4 {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  color: var(--steel-1);
+  margin-bottom: 12px;
+}
+.tier-grid .tier .name {
+  font-size: 22px;
+  font-weight: 300;
+  color: var(--silver-1);
+  margin-bottom: 16px;
+  letter-spacing: -0.01em;
+}
+.tier-grid .tier p {
+  font-size: 13px;
+  margin-bottom: 8px;
+}
+@media (max-width: 720px) {
+  .tier-grid { grid-template-columns: 1fr; }
+}
+
+/* ASCII 代码块 */
+.ascii {
+  background: var(--slate-3);
+  border: 1px solid rgba(107, 137, 168, 0.15);
+  padding: 28px 32px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 13px;
+  line-height: 1.65;
+  color: var(--silver-3);
+  margin: 32px 0;
+  overflow-x: auto;
+  white-space: pre;
+  box-shadow: inset 0 0 60px rgba(0,0,0,0.5);
+  letter-spacing: 0;
+}
+.ascii .hl { color: var(--accent); font-weight: 400; }
+.ascii .gd { color: var(--good); }
+.ascii .wn { color: var(--warn); }
+.ascii .gl { color: var(--gold); }
+
+/* 折叠面板 */
+details {
+  background: var(--slate-2);
+  border: 1px solid rgba(107, 137, 168, 0.15);
+  border-radius: 2px;
+  margin: 16px 0;
+  transition: background 0.4s ease, border-color 0.4s ease;
+}
+details:hover { border-color: rgba(107, 137, 168, 0.35); background: var(--slate-1); }
+details[open] { background: var(--slate-1); border-color: rgba(107, 137, 168, 0.35); }
+summary {
+  padding: 22px 28px;
+  cursor: pointer;
+  font-size: 16px;
+  color: var(--silver-1);
+  font-weight: 400;
+  list-style: none;
+  position: relative;
+  letter-spacing: 0.01em;
+}
+summary::-webkit-details-marker { display: none; }
+summary::after {
+  content: '+';
+  position: absolute;
+  right: 28px;
+  top: 22px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 18px;
+  color: var(--accent);
+  transition: transform 0.4s ease;
+  display: inline-block;
+}
+details[open] summary::after { transform: rotate(45deg); }
+details .body {
+  padding: 0 28px 26px 28px;
+  color: var(--silver-3);
+  font-size: 14px;
+  line-height: 1.75;
+}
+details .body p { margin-bottom: 12px; font-size: 14px; }
+
+/* 决策清单 */
+.checklist {
+  list-style: none;
+  counter-reset: cl;
+  margin: 32px 0;
+}
+.checklist li {
+  counter-increment: cl;
+  padding: 18px 24px 18px 64px;
+  position: relative;
+  background: var(--slate-2);
+  border: 1px solid rgba(107, 137, 168, 0.1);
+  margin-bottom: 8px;
+  transition: background 0.3s ease, border-color 0.3s ease;
+  font-size: 14px;
+  color: var(--silver-2);
+}
+.checklist li::before {
+  content: counter(cl, decimal-leading-zero);
+  position: absolute;
+  left: 24px;
+  top: 18px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 12px;
+  color: var(--accent);
+  letter-spacing: 0.1em;
+}
+.checklist li:hover {
+  background: var(--slate-1);
+  border-color: rgba(107, 137, 168, 0.3);
+}
+.checklist li strong { color: var(--silver-1); font-weight: 400; }
+
+/* 表格 */
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 32px 0;
+  font-size: 13px;
+}
+table th, table td {
+  padding: 16px 18px;
+  text-align: left;
+  border-bottom: 1px solid rgba(107, 137, 168, 0.12);
+  color: var(--silver-3);
+}
+table th {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  letter-spacing: 0.25em;
+  text-transform: uppercase;
+  color: var(--steel-1);
+  font-weight: 400;
+  background: var(--slate-3);
+}
+table td strong { color: var(--silver-1); font-weight: 400; }
+
+/* 时间线 */
+.timeline { margin: 32px 0; }
+.timeline .row {
+  display: grid;
+  grid-template-columns: 160px 1fr;
+  gap: 24px;
+  padding: 18px 0;
+  border-bottom: 1px solid rgba(107, 137, 168, 0.08);
+  font-size: 14px;
+  color: var(--silver-3);
+}
+.timeline .ts {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 12px;
+  letter-spacing: 0.15em;
+  color: var(--accent);
+  text-transform: uppercase;
+}
+.timeline .desc strong { color: var(--silver-1); font-weight: 400; }
+
+/* 报告网格 */
+.report-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 18px;
+  margin: 40px 0;
+}
+.report-grid .card {
+  background: var(--slate-2);
+  padding: 28px;
+  border: 1px solid rgba(107, 137, 168, 0.12);
+  transition: background 0.4s ease, transform 0.4s ease, border-color 0.4s ease;
+}
+.report-grid .card:hover {
+  background: var(--slate-1);
+  transform: translateY(-4px);
+  border-color: rgba(107, 137, 168, 0.4);
+}
+.report-grid .card h4 {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  color: var(--steel-1);
+  margin-bottom: 16px;
+}
+.report-grid .card ul {
+  list-style: none;
+}
+.report-grid .card li {
+  padding: 6px 0;
+  font-size: 13px;
+  color: var(--silver-2);
+  border-bottom: 1px solid rgba(107, 137, 168, 0.06);
+}
+.report-grid .card li:last-child { border-bottom: none; }
+
+/* 元学习曲线 */
+.curve {
+  font-family: 'JetBrains Mono', monospace;
+  background: var(--slate-3);
+  padding: 36px 32px;
+  border: 1px solid rgba(107, 137, 168, 0.15);
+  font-size: 13px;
+  line-height: 2;
+  margin: 32px 0;
+  white-space: pre;
+  overflow-x: auto;
+  box-shadow: inset 0 0 60px rgba(0,0,0,0.45);
+  color: var(--silver-3);
+}
+
+/* 引用块 */
+blockquote {
+  border-left: 2px solid var(--accent);
+  padding: 12px 24px;
+  margin: 24px 0;
+  background: rgba(107, 137, 168, 0.05);
+  font-size: 14px;
+  color: var(--silver-2);
+  font-style: italic;
+}
+
+/* 关键句 */
+.keyline {
+  font-size: clamp(20px, 2.4vw, 30px);
+  font-weight: 200;
+  color: var(--silver-1);
+  margin: 48px 0;
+  letter-spacing: -0.01em;
+  line-height: 1.4;
+  max-width: 900px;
+}
+.keyline em {
+  font-style: normal;
+  color: var(--accent);
+  font-weight: 300;
+}
+
+/* Footer */
+footer {
+  padding: 8vh 8vw;
+  background: var(--slate-3);
+  border-top: 1px solid rgba(107, 137, 168, 0.1);
+  position: relative;
+  z-index: 3;
+}
+footer .row {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 24px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  letter-spacing: 0.15em;
+  color: var(--steel-1);
+  text-transform: uppercase;
+  margin-bottom: 32px;
+}
+footer .tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+footer .tags span {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  letter-spacing: 0.2em;
+  padding: 5px 12px;
+  border: 1px solid rgba(107, 137, 168, 0.18);
+  color: var(--steel-1);
+  text-transform: uppercase;
+}
+footer .tags span.gold { color: var(--gold); border-color: rgba(201, 182, 135, 0.35); }
+@media (max-width: 720px) {
+  footer .row { grid-template-columns: 1fr; }
+}
+</style>
+</head>
+<body>
+<main>
+
+<!-- ═══════════════ HERO ═══════════════ -->
+<section class="hero">
+  <div class="stamp">2026 · 05 · 31 · 间隔检索 · D2+D3 中段抽查</div>
+  <h1>从「数字默写」<br>到「<em>线性 vs 指数</em>」<br>的抽象上升</h1>
+  <p class="lead">
+    今天本是空档日 · 你主动来了。两关磨穿后留下的不只是数字 —— 而是一把
+    能拆未来所有「链式过程」的钥匙：<em>线性 vs 指数</em>。
+    更难得的是，你今天<strong>两次</strong>用更精确的数学术语，重命名了
+    5/28 老师的口语比喻 ——「切短累积分母」→「指数分段」→「局部低阶 N · 截断与降幂」。
+  </p>
+  <div class="stats">
+    <div class="cell">
+      <div class="num">2</div>
+      <div class="lbl">关磨穿</div>
+    </div>
+    <div class="cell">
+      <div class="num">4</div>
+      <div class="lbl">金光时刻</div>
+    </div>
+    <div class="cell">
+      <div class="num">3</div>
+      <div class="lbl">表达精度复发并修复</div>
+    </div>
+    <div class="cell">
+      <div class="num">5</div>
+      <div class="lbl">钥匙跨章节实战累计</div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════ SECTION 01 · 第一关复盘 ═══════════════ -->
+<section class="reveal">
+  <div class="sec-num">SECTION 01 ─── 第一关 · D2 默写 → 抽象上升</div>
+  <h1 class="sec-title">三轮深化才<em>跳出"裸数字"</em></h1>
+
+  <p>D2 默写本身只是个数字题 —— 但今天的真正考题，不是数字本身，是<strong>你对数字的"诠释精度"</strong>。</p>
+
+  <div class="ascii">第 1 轮（裸数字）：  「累积错误率 26%、97%」
+                              ↓ 老师卡了精度
+第 2 轮（场景化）：  ✅ 单步 97% × 10 步 = 26.26%（高精度长链条）
+                    ✅ 单步 70% × 10 步 = 97.18%（中等精度长链条）
+                              ↓ 但"洞察"还浮在水面
+第 3 轮（脊背发凉）：  ❌ 「差距很大，所以大脑用直觉算」← 泛词！
+                              ↓ 钥匙拆三选项家族
+第 4 轮（家族对抗）：<span class="hl"> ⭐ 「线性思维 vs 指数思维」的鸿沟 </span>
+                              ↑
+                  你跳到了【思维家族】这一层 —— 比"加法 vs 乘法"还高一级</div>
+
+  <div class="dualcard">
+    <div class="card">
+      <span class="tag">场景 ① · 高精度长链条</span>
+      <h3>97% × 10 步 → 26%</h3>
+      <p><strong>数学</strong>：1 − 0.97<sup>10</sup> ≈ 26.26%</p>
+      <p><strong>语境</strong>：顶尖 Agent · 严谨工程</p>
+      <p><strong>洞察</strong>：即使每步 97%，10 步累积下来也有四分之一翻车率 —— 这是"看似稳"的陷阱。</p>
+    </div>
+    <div class="card">
+      <span class="tag">场景 ② · 中等精度长链条</span>
+      <h3>70% × 10 步 → <span class="warn">97%</span></h3>
+      <p><strong>数学</strong>：1 − 0.70<sup>10</sup> ≈ 97.18%</p>
+      <p><strong>语境</strong>：普通模型推理 · 缺乏容错的系统</p>
+      <p><strong>洞察</strong>：单步 70%（看似"还行"）× 10 步 → 几乎必翻车。<em>这就是脊背发凉的来源</em>。</p>
+    </div>
+  </div>
+
+  <p class="keyline">
+    普通人会觉得 70% × 10 步顶多翻车 50%；<br>
+    真相是 <em>97%</em>。<br>
+    这中间的 47% 落差 —— 就是<em>线性思维</em>和<em>指数思维</em>之间的距离。
+  </p>
+</section>
+
+<!-- ═══════════════ SECTION 02 · 三层思维家族 ═══════════════ -->
+<section class="reveal">
+  <div class="sec-num">SECTION 02 ─── 钥匙级洞察 · 思维家族图</div>
+  <h1 class="sec-title">两个家族 · <em>三层抽象</em></h1>
+
+  <div class="ascii">             第 3 层（最抽象 · 思维家族）
+        ┌────────────────────────────────────┐
+        │                                    │
+   <span class="hl">⭐ 线性思维</span>                          <span class="hl">⭐ 指数思维</span>  <span class="gl">← 你今天站到了这一层</span>
+   （把变化当成一步步叠加）                  （变化是不断"乘"在已有基础上）
+        │                                    │
+   ┌────┴─────┐                             │
+   ▼          ▼                              ▼
+ 加法直觉    平均直觉                       乘法定律
+ 70%×10=     每步差30%                     0.7×0.7×...
+ 700%→cap50% 平均一下→50%                  ×10=2.8%
+        │                                    │
+        └────────普通人在这边───────────────数学真相在这边
+                          ▲
+              鸿沟 = 47%（一半的距离）</div>
+
+  <div class="tier-grid">
+    <div class="tier t1">
+      <h4>第 1 层 · 具体</h4>
+      <div class="name">50% vs 97%</div>
+      <p>裸数字。</p>
+      <p>能记住，但解释不了"为什么吓人"。</p>
+    </div>
+    <div class="tier t2">
+      <h4>第 2 层 · 操作</h4>
+      <div class="name">加法 vs 乘法</div>
+      <p>数学定律。</p>
+      <p>老师原本要的答案就在这一层。</p>
+    </div>
+    <div class="tier t3">
+      <h4>第 3 层 · 思维</h4>
+      <div class="name acc">线性 vs 指数</div>
+      <p><span class="gold">⭐ 你站到了这一层</span></p>
+      <p>不只是数学定律 —— 是大脑认知世界的两种方式。</p>
+    </div>
+  </div>
+
+  <blockquote>
+    抽象上升不是"换个高级词"——是一旦你在第 3 层，第 1、2 层的所有具体题都自动收编。
+    这把钥匙今后能拆：复利 / 通胀 / 病毒传播 / 缓存衰减 / 注意力衰减 / 艾宾浩斯遗忘曲线……
+  </blockquote>
+</section>
+
+<!-- ═══════════════ SECTION 03 · 第二关 · TCC + checkpoint ═══════════════ -->
+<section class="reveal">
+  <div class="sec-num">SECTION 03 ─── 第二关 · TCC 三人组 D3 中段抽查</div>
+  <h1 class="sec-title">三个字母没翻车 · <em>checkpoint = Controllable</em> 焊点稳了</h1>
+
+  <p>5/16 那次毕业账本上写着 <span class="warn">「英文缩写 4 次全丢」</span>。
+  今天 D15 回访 —— <strong>你一次没翻车</strong>。</p>
+
+  <div class="ascii"><span class="gl">T</span> → Transparent  · 透明      · 看得见
+<span class="gl">C</span> → Controllable · 可控制    · 管得住  ← <span class="hl">checkpoint 挂在这里</span>
+<span class="gl">C</span> → Consistent   · 一致性    · 信得过
+                              ↑
+              ⚠️ 严格名词写法是 Consistency · 词性差一点
+              （你写的 Consistent 是形容词 · 下次默写留心）</div>
+
+  <h2 style="font-size: 22px; font-weight: 300; color: var(--silver-1); margin: 56px 0 24px; letter-spacing: 0.01em;">
+    钥匙的"兄弟问"在你不自觉时启动 —— <span class="acc">这是钥匙自动化的标志</span>
+  </h2>
+
+  <p>当老师把「方案 A · 缩短链路」、「方案 B · 提升单步」、「方案 C · 加 checkpoint」 三个方案排在一起，问"分别属于 TCC 哪一格"时，你的反应不是答题，是反问 ——</p>
+
+  <blockquote>
+    「<strong>你的三个优化场景跟 TCC 有关系吗？</strong>」
+  </blockquote>
+
+  <p>这一句反问，本质上就是 5/11 那把<strong>"上下兄弟问三句"钥匙</strong>的"<em>兄弟问</em>"在自动响 —— 你下意识地在质疑："这三个方案是不是亲兄弟（同一层级）？"</p>
+
+  <p>答案：<strong>不是</strong>。</p>
+
+  <div class="ascii">                        第 3 层（治理理念家族）
+                  ┌──────────────────────┐
+                  │      T  ·  C  ·  C   │ ← 这是【运行时治理】的三个维度
+                  └──────────────────────┘
+                              ▲
+                  只有方案 C 挂在这里 → <span class="hl">Controllable</span>
+
+       方案 A（缩短链路）── 属于【架构设计层】 · 跟 TCC 不同棵树
+       方案 B（提升单步）── 属于【模型能力层】 · 跟 TCC 不同棵树</div>
+</section>
+
+<!-- ═══════════════ SECTION 04 · 钥匙审视三方案 ═══════════════ -->
+<section class="reveal">
+  <div class="sec-num">SECTION 04 ─── 钥匙级决策 · 用「线性 vs 指数」拆三方案</div>
+  <h1 class="sec-title">动 N · 动 p · <em>动"别的"</em></h1>
+
+  <p>错误累积公式 <code style="color: var(--accent);">累积成功率 = p<sup>N</sup></code>（p = 单步成功率 / N = 链路步数）。三个方案在动公式里的不同变量：</p>
+
+  <table>
+    <thead>
+      <tr>
+        <th>方案</th>
+        <th>动哪个变量</th>
+        <th>钥匙级动作</th>
+        <th>性质</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><strong>A · 链路 8→3</strong></td>
+        <td>动 <strong>N</strong>（指数）</td>
+        <td>砍指数：8 → 3</td>
+        <td><span class="warn">暴力 · 单步复杂度暴增</span></td>
+      </tr>
+      <tr>
+        <td><strong>B · 92%→99%</strong></td>
+        <td>动 <strong>p</strong>（底数）</td>
+        <td>提底数：92% → 99%</td>
+        <td><span class="acc">数学最优 · 但成本飙升</span></td>
+      </tr>
+      <tr>
+        <td><strong>C · 每3步 checkpoint</strong></td>
+        <td>动 <strong>"别的"</strong></td>
+        <td><span class="gold">把一个大 N 切成多个【局部低阶 N】</span></td>
+        <td><span class="good">⭐ 性价比最优</span></td>
+      </tr>
+    </tbody>
+  </table>
+
+  <p class="keyline">
+    A、B、C <em>都在和指数家族对抗</em> —— 但只有 C<br>
+    用工程手段把"一条长指数"<em>局部转化</em>为<br>
+    「<em>多段短指数 + 线性重试加成</em>」。
+  </p>
+
+  <details>
+    <summary>方案 C 的数学细节 · 88.3% → 趋近 99%（你 Q3 自己算的）</summary>
+    <div class="body">
+      <p><strong>原始（无 checkpoint）</strong>：0.92<sup>8</sup> ≈ <span class="warn">51.3%</span> 累积成功率 · 翻车 48.7%</p>
+      <p><strong>每 3 步 checkpoint · 允许重试 1 次</strong>：</p>
+      <p>· 前 3 步通关：0.92<sup>3</sup> ≈ 77.86%；失败可重试一次；</p>
+      <p>· 一阶段通关率：77.86% + (22.14% × 77.86%) ≈ <span class="good">95.1%</span></p>
+      <p>· 三段累积（3+3+2）：95.1% × 95.1% × 97.7% ≈ <span class="good">88.3%</span></p>
+      <p>· 允许重试到成功 → <span class="gold">逼近 99%</span></p>
+      <p><strong>关键洞察</strong>：checkpoint 不是"修补错误"，是<em>重新切分赌注</em>。它把"必须连续 8 步全对"的指数压力，<em>分摊</em>成"3 段独立挑战 + 局部线性重试"。</p>
+    </div>
+  </details>
+</section>
+
+<!-- ═══════════════ SECTION 05 · 命名升级链 ═══════════════ -->
+<section class="reveal">
+  <div class="sec-num">SECTION 05 ─── 数学命名升级 · 你今天的两次跨越</div>
+  <h1 class="sec-title">从「<em>切短分母</em>」<br>到「<em>截断与降幂</em>」</h1>
+
+  <p>checkpoint 治错误累积的"<strong>左手</strong>"，老师 5/28 用的是口语比喻。今天你<strong>两次主动重新命名</strong>，每一次都更精确：</p>
+
+  <div class="ascii"><span class="wn">5/28（老师 · 口语比喻）：</span>「切短累积分母」  ← 数学不严谨
+                                          （N 是指数 · 不是分母）
+                       │
+                       ▼
+<span class="hl">5/31 上半场（你 · 升级一）：</span>「指数分段」     ← 用对了"指数"
+                       │
+                       ▼
+<span class="gl">5/31 下半场（你 · 升级二）：</span>「<span class="hl">局部低阶 N</span>」+「<span class="hl">截断与降幂</span>」
+                                            ↑
+                                      数学语言 · 精准建模</div>
+
+  <blockquote>
+    你不是在"复述老师的话"——你<strong>用更准确的术语重新命名了同一个洞察</strong>。
+    这是从「听课」到「建模」的跨越。
+    教 100 个学生，只有 5 个能做到这一步。
+  </blockquote>
+</section>
+
+<!-- ═══════════════ SECTION 06 · 盲点账 + 金光账 ═══════════════ -->
+<section class="reveal">
+  <div class="sec-num">SECTION 06 ─── 盲点 vs 金光 · 一节课内的双账本</div>
+  <h1 class="sec-title">⚠️ 同类盲点 <em>3 次复发</em> · ⭐ 金光 <em>4 个</em></h1>
+
+  <details open>
+    <summary>⚠️ 盲点账 · 表达精度的三次复发</summary>
+    <div class="body">
+      <p><strong>第 1 次（第一关 · D2 默写）</strong>：「累积错误率 26%、97%」 —— 把两个不同场景压扁成一句话，吞掉了"单步 70%"前缀。<br>→ <span class="acc">当场修复</span>：补出"场景 ① / 场景 ②"工整对照。</p>
+      <p><strong>第 2 次（第一关 · 脊背发凉）</strong>：「差距很大，所以大脑在用直觉算概率」 —— 用泛词"直觉"代替具体的"加法直觉"。<br>→ <span class="acc">当场修复</span>：跳到第 3 层"线性 vs 指数"思维家族。</p>
+      <p><strong>第 3 次（第二关 · TCC 归属）</strong>：「方案 C 是 Controllable，因为它的本质动作是可控制」 —— 用同义词循环定义自己。<br>→ <span class="acc">当场修复</span>：拆开 Controllable 的内部动作 = 恢复 + 局部低阶 N。</p>
+      <p style="margin-top: 16px;"><strong>元层级诊断</strong>：你在解释"为什么"时，倾向于<em>重复这个词</em>，而不是<em>拆开它的内部动作</em>。这<strong>不是三个独立小毛病</strong>，是<em>同一种思维习惯</em>的反复触发。</p>
+    </div>
+  </details>
+
+  <details>
+    <summary>⭐ 金光账 · 4 个新焊点</summary>
+    <div class="body">
+      <p><strong>① 抽象上升</strong>：「线性 vs 指数」思维家族对抗 —— 比老师预设的"加法 vs 乘法"还高一级。</p>
+      <p><strong>② 钥匙自动化</strong>：5/11 的"上下兄弟问三句"在 Q2 不自觉启动（反问"三个方案是不是亲兄弟"）。提示量从 5/24 的 3 次 → 5/25 的 3 句 → 5/28 的 1 次 → <span class="gold">5/31 的 0 次（自动调用）</span>。</p>
+      <p><strong>③ 数学命名升级双连</strong>：「指数分段」→「局部低阶 N + 截断与降幂」。从口语比喻到数学语言，两次跨越。</p>
+      <p><strong>④ 跨章节缝合稳了</strong>：TCC × 错误累积 × checkpoint × 线性vs指数 —— 四章节缝合通畅，无打架。</p>
+    </div>
+  </details>
+
+  <details>
+    <summary>🌟 超纲发现 · 你工程直觉摸到的"Self-Correction"</summary>
+    <div class="body">
+      <p>你在 Q2 答 Controllable 时，主动加了一句：<br>「<em>把错误信息传给大模型，提高成功率</em>」</p>
+      <p>这其实是工程上一个有名字的做法 —— <strong>Reflection / Self-Correction</strong>（反思机制）。<br>你<strong>没学过、但摸到了</strong>。这种"工程直觉先于理论"的能力很值钱 —— 等你正式学到 Reflection / ReAct 时，<em>你不会被新概念惊到</em>，因为你的大脑里早有它的影子。</p>
+    </div>
+  </details>
+</section>
+
+<!-- ═══════════════ SECTION 07 · 元学习成长曲线 ═══════════════ -->
+<section class="reveal">
+  <div class="sec-num">SECTION 07 ─── 元学习曲线 · 钥匙的指数级觉醒</div>
+  <h1 class="sec-title">从"老师反问 3 次"<br>到"<em>0 次自动调用</em>"</h1>
+
+  <div class="curve">钥匙调用提示量（"上下兄弟问三句"实战）：
+
+  5/11  ┃ ●●●●●  钥匙诞生 · 老师手把手拆三层
+  5/24  ┃ ●●●    老师反问 3 次 → 修复
+  5/25  ┃ ●●●    老师对话 3 句 → 修复
+  5/28  ┃ ●      老师 1 次提示 → 自检修复 🎓
+  5/31  ┃ ○      ⭐ 自动启动（反问"三个方案是亲兄弟吗？"）
+        └─────────────────────────────────────────
+        D0   D13  D14  D17  D20
+
+         指数级下降 · 钥匙开始变成肌肉记忆</div>
+
+  <blockquote>
+    教 100 个学生学会一把钥匙不难。
+    让钥匙在第 21 天<em>自动响</em>而不是<em>被叫</em> —— 这才是元学习真正生效的标志。
+  </blockquote>
+</section>
+
+<!-- ═══════════════ SECTION 08 · 学习报告网格 ═══════════════ -->
+<section class="reveal">
+  <div class="sec-num">SECTION 08 ─── 学习报告 · A / B / C 层 + 横向连接</div>
+  <h1 class="sec-title">本单元<em>掌握快照</em></h1>
+
+  <div class="report-grid">
+    <div class="card">
+      <h4>A 层 · 必须深入</h4>
+      <ul>
+        <li>✅ 累积错误率 1 − p<sup>N</sup>（双场景默写）</li>
+        <li>✅ 心算技巧：平方的平方</li>
+        <li>✅ TCC 三字母（5/16 盲点根除）</li>
+        <li>✅ checkpoint = Controllable 工程实现</li>
+        <li>✅ 「线性 vs 指数」思维家族（今日新焊点）</li>
+        <li>✅ 「局部低阶 N · 截断与降幂」自命名</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h4>B 层 · 理解思路</h4>
+      <ul>
+        <li>✅ 三种 Agent 治理：动 N / 动 p / 局部低阶 N</li>
+        <li>✅ 方案 C 的工程数学（88.3% → 99%）</li>
+        <li>✅ Reflection / Self-Correction 直觉</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h4>C 层 · 用时查阅</h4>
+      <ul>
+        <li>○ Reflection 的具体框架（ReAct / CoVe 等）</li>
+        <li>○ Consistency 词性精确写法</li>
+        <li>○ 不同 checkpoint 策略的实现差异</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h4>⚠️ 需要加强</h4>
+      <ul>
+        <li>表达精度（一节课内复发 3 次）</li>
+        <li>"为什么"的回答习惯：拆开内部动作</li>
+        <li>避免用同义词循环定义</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h4>🔗 横向连接 · 钥匙能拆的</h4>
+      <ul>
+        <li>复利 · 通胀 · 病毒传播</li>
+        <li>缓存命中率随链路衰减</li>
+        <li>多轮对话注意力衰减</li>
+        <li>艾宾浩斯遗忘曲线</li>
+        <li>所有"链式过程"的反直觉</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h4>🎁 跨章节缝合</h4>
+      <ul>
+        <li>TCC × 错误累积 × checkpoint</li>
+        <li>错误累积 × 线性vs指数</li>
+        <li>钥匙 × 三方案家族审视</li>
+        <li>5/28 焊点 × 5/31 命名升级</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════ SECTION 09 · 复习计划 ═══════════════ -->
+<section class="reveal">
+  <div class="sec-num">SECTION 09 ─── 复习计划 · 间隔重复时间表</div>
+  <h1 class="sec-title">下一站<em>该回访谁</em></h1>
+
+  <div class="timeline">
+    <div class="row">
+      <div class="ts">6/1 - 6/3</div>
+      <div class="desc"><strong>不安排复习</strong> · 让今日新焊点（线性vs指数 / 局部低阶 N）整合 · <em>大脑需要无干扰整合时间</em>。</div>
+    </div>
+    <div class="row">
+      <div class="ts">6/4 (D7)</div>
+      <div class="desc"><strong>TCC 三人组 + 错误累积传递链 + checkpoint</strong> · 跨章节综合题 · 5/28 已排 · 今天 D3 表现非常好，D7 你大概率能直接毕业。</div>
+    </div>
+    <div class="row">
+      <div class="ts">6/9</div>
+      <div class="desc"><strong>推理时计算 D60 综合压测</strong>（5/25 已排）· RLHF × 推理时计算交叉。</div>
+    </div>
+    <div class="row">
+      <div class="ts">6/12</div>
+      <div class="desc"><strong>缓存 + Claude Code 上下文管理</strong>（5/21 双毕业项 D30 回访）。</div>
+    </div>
+    <div class="row">
+      <div class="ts">6/16</div>
+      <div class="desc"><strong>RLHF 偏向自信</strong>（5/17 毕业项 D30 回访）。</div>
+    </div>
+    <div class="row">
+      <div class="ts">6/27 (D30)</div>
+      <div class="desc"><strong>错误累积 D30 综合压测</strong> · 含 checkpoint 工程场景题 · <em>用钥匙审视未知新方案</em>。</div>
+    </div>
+    <div class="row">
+      <div class="ts">6/30 (D30)</div>
+      <div class="desc"><span class="acc">⭐ 新增</span> <strong>「线性 vs 指数」钥匙 D30 综合压测</strong> · 给一个新场景（如缓存衰减或注意力衰减），让你用今天的钥匙独立审视。</div>
+    </div>
+  </div>
+
+  <h2 style="margin-top: 56px; font-size: 22px; font-weight: 300; color: var(--silver-1);">下一步行动 · 不强制 · 但建议</h2>
+  <ol class="checklist">
+    <li><strong>今天到此为止</strong> — 别加练 · 好好吃饭睡觉 · <em>新焊点需要睡眠整合</em>。</li>
+    <li><strong>6/1-6/3 整合期</strong> — 不安排复习 · 让"线性 vs 指数"和"局部低阶 N"在背景里发酵。</li>
+    <li><strong>6/4 D7 综合压测前</strong> — 自检一遍："我在解释'为什么'时，是不是在用同义词重复自己？" · 把表达精度盲点彻底根除。</li>
+    <li><strong>每次撞到新的"链式过程"</strong> — 主动用钥匙审视："这是线性还是指数？" 把这把钥匙焊成肌肉直觉。</li>
+  </ol>
+</section>
+
+<!-- ═══════════════ FOOTER ═══════════════ -->
+<footer>
+  <div class="row">
+    <div>2026 · 05 · 31 · 错误累积 D2 · TCC D3 · 钥匙焊死</div>
+    <div>SECTION 01–09 · 2 关磨穿 · 4 金光 · 钥匙第 5 次实战（自动）</div>
+    <div>NEXT: 2026 · 06 · 04 · D7 综合压测</div>
+  </div>
+  <div class="tags">
+    <span class="gold">线性 vs 指数</span>
+    <span class="gold">局部低阶 N</span>
+    <span class="gold">截断与降幂</span>
+    <span>错误累积</span>
+    <span>累积错误率</span>
+    <span>乘法定律</span>
+    <span>p^N</span>
+    <span>TCC</span>
+    <span>Controllable</span>
+    <span>checkpoint</span>
+    <span>分段重置</span>
+    <span>5/11 钥匙</span>
+    <span>钥匙自动化</span>
+    <span>抽象上升</span>
+    <span>表达精度</span>
+    <span>循环定义</span>
+    <span>Self-Correction</span>
+    <span>跨章节缝合</span>
+    <span>元学习</span>
+  </div>
+</footer>
+
+</main>
+
+<script>
+// 鼠标跟随光晕
+document.addEventListener('mousemove', (e) => {
+  document.documentElement.style.setProperty('--mx', e.clientX + 'px');
+  document.documentElement.style.setProperty('--my', e.clientY + 'px');
+});
+
+// 滚动浮现（IntersectionObserver）
+const io = new IntersectionObserver((entries) => {
+  entries.forEach(entry => {
+    if (entry.isIntersecting) {
+      entry.target.classList.add('in');
+      io.unobserve(entry.target);
+    }
+  });
+}, { threshold: 0.12 });
+
+document.querySelectorAll('.reveal').forEach(el => io.observe(el));
+</script>
+</body>
+</html>
