@@ -137,8 +137,8 @@ function App() {
       <header className="home-hero">
         <div>
           <span className="eyebrow">Learning Workbench</span>
-          <h1>今天的学习，只看下一步。</h1>
-          <p>首页只保留今日复习目标和日历。点开某一天，再看那天学了什么、复习了什么。</p>
+          <h1>专注今日任务，回溯每日成长。</h1>
+          <p>这里只展示你今天需要完成的复习目标，帮你保持专注。点击日历中的日期，即可回看当天的学习与复习详情。</p>
           <div className="streak-stats">
             <span className="streak-stat"><Books className="streak-icon" /> 已学习 {streakStats.totalDays} 天</span>
             {streakStats.streak > 0 && <span className="streak-stat"><Flame className="streak-icon fire" /> 连续 {streakStats.streak} 天</span>}
@@ -233,7 +233,7 @@ function App() {
                           <Button
                             size="sm"
                             variant="secondary"
-                            className="mt-2 w-full justify-center"
+                            className="mt-2 w-full justify-center review-basis-btn"
                             onClick={(e) => {
                               e.stopPropagation();
                               setSelectedPageId(page.id);
@@ -428,7 +428,7 @@ function App() {
                                 <Button
                                   size="sm"
                                   variant="secondary"
-                                  className="mt-2 w-full justify-center"
+                                  className="mt-2 w-full justify-center review-basis-btn"
                                   onClick={(e) => {
                                     e.stopPropagation();
                                     setSelectedPageId(page.id);

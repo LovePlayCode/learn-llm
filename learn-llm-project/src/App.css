@@ -576,10 +576,10 @@
   max-width: 780px;
   margin-top: 16px;
   color: #0f172a;
-  font-size: clamp(44px, 7vw, 86px);
+  font-size: clamp(36px, 4.5vw, 56px);
   font-weight: 750;
-  line-height: 0.95;
-  letter-spacing: -0.07em;
+  line-height: 1.25;
+  letter-spacing: -0.03em;
 }
 
 .home-hero p {
@@ -803,12 +803,18 @@
 
 /* Premium Calendar Navigation & Cell Styles */
 .calendar__header {
+  display: flex !important;
+  justify-content: space-between !important;
+  align-items: center !important;
   border-bottom: 1px dashed rgba(226, 232, 240, 0.8);
   padding-bottom: 16px;
   margin-bottom: 16px;
 }
 
 .calendar__heading {
+  flex: 1 !important;
+  text-align: center !important;
+  margin: 0 !important;
   font-size: 16px !important;
   font-weight: 800 !important;
   color: #0f172a !important;
@@ -897,6 +903,7 @@
 
 .target-card {
   display: grid;
+  grid-template-columns: minmax(0, 1fr);
   height: auto;
   justify-items: start;
   gap: 10px;
@@ -1132,6 +1139,7 @@
 
 .task-row-content {
   display: grid;
+  grid-template-columns: minmax(0, 1fr);
   gap: 5px;
 }
 
@@ -1749,6 +1757,17 @@ button.calendar-widget-card.clickable::after {
   width: 12px;
   height: 12px;
   flex-shrink: 0;
+}
+
+/* ── Review Basis Button Style override to prevent layout overflow ── */
+.review-basis-btn {
+  white-space: normal !important;
+  height: auto !important;
+  padding-top: 8px !important;
+  padding-bottom: 8px !important;
+  line-height: 1.45 !important;
+  text-align: center;
+  word-break: break-word;
 }
 
 
