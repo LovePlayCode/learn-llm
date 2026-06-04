@@ -218,32 +218,41 @@ function App() {
                     const relatedRecord = reviewRecords.find(r => r.id === task.relatedRecordId);
                     const page = relatedRecord ? getReviewPageBySource(relatedRecord.sourceFile) : null;
                     return (
-                      <div
-                        className={`target-card ${task.completed ? 'completed' : ''}`}
+                      <Card
+                        className={`task-card-premium ${task.completed ? 'completed' : ''}`}
                         key={task.id}
+                        variant={task.completed ? 'transparent' : 'default'}
                         onClick={() => openTask(task)}
                         role="button"
                         tabIndex={0}
                       >
-                        <TaskBadge type={task.type} completed={task.completed} />
-                        <strong>{task.title}</strong>
-                        <small>{task.stage} · {task.estimate}</small>
-                        <span className="target-description">{task.description}</span>
+                        <Card.Header className="pb-1">
+                          <div className="flex w-full items-center justify-between gap-2 mb-1">
+                            <TaskBadge type={task.type} completed={task.completed} />
+                            <span className="task-stage-meta">{task.stage} · {task.estimate}</span>
+                          </div>
+                          <Card.Title>{task.title}</Card.Title>
+                        </Card.Header>
+                        <Card.Content className="py-1">
+                          <Card.Description className="task-desc">{task.description}</Card.Description>
+                        </Card.Content>
                         {relatedRecord && page && (
-                          <Button
-                            size="sm"
-                            variant="secondary"
-                            className="mt-2 w-full justify-center review-basis-btn"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              setSelectedPageId(page.id);
-                            }}
-                          >
-                            <BookOpen className="w-4 h-4 mr-1" />
-                            复习依据：{relatedRecord.title}
-                          </Button>
+                          <Card.Footer className="pt-2">
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              className="w-full justify-center review-basis-btn"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setSelectedPageId(page.id);
+                              }}
+                            >
+                              <BookOpen className="w-4 h-4 mr-1.5" />
+                              复习依据：{relatedRecord.title}
+                            </Button>
+                          </Card.Footer>
                         )}
-                      </div>
+                      </Card>
                     );
                   })
                 ) : (
@@ -411,35 +420,41 @@ function App() {
                         const relatedRecord = reviewRecords.find(r => r.id === task.relatedRecordId);
                         const page = relatedRecord ? getReviewPageBySource(relatedRecord.sourceFile) : null;
                         return (
-                          <div
-                            className={`task-row ${task.completed ? 'completed' : ''}`}
+                          <Card
+                            className={`task-card-premium ${task.completed ? 'completed' : ''}`}
                             key={task.id}
+                            variant={task.completed ? 'transparent' : 'default'}
                             onClick={() => openTask(task)}
                             role="button"
                             tabIndex={0}
-                            style={{ cursor: 'pointer' }}
                           >
-                            <TaskBadge type={task.type} completed={task.completed} />
-                            <span className="task-row-content w-full">
-                              <strong>{task.title}</strong>
-                              <small>{task.stage} · {task.estimate}</small>
-                              <span className="task-description">{task.description}</span>
-                              {relatedRecord && page && (
+                            <Card.Header className="pb-1">
+                              <div className="flex w-full items-center justify-between gap-2 mb-1">
+                                <TaskBadge type={task.type} completed={task.completed} />
+                                <span className="task-stage-meta">{task.stage} · {task.estimate}</span>
+                              </div>
+                              <Card.Title>{task.title}</Card.Title>
+                            </Card.Header>
+                            <Card.Content className="py-1">
+                              <Card.Description className="task-desc">{task.description}</Card.Description>
+                            </Card.Content>
+                            {relatedRecord && page && (
+                              <Card.Footer className="pt-2">
                                 <Button
                                   size="sm"
-                                  variant="secondary"
-                                  className="mt-2 w-full justify-center review-basis-btn"
+                                  variant="ghost"
+                                  className="w-full justify-center review-basis-btn"
                                   onClick={(e) => {
                                     e.stopPropagation();
                                     setSelectedPageId(page.id);
                                   }}
                                 >
-                                  <BookOpen className="w-4 h-4 mr-1" />
+                                  <BookOpen className="w-4 h-4 mr-1.5" />
                                   复习依据：{relatedRecord.title}
                                 </Button>
-                              )}
-                            </span>
-                          </div>
+                              </Card.Footer>
+                            )}
+                          </Card>
                         );
                       })}
                     </div>
