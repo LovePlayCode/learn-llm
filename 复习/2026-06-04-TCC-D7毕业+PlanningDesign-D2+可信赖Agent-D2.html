@@ -1,0 +1,925 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>2026-06-04 · TCC D7 毕业 · Planning Design D2 · 可信赖 Agent D2</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@200;300;400;500&family=JetBrains+Mono:wght@200;300;400&display=swap" rel="stylesheet">
+<style>
+:root {
+  --silver-1: #eef0f3;
+  --silver-2: #d8dde3;
+  --silver-3: #b6bdc7;
+  --steel-1: #8a929e;
+  --steel-2: #5c6675;
+  --steel-3: #3f4754;
+  --slate-1: #2a2f38;
+  --slate-2: #1a1f28;
+  --slate-3: #0f1319;
+  --void: #07090d;
+  --accent: #6b89a8;
+  --accent-dim: #4a6378;
+  --warn: #b07a5a;
+  --good: #7a9985;
+  --gold: #c9b687;
+  --mx: 50%;
+  --my: 50%;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+html { scroll-behavior: smooth; }
+
+body {
+  background: var(--void);
+  color: var(--silver-2);
+  font-family: 'Inter', -apple-system, sans-serif;
+  font-weight: 300;
+  line-height: 1.7;
+  letter-spacing: 0.02em;
+  overflow-x: hidden;
+  min-height: 100vh;
+}
+
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  background: radial-gradient(
+    600px circle at var(--mx) var(--my),
+    rgba(107, 137, 168, 0.08),
+    transparent 40%
+  );
+  z-index: 1;
+}
+
+body::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 2;
+  opacity: 0.45;
+  mix-blend-mode: overlay;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='200' height='200'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 0.6 0 0 0 0 0.65 0 0 0 0 0.72 0 0 0 0.5 0'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>");
+}
+
+main { position: relative; z-index: 3; max-width: 1100px; margin: 0 auto; padding: 0 24px; }
+
+/* ─── HERO ─── */
+.hero {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 8vh 0;
+  border-bottom: 1px solid rgba(107, 137, 168, 0.12);
+}
+
+.stamp {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  font-weight: 300;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--accent);
+  margin-bottom: 24px;
+}
+
+.hero h1 {
+  font-size: clamp(32px, 5vw, 56px);
+  font-weight: 200;
+  color: var(--silver-1);
+  line-height: 1.2;
+  margin-bottom: 24px;
+}
+
+.hero h1 em {
+  font-style: normal;
+  color: var(--accent);
+}
+
+.hero .lead {
+  font-size: 16px;
+  color: var(--silver-3);
+  max-width: 680px;
+  margin-bottom: 48px;
+}
+
+.stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 1px;
+  background: rgba(107, 137, 168, 0.12);
+  max-width: 700px;
+}
+
+.stats .cell {
+  background: var(--slate-2);
+  padding: 24px;
+  text-align: center;
+  transition: background 0.3s;
+}
+
+.stats .cell:hover { background: var(--slate-1); }
+
+.stats .num {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 28px;
+  font-weight: 200;
+  display: block;
+  margin-bottom: 4px;
+}
+
+.stats .num.acc { color: var(--accent); }
+.stats .num.good { color: var(--good); }
+.stats .num.gold { color: var(--gold); }
+.stats .num.warn { color: var(--warn); }
+
+.stats .lbl {
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  color: var(--steel-1);
+  text-transform: uppercase;
+}
+
+/* ─── SECTIONS ─── */
+section {
+  padding: 80px 0;
+  border-bottom: 1px solid rgba(107, 137, 168, 0.08);
+}
+
+.sec-num {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  letter-spacing: 0.25em;
+  text-transform: uppercase;
+  color: var(--steel-2);
+  margin-bottom: 16px;
+}
+
+.sec-title {
+  font-size: clamp(24px, 3.5vw, 38px);
+  font-weight: 200;
+  color: var(--silver-1);
+  margin-bottom: 32px;
+  line-height: 1.3;
+}
+
+.sec-title em { font-style: normal; color: var(--accent); }
+
+/* ─── CARDS ─── */
+.grid { display: grid; gap: 1px; background: rgba(107, 137, 168, 0.08); margin-top: 24px; }
+.grid.two { grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); }
+.grid.three { grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); }
+
+.card {
+  background: var(--slate-2);
+  padding: 32px;
+  border: 1px solid transparent;
+  transition: all 0.3s ease;
+}
+
+.card:hover {
+  background: var(--slate-1);
+  border-color: rgba(107, 137, 168, 0.25);
+  transform: translateY(-2px);
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.3);
+}
+
+.card .tag {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--accent);
+  margin-bottom: 12px;
+  display: block;
+}
+
+.card h3 {
+  font-size: 18px;
+  font-weight: 400;
+  color: var(--silver-1);
+  margin-bottom: 12px;
+}
+
+.card p, .card li {
+  font-size: 14px;
+  color: var(--silver-3);
+  line-height: 1.7;
+}
+
+.card ul { list-style: none; }
+.card ul li { padding-left: 16px; position: relative; margin-bottom: 6px; }
+.card ul li::before { content: '·'; position: absolute; left: 0; color: var(--accent); }
+
+/* ─── DUAL CARD ─── */
+.dualcard {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 2px;
+  margin: 32px 0;
+}
+
+@media (max-width: 720px) { .dualcard { grid-template-columns: 1fr; } }
+
+.dualcard .card { border-left: 3px solid var(--accent-dim); }
+.dualcard .card:nth-child(2) { border-left-color: var(--gold); }
+
+/* ─── ASCII BLOCKS ─── */
+.ascii {
+  background: var(--slate-3);
+  border: 1px solid rgba(107, 137, 168, 0.12);
+  padding: 28px 32px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 13px;
+  font-weight: 300;
+  line-height: 1.8;
+  color: var(--silver-3);
+  overflow-x: auto;
+  white-space: pre;
+  margin: 24px 0;
+  box-shadow: inset 0 2px 8px rgba(0, 0, 0, 0.3);
+}
+
+.ascii .hl { color: var(--gold); font-weight: 400; }
+.ascii .acc { color: var(--accent); }
+.ascii .good { color: var(--good); }
+.ascii .warn { color: var(--warn); }
+
+/* ─── LAYERS ─── */
+.layer-wrap { margin: 24px 0; }
+
+.layer {
+  padding: 24px 32px;
+  border-left: 3px solid var(--steel-2);
+  margin-bottom: 2px;
+  background: var(--slate-2);
+  transition: all 0.3s;
+}
+
+.layer:hover {
+  background: var(--slate-1);
+  border-left-color: var(--accent);
+}
+
+.layer:first-child { border-left-color: var(--gold); }
+.layer:last-child { border-left-color: var(--accent-dim); }
+
+.layer h4 {
+  font-size: 11px;
+  font-weight: 400;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--steel-1);
+  margin-bottom: 8px;
+}
+
+.layer h3 {
+  font-size: 16px;
+  font-weight: 400;
+  color: var(--silver-1);
+  margin-bottom: 8px;
+}
+
+.layer p { font-size: 13px; color: var(--silver-3); }
+
+/* ─── DETAILS / SUMMARY ─── */
+details {
+  margin: 8px 0;
+  background: var(--slate-2);
+  border: 1px solid rgba(107, 137, 168, 0.08);
+  transition: all 0.3s;
+}
+
+details:hover { border-color: rgba(107, 137, 168, 0.2); }
+
+details[open] { background: var(--slate-1); }
+
+summary {
+  padding: 16px 24px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 400;
+  color: var(--silver-1);
+  list-style: none;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+summary::before {
+  content: '+';
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 16px;
+  color: var(--accent);
+  transition: transform 0.3s;
+  display: inline-block;
+  width: 20px;
+  text-align: center;
+}
+
+details[open] summary::before { transform: rotate(45deg); }
+
+details .detail-body {
+  padding: 0 24px 20px 56px;
+  font-size: 13px;
+  color: var(--silver-3);
+  line-height: 1.8;
+}
+
+/* ─── CHECKLIST ─── */
+ol.checklist {
+  list-style: none;
+  counter-reset: ck;
+  margin: 24px 0;
+}
+
+ol.checklist li {
+  counter-increment: ck;
+  padding: 16px 24px 16px 64px;
+  position: relative;
+  background: var(--slate-2);
+  margin-bottom: 4px;
+  border-left: 2px solid transparent;
+  transition: all 0.3s;
+  font-size: 14px;
+  color: var(--silver-3);
+}
+
+ol.checklist li::before {
+  content: counter(ck, decimal-leading-zero);
+  position: absolute;
+  left: 24px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 12px;
+  color: var(--steel-1);
+  letter-spacing: 0.1em;
+}
+
+ol.checklist li:hover {
+  background: var(--slate-1);
+  border-left-color: var(--accent);
+}
+
+ol.checklist li strong { color: var(--silver-1); font-weight: 400; }
+ol.checklist li em { color: var(--accent); font-style: normal; }
+
+/* ─── TABLE ─── */
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 24px 0;
+  font-size: 13px;
+}
+
+th, td {
+  padding: 14px 20px;
+  text-align: left;
+  border-bottom: 1px solid rgba(107, 137, 168, 0.08);
+}
+
+th {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--accent);
+  font-weight: 400;
+}
+
+td { color: var(--silver-3); }
+
+tr:hover td { background: rgba(107, 137, 168, 0.04); }
+
+/* ─── REPORT GRID ─── */
+.report-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 1px;
+  background: rgba(107, 137, 168, 0.12);
+  margin-top: 32px;
+}
+
+.report-grid .cell {
+  background: var(--slate-2);
+  padding: 28px;
+  transition: background 0.3s;
+}
+
+.report-grid .cell:hover { background: var(--slate-1); }
+
+.report-grid .cell h4 {
+  font-size: 14px;
+  font-weight: 400;
+  color: var(--silver-1);
+  margin-bottom: 12px;
+}
+
+.report-grid .cell .tag {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--accent);
+  margin-bottom: 12px;
+  display: block;
+}
+
+/* ─── TIMELINE ─── */
+.timeline { margin: 24px 0; }
+
+.timeline .row {
+  display: grid;
+  grid-template-columns: 120px 1fr;
+  gap: 24px;
+  padding: 16px 0;
+  border-bottom: 1px solid rgba(107, 137, 168, 0.06);
+}
+
+.timeline .ts {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 12px;
+  color: var(--accent);
+  letter-spacing: 0.05em;
+}
+
+.timeline .desc {
+  font-size: 14px;
+  color: var(--silver-3);
+}
+
+.timeline .desc strong { color: var(--silver-1); font-weight: 400; }
+.timeline .desc em { color: var(--accent); font-style: normal; }
+
+/* ─── KEYLINE ─── */
+.keyline {
+  border-left: 3px solid var(--gold);
+  padding: 16px 24px;
+  margin: 24px 0;
+  background: rgba(201, 182, 135, 0.04);
+  font-size: 14px;
+  color: var(--silver-1);
+}
+
+.keyline em { font-style: normal; color: var(--gold); }
+
+/* ─── REVEAL ANIMATION ─── */
+.reveal {
+  opacity: 0;
+  transform: translateY(30px);
+  transition: opacity 0.7s ease, transform 0.7s ease;
+}
+
+.reveal.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* ─── FOOTER ─── */
+footer {
+  padding: 60px 0 40px;
+  border-top: 1px solid rgba(107, 137, 168, 0.12);
+  margin-top: 40px;
+}
+
+footer .row {
+  display: flex;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 16px;
+  margin-bottom: 24px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  color: var(--steel-1);
+  letter-spacing: 0.08em;
+}
+
+footer .tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+footer .tags span {
+  padding: 6px 12px;
+  background: var(--slate-2);
+  border: 1px solid rgba(107, 137, 168, 0.1);
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  color: var(--silver-3);
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+}
+
+@media (max-width: 720px) {
+  .stats { grid-template-columns: repeat(2, 1fr); }
+  .grid.two, .grid.three { grid-template-columns: 1fr; }
+  .timeline .row { grid-template-columns: 1fr; gap: 4px; }
+}
+</style>
+</head>
+<body>
+<main>
+
+<!-- ═══════════════ HERO ═══════════════ -->
+<section class="hero reveal">
+  <div class="stamp">REVIEW · 2026 · 06 · 04 · TCC 毕业日 + 双 D2 通过</div>
+  <h1>TCC 正式<em>毕业</em><br>+ 两条新线<em>稳住首轮</em></h1>
+  <p class="lead">
+    上半场 TCC + 错误累积 D7 综合压测 5 题全过，正式毕业。
+    下半场 Planning Design D2 和构建可信赖 AI 代理 D2 各 3 题通过。
+    今天最大的亮点：checkpoint 的"双重身份"跨章节打通——既是工程容错工具，又是安全治理机制。
+  </p>
+
+  <div class="stats">
+    <div class="cell">
+      <span class="num gold">11</span>
+      <div class="lbl">题目总量</div>
+    </div>
+    <div class="cell">
+      <span class="num good">3</span>
+      <div class="lbl">复习主题</div>
+    </div>
+    <div class="cell">
+      <span class="num acc">1</span>
+      <div class="lbl">正式毕业项</div>
+    </div>
+    <div class="cell">
+      <span class="num">2</span>
+      <div class="lbl">记忆锚点补漏</div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════ SECTION 01 · TCC D7 毕业 ═══════════════ -->
+<section class="reveal">
+  <div class="sec-num">SECTION 01 ─── TCC + 错误累积 · D7 综合压测 · 正式毕业</div>
+  <h1 class="sec-title">从 5/16 首学到 6/4 毕业<br><em>看得见 · 管得住 · 信得过</em></h1>
+
+  <div class="ascii"><span class="hl">T</span> → Transparent   · 透明   · <span class="acc">看得见</span> · 解决黑盒恐惧
+<span class="hl">C</span> → Controllable  · 可控制 · <span class="acc">管得住</span> · 解决失控恐惧（跑飞了拦不住）
+<span class="hl">C</span> → Consistency   · 一致性 · <span class="acc">信得过</span> · 解决不稳定恐惧（同题不同答）
+
+画面锚点：Agent 正在往生产环境推代码 → 你需要一个<span class="warn">红色大按钮</span>能拍下去喊停</div>
+
+  <div class="dualcard">
+    <div class="card">
+      <span class="tag">Controllable 的儿子们（机制层）</span>
+      <h3>具体实现机制 · 兄弟关系</h3>
+      <ul>
+        <li>Human-in-the-loop 审批</li>
+        <li>重试机制</li>
+        <li>打断 / Kill switch</li>
+        <li>回滚</li>
+      </ul>
+    </div>
+    <div class="card">
+      <span class="tag">层级结构 · 上下兄弟</span>
+      <h3>Controllable 的家族定位</h3>
+      <ul>
+        <li>上：TCC 运行时治理三维度（理念层）</li>
+        <li>中：HITL / 重试 / 打断 / 回滚（机制层）</li>
+        <li>下：abort 按钮 / 审批弹窗 / 重试 API（操作层）</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════ SECTION 02 · 错误累积数学 ═══════════════ -->
+<section class="reveal">
+  <div class="sec-num">SECTION 02 ─── 错误累积 · 数学验证 · checkpoint 双重身份</div>
+  <h1 class="sec-title">同一个 checkpoint<br><em>两件事同时干</em></h1>
+
+  <div class="dualcard">
+    <div class="card">
+      <span class="tag">身份 A · 工程容错</span>
+      <h3>存档点 · 失败后局部重试</h3>
+      <p>服务于错误累积公式 p^N 的损伤控制。把大 N 切成多个局部低阶 N，每段独立重试。</p>
+      <p style="margin-top: 12px; color: var(--accent);">0.85^6 = 37.7% → checkpoint + 重试 = 93.7%</p>
+    </div>
+    <div class="card">
+      <span class="tag">身份 B · 安全治理</span>
+      <h3>审批关卡 · 高风险前人类确认</h3>
+      <p>服务于 Controllable / HITL 原则。不可逆操作前插入人类决策点，防止 Agent 跑飞造成副作用。</p>
+      <p style="margin-top: 12px; color: var(--gold);">部署前 checkpoint = 最后的红色大按钮</p>
+    </div>
+  </div>
+
+  <div class="keyline">
+    Checkpoint 放置逻辑：不是"哪里容易挂"，而是<em>"哪里有不可逆副作用"</em>。
+  </div>
+
+  <div class="ascii">自动化部署 Agent 示例：
+
+拉代码 → 跑测试 → 构建镜像 → 推送 → <span class="warn">[CHECKPOINT]</span> → 部署 → 通知
+│                              │                        │
+└── 这几步失败了可以重来 ──────┘                        │
+                                                        └── <span class="warn">不可逆 · 影响生产环境和用户</span></div>
+</section>
+
+<!-- ═══════════════ SECTION 03 · 钥匙迁移 ═══════════════ -->
+<section class="reveal">
+  <div class="sec-num">SECTION 03 ─── 钥匙级抽象 · 线性 vs 指数 · 正反两面</div>
+  <h1 class="sec-title">同一把钥匙<em>正反两面</em></h1>
+
+  <table>
+    <thead>
+      <tr>
+        <th>例子</th>
+        <th>指数方向</th>
+        <th>人类直觉错判</th>
+        <th>数学真相</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><strong>错误累积</strong></td>
+        <td>坏事乘下去，衰减比想象快</td>
+        <td>"每步 97% 应该还行"</td>
+        <td>10 步后只剩 74%（26% 翻车率）</td>
+      </tr>
+      <tr>
+        <td><strong>自洽性采样</strong></td>
+        <td>好事乘下去，增长比想象快</td>
+        <td>"60% 采 5 次大概 80%？"</td>
+        <td>实际 98.976%——几乎必对</td>
+      </tr>
+      <tr>
+        <td><strong>级联错误</strong></td>
+        <td>一个错误分叉扩散</td>
+        <td>"就影响一两个系统"</td>
+        <td>可能瘫一片</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div class="keyline">
+    "线性 vs 指数"这把钥匙的威力：<em>揭露人类直觉和数学真相之间的鸿沟</em>。
+    找的是那些"人以为是加法/平缓变化，实际上是乘法/剧烈变化"的现象。
+  </div>
+</section>
+
+<!-- ═══════════════ SECTION 04 · Planning Design D2 ═══════════════ -->
+<section class="reveal">
+  <div class="sec-num">SECTION 04 ─── Planning Design · D2 闭卷 · 通过</div>
+  <h1 class="sec-title">六字段口诀<em>焊进去</em></h1>
+
+  <div class="ascii"><span class="acc">目标</span> · <span class="gold">约束</span> · <span class="acc">任务</span> · <span class="acc">依赖</span> · <span class="acc">分配</span> · <span class="acc">验收</span>
+  │        │        │        │        │        │
+  用户     预算     子任务   谁先     Agent/   如何判断
+  最终     时间     边界     谁后     工具     完成
+  要什么   偏好     清楚     并行？
+           质量
+           底线
+
+<span class="warn">⚠️ 本次漏了"约束"—— 已补。没有约束 = Agent 正确地做错事。</span></div>
+
+  <div class="dualcard">
+    <div class="card">
+      <span class="tag">Weak Plan</span>
+      <h3>只列任务</h3>
+      <ul>
+        <li>没有依赖 → 系统乱序执行</li>
+        <li>没有约束 → Agent 超预算</li>
+        <li>没有验收 → 不知道做完没</li>
+      </ul>
+    </div>
+    <div class="card">
+      <span class="tag">Strong Plan</span>
+      <h3>定义执行链路</h3>
+      <ul>
+        <li>依赖关系明确 → 可判断串行/并行</li>
+        <li>约束写入 Plan → Agent 不跑偏</li>
+        <li>验收标准 → 可自动检查结果</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="keyline">
+    没有依赖标注，系统无法正确判断串行/并行，<em>导致任务拿到错误输入或空输入</em>。
+  </div>
+
+  <div class="ascii">学习场景并行示例：
+
+明确目标和实力
+    │
+    ├──→ 寻找学习资料 ──┐
+    │                    ├──→ 验收和总结
+    └──→ 制定学习计划 ──┘
+              ↑
+    这两步输入都只依赖第 1 步，<span class="good">可以并行</span></div>
+</section>
+
+<!-- ═══════════════ SECTION 05 · 可信赖 Agent D2 ═══════════════ -->
+<section class="reveal">
+  <div class="sec-num">SECTION 05 ─── 构建可信赖 AI 代理 · D2 闭卷 · 通过</div>
+  <h1 class="sec-title">五兄弟<em>一个都不能少</em></h1>
+
+  <div class="ascii">五类威胁口诀：<span class="acc">注入</span> · <span class="acc">越权</span> · <span class="acc">过载</span> · <span class="acc">投毒</span> · <span class="acc">级联</span>
+
+<span class="warn">⚠️ 本次漏了"级联"—— 20 分钟前 D7 还在用，提取时却丢了。说明需要把五兄弟当整体背。</span></div>
+
+  <div class="dualcard">
+    <div class="card">
+      <span class="tag">提示词注入</span>
+      <h3>篡改行为指令</h3>
+      <ul>
+        <li>攻击入口：用户输入 / 对话内容</li>
+        <li>攻击对象：Agent 的指令遵循机制</li>
+        <li>结果：改变任务 / 越权 / 泄密</li>
+      </ul>
+    </div>
+    <div class="card">
+      <span class="tag">知识库投毒</span>
+      <h3>污染事实依据</h3>
+      <ul>
+        <li>攻击入口：文档 / 网页 / 向量库</li>
+        <li>攻击对象：Agent 的事实判断基础</li>
+        <li>结果：基于错误数据做决策</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="keyline">
+    提示词注入<em>动了 Agent 的手脚</em>（行为）；知识库投毒<em>动了 Agent 的眼睛</em>（依据）。
+  </div>
+
+  <details>
+    <summary>安全边界三档分类 · 代码审查 Agent 示例</summary>
+    <div class="detail-body">
+      <p><strong>自动执行（只读无副作用）：</strong>读取代码/配置、git log/diff、运行只读分析、询问用户、输出审查报告。</p>
+      <p><strong>人类审批（有副作用可逆）：</strong>修改/删除文件、提交代码/推送分支、安装依赖、修改环境变量/CI配置。</p>
+      <p><strong>绝对禁止（不可逆+高危）：</strong>擅自修改代码、暴露密钥/token、删除项目目录/清空数据库、跳过安全检查、未确认风险自动部署。</p>
+      <p style="margin-top: 12px; color: var(--accent);">判断逻辑：只读→自动 | 有副作用→审批 | 不可逆高危→禁止</p>
+    </div>
+  </details>
+</section>
+
+<!-- ═══════════════ SECTION 06 · 思维进步 ═══════════════ -->
+<section class="reveal">
+  <div class="sec-num">SECTION 06 ─── 元层级成长曲线 · 今日思维进步轨迹</div>
+  <h1 class="sec-title">修正速度<em>越来越快</em></h1>
+
+  <div class="timeline">
+    <div class="row">
+      <div class="ts">进步 01</div>
+      <div class="desc"><strong>Controllable 的"被监视感"误判</strong> → 一轮修正为"跑飞了拦不住"。画面感建立：红色大按钮。</div>
+    </div>
+    <div class="row">
+      <div class="ts">进步 02</div>
+      <div class="desc"><strong>Consistency 从"不信任感"泛词</strong> → 修正为"同题不同答，产出太不稳定"。精度提升：从 0 到具体场景。</div>
+    </div>
+    <div class="row">
+      <div class="ts">进步 03</div>
+      <div class="desc"><strong>Checkpoint 的"容易失败"视角</strong> → 升级为"不可逆副作用"视角。从工程效率层跳到安全治理层。</div>
+    </div>
+    <div class="row">
+      <div class="ts">进步 04</div>
+      <div class="desc"><strong>上下兄弟自相矛盾</strong>（HITL 同时出现在兄弟和下层） → 一轮修正后层级清晰。说明框架已内化，只是表达需要对齐。</div>
+    </div>
+    <div class="row">
+      <div class="ts">金光时刻</div>
+      <div class="desc"><em>Checkpoint 双重身份跨章节打通</em> —— 既是错误累积的容错存档，又是可信赖 Agent 的 HITL 关卡。两条学习线在这里交汇。</div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════ SECTION 07 · 学习报告 ═══════════════ -->
+<section class="reveal">
+  <div class="sec-num">SECTION 07 ─── 学习报告网格 · A/B/C 层掌握 + 记忆锚点</div>
+  <h1 class="sec-title">三条线<em>各就各位</em></h1>
+
+  <div class="report-grid">
+    <div class="cell">
+      <span class="tag">TCC + 错误累积</span>
+      <h4>A 层 · 正式毕业</h4>
+      <p>TCC 三维度闭卷复述无误。错误累积数学+checkpoint 机制+钥匙迁移全过。从 5/16 到 6/4，跨越 D7 综合压测，标记为 A 层稳固掌握。</p>
+    </div>
+    <div class="cell">
+      <span class="tag">Planning Design</span>
+      <h4>A- 层 · D2 通过</h4>
+      <p>六字段记 5/6（漏约束，已补）。依赖关系理解到位，并行识别能力在线。下次 D7 需验证"全局约束"是否焊死。</p>
+    </div>
+    <div class="cell">
+      <span class="tag">可信赖 AI 代理</span>
+      <h4>A- 层 · D2 通过</h4>
+      <p>五类威胁记 4/5（漏级联，已补）。注入 vs 投毒的区分第二轮精准到位。安全边界三档分类逻辑清晰。</p>
+    </div>
+    <div class="cell">
+      <span class="tag">记忆锚点 · 今日必焊</span>
+      <h4>4 个口诀带走</h4>
+      <p>① Plan 六字段：目标、约束、任务、依赖、分配、验收。<br>② 五类威胁：注入、越权、过载、投毒、级联。<br>③ TCC 口语锚：看得见、管得住、信得过。<br>④ Controllable 画面：红色大按钮 = 跑飞了能拍停。</p>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════ SECTION 08 · 横向连接 ═══════════════ -->
+<section class="reveal">
+  <div class="sec-num">SECTION 08 ─── 横向连接 · 跨章节知识网络</div>
+  <h1 class="sec-title">三条线<em>怎么交汇</em></h1>
+
+  <details>
+    <summary>Planning Design 与可信赖 Agent 的关系</summary>
+    <div class="detail-body">
+      <p>Planning 的"依赖关系"决定执行顺序；可信赖 Agent 的"安全边界"决定哪些步骤需要插入审批 checkpoint。两者结合 = 既高效又安全的执行计划。</p>
+    </div>
+  </details>
+  <details>
+    <summary>错误累积 与 级联错误威胁 的关系</summary>
+    <div class="detail-body">
+      <p>错误累积是数学层面（p^N 衰减）；级联错误是安全层面（一个错通过工具扩散到多系统）。本质相同：链式过程中错误按指数扩散。解法也相同：checkpoint 阻断传播。</p>
+    </div>
+  </details>
+  <details>
+    <summary>Checkpoint 的三重身份</summary>
+    <div class="detail-body">
+      <p>① 错误累积语境：存档点，局部重试，降低 p^N 的 N。<br>② 可信赖 Agent 语境：HITL 审批关卡，拦住不可逆操作。<br>③ Planning Design 语境：子任务边界，验收点，决定是否进入下一步。<br>同一个概念在三个章节里以不同角色出现——这就是知识网络的交汇节点。</p>
+    </div>
+  </details>
+</section>
+
+<!-- ═══════════════ SECTION 09 · 复习计划 ═══════════════ -->
+<section class="reveal">
+  <div class="sec-num">SECTION 09 ─── 复习计划 · 间隔重复时间表</div>
+  <h1 class="sec-title">下一站<em>该回访谁</em></h1>
+
+  <div class="timeline">
+    <div class="row">
+      <div class="ts">6/5 - 6/8</div>
+      <div class="desc"><strong>不安排复习</strong> · 让今天的跨章节连接和新补的锚点整合。<em>大脑需要无干扰整合时间</em>。</div>
+    </div>
+    <div class="row">
+      <div class="ts">6/9 (D7)</div>
+      <div class="desc"><strong>推理时计算 D60 综合压测</strong>（5/25 已排）+ <strong>Planning Design D7</strong>（5题，含跨章节） + <strong>可信赖 Agent D7</strong>（5题，含跨章节）。</div>
+    </div>
+    <div class="row">
+      <div class="ts">6/12</div>
+      <div class="desc"><strong>缓存 + Claude Code 上下文管理</strong>（5/21 双毕业项 D30 回访）。</div>
+    </div>
+    <div class="row">
+      <div class="ts">6/16</div>
+      <div class="desc"><strong>RLHF 偏向自信</strong>（5/17 毕业项 D30 回访）。</div>
+    </div>
+    <div class="row">
+      <div class="ts">6/27</div>
+      <div class="desc"><strong>错误累积 D30 综合压测</strong> · 含 checkpoint 工程场景题。</div>
+    </div>
+    <div class="row">
+      <div class="ts">6/30</div>
+      <div class="desc"><strong>「线性 vs 指数」钥匙 D30 综合压测</strong> · 给新场景，用钥匙独立审视。</div>
+    </div>
+  </div>
+
+  <ol class="checklist">
+    <li><strong>今天口诀默念 3 遍</strong> — 目标约束任务依赖分配验收 / 注入越权过载投毒级联 / 看得见管得住信得过。</li>
+    <li><strong>6/9 D7 压测前自检</strong> — Planning 约束字段能否闭卷举例？五类威胁能否一次性列全？</li>
+    <li><strong>每次撞到"checkpoint"概念</strong> — 问自己：这次它是容错身份还是安全身份？还是两者兼有？</li>
+  </ol>
+</section>
+
+</main>
+
+<!-- ═══════════════ FOOTER ═══════════════ -->
+<footer>
+  <div class="row">
+    <div>2026 · 06 · 04 · TCC D7 毕业 · Planning Design D2 · 可信赖 Agent D2</div>
+    <div>11 题 · 3 主题 · 1 毕业 · 2 补漏 · 1 金光</div>
+  </div>
+  <div class="tags">
+    <span>TCC</span>
+    <span>错误累积</span>
+    <span>Checkpoint</span>
+    <span>Planning Design</span>
+    <span>可信赖 Agent</span>
+    <span>威胁模型</span>
+    <span>HITL</span>
+    <span>线性 vs 指数</span>
+  </div>
+</footer>
+
+<script>
+// 鼠标跟随光晕
+document.addEventListener('pointermove', e => {
+  document.documentElement.style.setProperty('--mx', e.clientX + 'px');
+  document.documentElement.style.setProperty('--my', e.clientY + 'px');
+}, { passive: true });
+
+// 滚动浮现动画
+const obs = new IntersectionObserver(entries => {
+  entries.forEach(entry => {
+    if (entry.isIntersecting) {
+      entry.target.classList.add('visible');
+      obs.unobserve(entry.target);
+    }
+  });
+}, { threshold: 0.12 });
+
+document.querySelectorAll('.reveal').forEach(el => obs.observe(el));
+</script>
+</body>
+</html>

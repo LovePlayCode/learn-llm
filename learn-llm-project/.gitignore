@@ -3,20 +3,6 @@
 .AppleDouble
 .LSOverride
 
-# Editor / IDE
-.vscode/*
-!.vscode/extensions.json
-.idea/
-*.swp
-*.swo
-*.swn
-
-# Local AI / tool settings
-.claude/
-.agents/
-.codebuddy/
-skills-lock.json
-
 # Logs
 logs/
 *.log
@@ -32,26 +18,29 @@ bun-debug.log*
 .env.*
 !.env.example
 !.env.*.example
+*.local
 
 # Dependencies
 node_modules/
-**/node_modules/
 
 # Build outputs
-/dist/
-/build/
-/.next/
-/out/
-/coverage/
-learn-llm-project/dist/
-learn-llm-project/dist-ssr/
+dist/
+dist-ssr/
+build/
+coverage/
 
 # Tool caches
 .cache/
-.parcel-cache/
 .vite/
 .turbo/
 *.tsbuildinfo
 
-# Large/binary learning materials
-book/
+# Editor directories and files
+.vscode/*
+!.vscode/extensions.json
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?

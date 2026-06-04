@@ -1,0 +1,618 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>2026-06-03 Planning Design 规划设计学习报告</title>
+  <style>
+    :root {
+      --bg-deep: #07090d;
+      --bg-panel: rgba(26, 31, 40, 0.76);
+      --bg-panel-strong: rgba(63, 71, 84, 0.34);
+      --silver: #eef0f3;
+      --muted: #aab2bd;
+      --steel: #5c6675;
+      --line: rgba(216, 221, 227, 0.16);
+      --accent: #6b89a8;
+      --danger: #b1775f;
+      --shadow: rgba(0, 0, 0, 0.46);
+      --x: 50%;
+      --y: 20%;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html {
+      scroll-behavior: smooth;
+    }
+
+    body {
+      min-height: 100vh;
+      margin: 0;
+      color: var(--silver);
+      background:
+        radial-gradient(circle at var(--x) var(--y), rgba(107, 137, 168, 0.24), transparent 26rem),
+        linear-gradient(135deg, #07090d 0%, #1a1f28 42%, #3f4754 100%);
+      font-family: "Inter", "Helvetica Neue", Arial, sans-serif;
+      font-weight: 260;
+      letter-spacing: 0.02em;
+      overflow-x: hidden;
+    }
+
+    body::before {
+      position: fixed;
+      inset: 0;
+      z-index: -1;
+      pointer-events: none;
+      content: "";
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160' viewBox='0 0 160 160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.88' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23n)' opacity='0.54'/%3E%3C/svg%3E");
+      mix-blend-mode: overlay;
+      opacity: 0.28;
+    }
+
+    body::after {
+      position: fixed;
+      inset: 0;
+      z-index: -1;
+      pointer-events: none;
+      content: "";
+      background: linear-gradient(120deg, rgba(238, 240, 243, 0.07), transparent 38%, rgba(107, 137, 168, 0.08));
+    }
+
+    main {
+      width: min(1180px, calc(100% - 32px));
+      margin: 0 auto;
+      padding: 72px 0 48px;
+    }
+
+    .hero {
+      min-height: 68vh;
+      display: grid;
+      align-items: center;
+      gap: 30px;
+      grid-template-columns: 1.25fr 0.75fr;
+    }
+
+    .eyebrow,
+    .label,
+    .tag,
+    .mono {
+      font-family: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
+    }
+
+    .eyebrow {
+      color: var(--accent);
+      font-size: 13px;
+      letter-spacing: 0.24em;
+      text-transform: uppercase;
+    }
+
+    h1 {
+      margin: 18px 0 16px;
+      font-size: clamp(44px, 8vw, 96px);
+      font-weight: 200;
+      line-height: 0.95;
+    }
+
+    h2 {
+      margin: 0 0 24px;
+      font-size: clamp(28px, 4vw, 52px);
+      font-weight: 240;
+    }
+
+    h3 {
+      margin: 0 0 14px;
+      font-size: 20px;
+      font-weight: 300;
+    }
+
+    p {
+      color: var(--muted);
+      line-height: 1.78;
+    }
+
+    .subtitle {
+      max-width: 760px;
+      color: #d8dde3;
+      font-size: 18px;
+      line-height: 1.9;
+    }
+
+    .stats {
+      display: grid;
+      gap: 14px;
+    }
+
+    .stat,
+    .card,
+    .panel,
+    details,
+    .timeline-item {
+      border: 1px solid var(--line);
+      border-radius: 24px;
+      background: linear-gradient(145deg, rgba(238, 240, 243, 0.08), rgba(26, 31, 40, 0.62));
+      box-shadow: 0 24px 70px var(--shadow), inset 0 1px 0 rgba(238, 240, 243, 0.08);
+      backdrop-filter: blur(18px);
+      transition: transform 0.35s ease, border-color 0.35s ease, background 0.35s ease;
+    }
+
+    .stat:hover,
+    .card:hover,
+    .panel:hover,
+    details:hover,
+    .timeline-item:hover {
+      transform: translateY(-6px);
+      border-color: rgba(107, 137, 168, 0.58);
+      background: linear-gradient(145deg, rgba(92, 102, 117, 0.26), rgba(26, 31, 40, 0.84));
+    }
+
+    .stat {
+      padding: 22px;
+    }
+
+    .stat strong {
+      display: block;
+      color: var(--silver);
+      font-size: 34px;
+      font-weight: 220;
+    }
+
+    .stat span {
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    section {
+      margin: 72px 0;
+    }
+
+    .reveal {
+      opacity: 0;
+      transform: translateY(28px);
+      transition: opacity 0.8s ease, transform 0.8s ease;
+    }
+
+    .reveal.visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    .grid {
+      display: grid;
+      gap: 18px;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+
+    .grid.two {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .card,
+    .panel {
+      padding: 26px;
+    }
+
+    .label {
+      display: inline-flex;
+      margin-bottom: 14px;
+      padding: 6px 10px;
+      border: 1px solid rgba(107, 137, 168, 0.28);
+      border-radius: 999px;
+      color: var(--accent);
+      font-size: 12px;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+    }
+
+    .level-wrap {
+      display: grid;
+      gap: 16px;
+      grid-template-columns: 1fr 1.08fr 1fr;
+    }
+
+    .level {
+      padding: 24px;
+      border: 1px solid var(--line);
+      border-radius: 22px;
+    }
+
+    .level:nth-child(1) {
+      background: rgba(238, 240, 243, 0.09);
+    }
+
+    .level:nth-child(2) {
+      background: rgba(107, 137, 168, 0.13);
+    }
+
+    .level:nth-child(3) {
+      background: rgba(26, 31, 40, 0.68);
+    }
+
+    pre {
+      margin: 0;
+      padding: 26px;
+      overflow: auto;
+      border: 1px solid rgba(107, 137, 168, 0.24);
+      border-radius: 22px;
+      color: #d8dde3;
+      background: #080b11;
+      box-shadow: inset 0 0 30px rgba(0, 0, 0, 0.74), 0 18px 44px rgba(0, 0, 0, 0.28);
+      font-family: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
+      font-size: 14px;
+      line-height: 1.75;
+    }
+
+    .accent {
+      color: var(--accent);
+    }
+
+    .danger {
+      color: var(--danger);
+    }
+
+    details {
+      margin-bottom: 14px;
+      padding: 0 22px;
+    }
+
+    summary {
+      position: relative;
+      padding: 22px 34px 22px 0;
+      cursor: pointer;
+      list-style: none;
+      color: var(--silver);
+    }
+
+    summary::-webkit-details-marker {
+      display: none;
+    }
+
+    summary::after {
+      position: absolute;
+      right: 0;
+      color: var(--accent);
+      content: "+";
+      transition: transform 0.24s ease;
+    }
+
+    details[open] summary::after {
+      transform: rotate(45deg);
+    }
+
+    details p,
+    details ul {
+      margin-top: 0;
+      padding-bottom: 20px;
+    }
+
+    ul,
+    ol {
+      margin: 0;
+      padding-left: 20px;
+      color: var(--muted);
+      line-height: 1.85;
+    }
+
+    .checklist {
+      counter-reset: item;
+      display: grid;
+      gap: 12px;
+      padding: 0;
+      list-style: none;
+    }
+
+    .checklist li {
+      counter-increment: item;
+      padding: 18px 18px 18px 58px;
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      background: rgba(216, 221, 227, 0.05);
+      transition: transform 0.25s ease, border-color 0.25s ease;
+    }
+
+    .checklist li:hover {
+      transform: translateX(8px);
+      border-color: rgba(107, 137, 168, 0.5);
+    }
+
+    .checklist li::before {
+      position: absolute;
+      margin-left: -40px;
+      color: var(--accent);
+      content: counter(item, decimal-leading-zero);
+      font-family: "SFMono-Regular", Consolas, monospace;
+    }
+
+    .timeline {
+      display: grid;
+      gap: 14px;
+    }
+
+    .timeline-item {
+      display: grid;
+      gap: 14px;
+      grid-template-columns: 120px 1fr;
+      padding: 18px;
+    }
+
+    .footer {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      padding-top: 28px;
+      border-top: 1px solid var(--line);
+    }
+
+    .tag {
+      padding: 8px 11px;
+      border: 1px solid rgba(216, 221, 227, 0.15);
+      border-radius: 999px;
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    @media (max-width: 840px) {
+      .hero,
+      .grid,
+      .grid.two,
+      .level-wrap,
+      .timeline-item {
+        grid-template-columns: 1fr;
+      }
+
+      main {
+        padding-top: 40px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <header class="hero reveal" id="top">
+      <div>
+        <div class="eyebrow">2026-06-03 / AI Agents for Beginners</div>
+        <h1>Planning Design</h1>
+        <p class="subtitle">本次学习目标：学会把复杂用户请求拆成多个可执行子任务，并分配给合适的 Agent 或工具，同时保持全局目标、依赖关系和验收标准不丢失。</p>
+      </div>
+      <aside class="stats">
+        <div class="stat">
+          <strong>6</strong>
+          <span>合格 Plan 的核心字段</span>
+        </div>
+        <div class="stat">
+          <strong>5</strong>
+          <span>最终闭卷复述问题</span>
+        </div>
+        <div class="stat">
+          <strong>A-</strong>
+          <span>本章当前掌握等级</span>
+        </div>
+      </aside>
+    </header>
+
+    <section class="reveal" id="core">
+      <h2>核心机制：从请求到可执行工作流</h2>
+      <div class="grid two">
+        <article class="card">
+          <span class="label">Before</span>
+          <h3>直接让一个 Agent 做到底</h3>
+          <p>容易遇到上下文压力、角色过泛、工具选择混乱、质量不可检查、失败后只能整体重来等问题。</p>
+        </article>
+        <article class="card">
+          <span class="label">After</span>
+          <h3>先 Planning，再执行</h3>
+          <p>先识别最终目标，再拆解子任务、建立依赖、分配 Agent/工具、定义输出和验收标准，最后汇总结果。</p>
+        </article>
+      </div>
+    </section>
+
+    <section class="reveal" id="flow">
+      <h2>ASCII 流程图</h2>
+      <pre><code>用户复杂请求
+    │
+    ▼
+<span class="accent">识别总体目标</span> ── 明确用户最终要达成什么
+    │
+    ▼
+<span class="accent">拆分子任务</span> ── 把复杂任务切成边界清楚的小任务
+    │
+    ▼
+<span class="accent">建立依赖关系</span> ── 判断谁先做、谁依赖谁、哪些可并行
+    │
+    ▼
+<span class="accent">分配 Agent / 工具</span> ── 专门任务交给专门能力
+    │
+    ▼
+<span class="accent">结构化输出</span> ── JSON / Schema / Pydantic 便于系统解析
+    │
+    ▼
+<span class="accent">检查与汇总</span> ── 对照全局约束和验收标准生成最终答案
+    │
+    ▼
+<span class="danger">异常或需求变化</span> ── 触发局部重试或重新规划</code></pre>
+    </section>
+
+    <section class="reveal" id="levels">
+      <h2>上下兄弟：概念分层</h2>
+      <div class="level-wrap">
+        <div class="level">
+          <span class="label">上</span>
+          <h3>AI Agent 工作流设计</h3>
+          <p>Planning Design 属于 Agent 系统中的工作流组织能力，负责让复杂任务有全局结构。</p>
+        </div>
+        <div class="level">
+          <span class="label">中</span>
+          <h3>Planning Design</h3>
+          <p>把模糊或复杂请求转化为可执行、可分配、可检查、可迭代的计划。</p>
+        </div>
+        <div class="level">
+          <span class="label">下</span>
+          <h3>底层操作</h3>
+          <p>任务拆分、结构化输出、路由、工具调用、依赖管理、验收检查、重新规划。</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="reveal" id="plan-fields">
+      <h2>合格 Plan 的字段清单</h2>
+      <ol class="checklist">
+        <li>清晰的总体目标：用户最终要什么。</li>
+        <li>全局约束：预算、时间、偏好、质量要求、不可违背条件。</li>
+        <li>子任务列表：每个任务边界清楚，可单独执行。</li>
+        <li>依赖关系：谁依赖谁，哪些步骤可以并行，哪些必须串行。</li>
+        <li>Agent / 工具分配：每个子任务交给最合适的执行者。</li>
+        <li>预期输出与验收标准：结果如何被后续步骤使用，如何判断是否完成。</li>
+      </ol>
+    </section>
+
+    <section class="reveal" id="cases">
+      <h2>关键对比：列清单 vs 可执行工作流</h2>
+      <div class="grid two">
+        <article class="card">
+          <span class="label">Weak Plan</span>
+          <h3>只是列出任务</h3>
+          <ul>
+            <li>酒店、行程、交通、餐饮。</li>
+            <li>缺少依赖关系。</li>
+            <li>缺少输出格式。</li>
+            <li>缺少验收标准。</li>
+          </ul>
+        </article>
+        <article class="card">
+          <span class="label">Strong Plan</span>
+          <h3>定义执行链路</h3>
+          <ul>
+            <li>酒店候选影响行程规划。</li>
+            <li>行程结果影响交通方案。</li>
+            <li>行程位置和酒店位置影响餐饮推荐。</li>
+            <li>最终由汇总 Agent 生成完整方案。</li>
+          </ul>
+        </article>
+      </div>
+    </section>
+
+    <section class="reveal" id="connections">
+      <h2>横向连接</h2>
+      <details open>
+        <summary>Planning 与工具调用的关系</summary>
+        <p>工具调用是底层执行手段，Planning 决定哪些子任务需要调用哪些工具，以及工具结果如何进入下一步。</p>
+      </details>
+      <details>
+        <summary>Planning 与多 Agent 协作的关系</summary>
+        <p>在系统设计层，它们可以是兄弟能力；在具体执行层，Planning 可以调用多 Agent 协作，把不同子任务分配给专门代理。</p>
+      </details>
+      <details>
+        <summary>Planning 与结构化输出的关系</summary>
+        <p>结构化输出是让计划可被机器解析和路由的关键形式。没有结构化输出，Plan 容易停留在自然语言说明，难以稳定执行。</p>
+      </details>
+      <details>
+        <summary>Planning 与重新规划的关系</summary>
+        <p>Planning 不是一次性动作。用户改需求、工具失败、结果不完整、现实约束变化时，都可能触发局部重试或重新规划。</p>
+      </details>
+    </section>
+
+    <section class="reveal" id="growth">
+      <h2>本次思维进步轨迹</h2>
+      <div class="timeline">
+        <div class="timeline-item">
+          <div class="mono accent">Stage 01</div>
+          <div>从“生成 plan 并分配 Agent”开始，抓住主流程，但任务拆分和依赖还不够显性。</div>
+        </div>
+        <div class="timeline-item">
+          <div class="mono accent">Stage 02</div>
+          <div>能写出目标、约束、Agent 分配和 JSON 输出，开始具备结构化计划意识。</div>
+        </div>
+        <div class="timeline-item">
+          <div class="mono accent">Stage 03</div>
+          <div>意识到酒店、行程、交通、餐饮之间不是简单并行，而是存在依赖链。</div>
+        </div>
+        <div class="timeline-item">
+          <div class="mono accent">Stage 04</div>
+          <div>能用上下兄弟定位 Planning：上属工作流设计，下调任务拆分、路由、工具调用、重新规划。</div>
+        </div>
+      </div>
+    </section>
+
+    <section class="reveal" id="report">
+      <h2>学习报告网格</h2>
+      <div class="grid">
+        <article class="panel">
+          <span class="label">A Layer</span>
+          <h3>必须掌握</h3>
+          <p>总体目标识别、任务拆分、Agent/工具分配、依赖关系、验收与汇总。当前掌握较稳，但第一题“解决什么问题”仍需表达更精确。</p>
+        </article>
+        <article class="panel">
+          <span class="label">B Layer</span>
+          <h3>需要理解</h3>
+          <p>结构化输出、多 Agent 编排、迭代重新规划。已经理解大方向，后续要通过代码或伪代码继续加固。</p>
+        </article>
+        <article class="panel">
+          <span class="label">C Layer</span>
+          <h3>查阅即可</h3>
+          <p>Pydantic 具体写法、框架 API、Magentic-One 细节、特定字段命名规则。需要时再查，不必现在死记。</p>
+        </article>
+      </div>
+    </section>
+
+    <section class="reveal" id="review">
+      <h2>复习计划</h2>
+      <div class="grid two">
+        <article class="card">
+          <h3>第 2 天</h3>
+          <p>闭卷回答：合格 Plan 至少包含哪些字段？为什么依赖关系不能省略？举一个任务依赖例子。</p>
+        </article>
+        <article class="card">
+          <h3>第 7 天</h3>
+          <p>用一个新场景重新设计 Planning JSON：目标、约束、子任务、依赖、Agent 分配、最终汇总。</p>
+        </article>
+        <article class="card">
+          <h3>第 30 天</h3>
+          <p>实现或伪实现一个 Planning Agent：输入用户请求，输出结构化计划，并能根据失败结果重新规划。</p>
+        </article>
+        <article class="card">
+          <h3>下一步行动</h3>
+          <p>把“列任务”升级为“写依赖链”。每次遇到复杂 Agent 需求，都先画出输入、产出和依赖。</p>
+        </article>
+      </div>
+    </section>
+
+    <footer class="footer reveal">
+      <a class="tag" href="#top">Top</a>
+      <a class="tag" href="#core">Core</a>
+      <a class="tag" href="#flow">Flow</a>
+      <a class="tag" href="#levels">Levels</a>
+      <a class="tag" href="#connections">Connections</a>
+      <span class="tag">Planning Design</span>
+      <span class="tag">AI Agent Workflow</span>
+      <span class="tag">Structured Output</span>
+    </footer>
+  </main>
+
+  <script>
+    const root = document.documentElement;
+
+    window.addEventListener('pointermove', event => {
+      const x = `${Math.round((event.clientX / window.innerWidth) * 100)}%`;
+      const y = `${Math.round((event.clientY / window.innerHeight) * 100)}%`;
+      root.style.setProperty('--x', x);
+      root.style.setProperty('--y', y);
+    });
+
+    const observer = new IntersectionObserver(entries => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add('visible');
+        }
+      });
+    }, {
+      threshold: 0.16,
+    });
+
+    document.querySelectorAll('.reveal').forEach(element => {
+      observer.observe(element);
+    });
+  </script>
+</body>
+</html>
