@@ -187,30 +187,65 @@ function App() {
                         </Alert.Description>
                       </Alert.Content>
                     </Alert>
-                    {todayTasks.map((task) => (
-                      <Card className="completed-task-mini" key={task.id} variant="transparent">
-                        <div className="completed-task-mini-inner">
-                          <CheckShapeFill className="completed-task-icon" />
-                          <span>{task.title}</span>
-                        </div>
-                      </Card>
-                    ))}
+                    {todayTasks.map((task) => {
+                      const relatedRecord = reviewRecords.find(r => r.id === task.relatedRecordId);
+                      const page = relatedRecord ? getReviewPageBySource(relatedRecord.sourceFile) : null;
+                      return (
+                        <Card className="completed-task-mini" key={task.id} variant="transparent">
+                          <div className="completed-task-mini-inner justify-between">
+                            <div className="flex items-center gap-2">
+                              <CheckShapeFill className="completed-task-icon" />
+                              <span>{task.title}</span>
+                            </div>
+                            {relatedRecord && page && (
+                              <Button
+                                size="sm"
+                                variant="ghost"
+                                className="px-2 min-w-0"
+                                onClick={() => setSelectedPageId(page.id)}
+                              >
+                                <BookOpen className="w-4 h-4" />
+                                依据
+                              </Button>
+                            )}
+                          </div>
+                        </Card>
+                      );
+                    })}
                   </div>
                 ) : todayTasks.length > 0 ? (
-                  todayTasks.map((task) => (
-                    <Button
-                      className={`target-card ${task.completed ? 'completed' : ''}`}
-                      fullWidth
-                      key={task.id}
-                      variant="ghost"
-                      onPress={() => openTask(task)}
-                    >
-                      <TaskBadge type={task.type} completed={task.completed} />
-                      <strong>{task.title}</strong>
-                      <small>{task.stage} · {task.estimate}</small>
-                      <span className="target-description">{task.description}</span>
-                    </Button>
-                  ))
+                  todayTasks.map((task) => {
+                    const relatedRecord = reviewRecords.find(r => r.id === task.relatedRecordId);
+                    const page = relatedRecord ? getReviewPageBySource(relatedRecord.sourceFile) : null;
+                    return (
+                      <div
+                        className={`target-card ${task.completed ? 'completed' : ''}`}
+                        key={task.id}
+                        onClick={() => openTask(task)}
+                        role="button"
+                        tabIndex={0}
+                      >
+                        <TaskBadge type={task.type} completed={task.completed} />
+                        <strong>{task.title}</strong>
+                        <small>{task.stage} · {task.estimate}</small>
+                        <span className="target-description">{task.description}</span>
+                        {relatedRecord && page && (
+                          <Button
+                            size="sm"
+                            variant="secondary"
+                            className="mt-2 w-full justify-center"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setSelectedPageId(page.id);
+                            }}
+                          >
+                            <BookOpen className="w-4 h-4 mr-1" />
+                            复习依据：{relatedRecord.title}
+                          </Button>
+                        )}
+                      </div>
+                    );
+                  })
                 ) : (
                   <div className="quiet-empty">
                     <strong>今天没有到期复习。</strong>
@@ -372,22 +407,41 @@ function App() {
                 <Tabs.Panel id="tasks" className="tab-panel-scroll pt-4">
                   {selectedTasks.length > 0 ? (
                     <div className="task-list">
-                      {selectedTasks.map((task) => (
-                        <Button
-                          className={`task-row ${task.completed ? 'completed' : ''}`}
-                          fullWidth
-                          key={task.id}
-                          variant="ghost"
-                          onPress={() => openTask(task)}
-                        >
-                          <TaskBadge type={task.type} completed={task.completed} />
-                          <span className="task-row-content">
-                            <strong>{task.title}</strong>
-                            <small>{task.stage} · {task.estimate}</small>
-                            <span className="task-description">{task.description}</span>
-                          </span>
-                        </Button>
-                      ))}
+                      {selectedTasks.map((task) => {
+                        const relatedRecord = reviewRecords.find(r => r.id === task.relatedRecordId);
+                        const page = relatedRecord ? getReviewPageBySource(relatedRecord.sourceFile) : null;
+                        return (
+                          <div
+                            className={`task-row ${task.completed ? 'completed' : ''}`}
+                            key={task.id}
+                            onClick={() => openTask(task)}
+                            role="button"
+                            tabIndex={0}
+                            style={{ cursor: 'pointer' }}
+                          >
+                            <TaskBadge type={task.type} completed={task.completed} />
+                            <span className="task-row-content w-full">
+                              <strong>{task.title}</strong>
+                              <small>{task.stage} · {task.estimate}</small>
+                              <span className="task-description">{task.description}</span>
+                              {relatedRecord && page && (
+                                <Button
+                                  size="sm"
+                                  variant="secondary"
+                                  className="mt-2 w-full justify-center"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    setSelectedPageId(page.id);
+                                  }}
+                                >
+                                  <BookOpen className="w-4 h-4 mr-1" />
+                                  复习依据：{relatedRecord.title}
+                                </Button>
+                              )}
+                            </span>
+                          </div>
+                        );
+                      })}
                     </div>
                   ) : (
                     <Alert className="empty-state-alert">

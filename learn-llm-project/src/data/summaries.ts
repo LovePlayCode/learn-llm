@@ -162,6 +162,162 @@ export const reviewRecords: ReviewRecord[] = [
     },
   },
   {
+    id: '2026-06-02-trustworthy-agent',
+    date: '2026-06-02',
+    time: '学习记录',
+    title: '构建可信赖 AI Agent',
+    subtitle: '5大核心威胁，安全边界设定',
+    sourceFile: 'learn/2026-06-02-构建可信赖AI代理.html',
+    summary: '学习在具备工具调用、数据访问和行动能力的 AI 代理中，如何通过系统消息架构、威胁模型和人机审批协作，建立安全可靠的执行边界。',
+    detail: {
+      lead: '本章重点不是让 Agent 更聪明，而是让它在具备工具调用和任务执行能力时，依然安全、可控、可靠。',
+      stats: [
+        { value: '5', label: '类核心威胁' },
+        { value: '4', label: '系统消息步骤' },
+        { value: '3', label: '安全边界' },
+        { value: '1', label: '高风险审批原则' }
+      ],
+      keyPoints: [
+        {
+          label: '核心机制 / 01',
+          title: '系统消息框架',
+          body: '通过角色、职责、流程、边界和输出规则，让 Agent 明确自己该做什么、不该做什么。'
+        },
+        {
+          label: '风险识别 / 02',
+          title: '五个威胁兄弟',
+          body: '把风险分成指令注入、权限滥用、服务过载、数据污染、级联错误等，避免只盯着“提示词写好一点”。'
+        },
+        {
+          label: '最后保险 / 03',
+          title: '人机协作边界',
+          body: '低风险自动化，高风险人类审批。审批不是拖慢流程，而是拦住有副作用的错误执行。'
+        }
+      ],
+      map: `用户输入 / 外部文档
+    │
+    ▼
+模型理解与规划 ────── 风险：指令注入 / 错误判断
+    │
+    ▼
+选择工具与参数 ────── 风险：越权 / 高频调用 / 错工具
+    │
+    ▼
+执行外部操作 ────── 风险：写坏数据 / 泄密 / 成本飙升
+    │
+    ▼
+观察结果并循环 ──── 风险：级联错误 / 错误扩散
+    │
+    ▼
+⚠️ 高风险动作前插入人类审批 (红色大按钮)`,
+      sections: [
+        {
+          title: '提示词注入 vs 知识库投毒',
+          body: '提示词注入是通过用户输入诱导 Agent 改变目标；知识库投毒是污染 Agent 依赖的外部知识源让其基于错误事实决策。'
+        },
+        {
+          title: 'Agent 安全 vs 传统后端安全',
+          body: '共同点是都需要权限控制 and 限流。不同点在于传统后端是固定路径；Agent 会自主规划，且错误可能通过工具链级联放大。'
+        }
+      ],
+      blindspots: [
+        {
+          title: '全量审批导致疲劳',
+          body: '全量审批会让用户产生机械确认，审批失去风险过滤意义。必须分级：低风险自动，高风险才审批。'
+        }
+      ],
+      highlights: [
+        {
+          title: '安全边界三档分类',
+          body: '根据操作的可逆性与危害程度，科学划分出自动执行、人类审批和绝对禁止三档。'
+        }
+      ],
+      report: [
+        {
+          title: '必须掌握',
+          items: ['5 类核心威胁', '3 档安全边界', '人机审批与过滤权衡']
+        },
+        {
+          title: '实践规则',
+          items: [
+            '自动执行：读取代码/只读分析',
+            '人类审批：修改文件/执行写命令/安装依赖',
+            '禁止执行：拷出密钥/强制重写Git/擅自篡改'
+          ]
+        }
+      ],
+      tags: ['AI Agent', '可信赖 AI', '威胁模型', '安全边界', '人机审批']
+    }
+  },
+  {
+    id: '2026-06-03-planning-design',
+    date: '2026-06-03',
+    time: '学习记录',
+    title: 'Planning Design',
+    subtitle: '复杂任务拆解与依赖流设计',
+    sourceFile: 'learn/2026-06-03-Planning-Design规划设计.html',
+    summary: '深入学习如何将模糊的复杂请求拆解为包含目标、全局约束、任务列表、依赖关系、执行角色和验收标准的结构化可执行计划，避免 Agent 盲目执行。',
+    detail: {
+      lead: '学习把复杂用户请求拆成多个可执行子任务，并分配给合适的 Agent 或工具，同时保持全局目标、依赖关系和验收标准不丢失。',
+      stats: [
+        { value: '6', label: '合格 Plan 核心字段' },
+        { value: '5', label: '最终闭卷复述问题' },
+        { value: 'A-', label: '本章当前掌握等级' }
+      ],
+      keyPoints: [
+        {
+          label: '核心机制',
+          title: '先 Planning，再执行',
+          body: '相比让一个 Agent 懵懵懂懂做到底，先规划能建立子任务边界，清晰路由，方便结果检查和局部重试。'
+        },
+        {
+          label: '定位',
+          title: '系统级上下兄弟',
+          body: '上属工作流设计，下调具体任务拆分、路由、工具调用、重新规划。'
+        },
+        {
+          label: '实战对比',
+          title: '定义执行链路',
+          body: '强计划必须指出依赖关系（如酒店影响行程，行程影响交通），而弱计划仅仅是列出待办清单。'
+        }
+      ],
+      map: `第 3 层（系统设计）       AI Agent 工作流设计 (Workflow Design)
+                         │
+第 2 层（机制方法）       Planning Design (目标/约束/依赖/验收)
+                         │
+第 1 层（底层零件）       任务拆分/工具调用/结构化输出/重新规划`,
+      sections: [
+        {
+          title: '合格 Plan 的六个核心字段',
+          body: '清晰的总体目标、全局约束（预算/时间等）、子任务列表、依赖关系、Agent/工具分配、预期输出与验收标准。'
+        },
+        {
+          title: 'Planning 与结构化输出的关系',
+          body: '结构化输出是让计划可被机器解析和路由的关键。没有结构化输出，Plan 容易停留在自然语言，无法被代码稳定执行。'
+        }
+      ],
+      blindspots: [
+        {
+          title: '漏掉“全局约束”',
+          body: '没有约束会导致 Agent 超预算、超时间，走入死胡同。在做 Plan 时必须显式声明约束。'
+        }
+      ],
+      highlights: [
+        {
+          title: '重新规划的敏捷性',
+          body: 'Planning 不是一次性的，当遇到执行失败、用户改需求或环境变化时，必须支持局部重试或动态更新 Plan。'
+        }
+      ],
+      report: [
+        {
+          title: '必须掌握',
+          items: ['Plan 的 6 大核心字段', '并行与串行依赖设计', '重新规划 (Re-planning)']
+        }
+      ],
+      tags: ['Planning Design', '工作流设计', '结构化输出', '任务拆解', '依赖管理']
+    }
+  },
+  {
     id: '2026-06-04-tcc-planning-design-trustworthy-agent',
     date: '2026-06-04',
     time: '晚间复习',
@@ -250,6 +406,28 @@ export const reviewRecords: ReviewRecord[] = [
 ]
 
 export const reviewTasks: ReviewTask[] = [
+  {
+    id: 'trustworthy-d2',
+    dueDate: '2026-06-03',
+    title: '构建可信赖 AI Agent D2',
+    stage: 'D2',
+    type: 'due',
+    estimate: '8 min',
+    description: '复习可信赖 Agent 初学内容。重点检查 5 类威胁和 3 档安全边界，核对是否漏掉级联错误和人类审批边界。',
+    relatedRecordId: '2026-06-02-trustworthy-agent',
+    completed: true,
+  },
+  {
+    id: 'planning-d2',
+    dueDate: '2026-06-04',
+    title: 'Planning Design D2',
+    stage: 'D2',
+    type: 'due',
+    estimate: '10 min',
+    description: '复习 Planning Design 核心。闭卷复述合格 Plan 包含的 6 个核心字段，特别注意不能漏掉约束。',
+    relatedRecordId: '2026-06-03-planning-design',
+    completed: true,
+  },
   {
     id: 'rest-0601',
     dueDate: '2026-06-01',

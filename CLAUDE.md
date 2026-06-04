@@ -124,14 +124,20 @@
 ---
 
 ### 【阶段六：总结】
-当学习者完成某个核心原理的学习或者复习后，你必须作为 Agent 自动执行以下文件写入和代码更新，直接将本次成果接入项目（最新版本已不再生成静态 HTML 文件，直接全部生成为 React 组件）：
+当学习者完成某个核心原理的学习或者复习后，你必须作为 Agent 自动执行以下文件写入和代码更新，直接将本次成果接入项目。**目前为过渡阶段，你需要同时输出静态 HTML 文件（用于交叉验证）与 React 组件**：
 
-1. **直接生成并写入 React TSX 组件**：
-   - 写入路径：`learn-llm-project/src/review-pages/Review[YYYYMMDD][PinYinTheme].tsx` (文件名统一使用 `Review...` 前缀，只需在 `sourceFile` 属性上做好区分即可)。
-   - 必须使用 React JSX 结构，导入 `@heroui/react` 提供的 `Card`，并使用通用的 `<ReviewSection>` 组件。
+1. **生成并写入静态 HTML 报告文件**：
+   - **写入路径**：
+     - 若是学习完成后的首轮记录，写入至外层项目目录：`learn/[YYYY-MM-DD]-[ThemeName].html`。
+     - 若是复习完成后的阶段总结（如 D2/D7/D30 等），写入至外层项目目录：`复习/[YYYY-MM-DD]-[ThemeName].html`。
+   - **格式要求**：生成一份结构优美、包含深色主题样式（雾化金属表面）、使用标准 HTML 标签的报告。包含打字默写检查、盲点自查、详细细节，并在头部清晰标注学习/复习日期。
+
+2. **直接生成并写入 React TSX 组件**：
+   - **写入路径**：`learn-llm-project/src/review-pages/Review[YYYYMMDD][PinYinTheme].tsx` (文件名统一使用 `Review...` 前缀，只需在组件内部及配置中做好映射)。
+   - **格式要求**：必须使用 React JSX 结构，导入 `@heroui/react` 提供的 `Card`，并使用通用的 `<ReviewSection>` 组件。
    - 所有版式和视觉层级直接调用 `App.css` 中已定义好的 `react-review-` 样式类（详见下方设计系统规范）。
 
-2. **自动修改路由注册 (`reviewPages.ts`)**：
+3. **自动修改路由注册 (`reviewPages.ts`)**：
    - 修改 `learn-llm-project/src/data/reviewPages.ts`。在文件顶部导入刚刚生成的组件，并在 `reviewPages` 数组中追加这一项：
      ```typescript
      {
@@ -139,15 +145,16 @@
        date: 'YYYY-MM-DD',
        title: 'YYYY-MM-DD · 标题',
        shortTitle: '标题',
-       sourceFile: '复习/YYYY-MM-DD-主题.html', // 保持原格式，代表该页面的归属标识，系统以此判断是学习还是复习
+       sourceFile: '复习/YYYY-MM-DD-主题.html' 或 'learn/YYYY-MM-DD-主题.html', // 填入上述第 1 步生成的静态 HTML 相对路径，作为归属与映射依据
        Component: [ComponentName],
      }
      ```
 
-3. **自动写入学习汇总与计划 (`summaries.ts`)**：
+4. **自动写入学习汇总与计划 (`summaries.ts`) 且必须建立依据关联**：
    - 修改 `learn-llm-project/src/data/summaries.ts`：
-     - 在 `reviewRecords` 数组中追加本次的学习快照（包含 detail 中的 stats, keyPoints, map, sections, blindspots, highlights, report 等详细卡片数据）。
-     - 根据报告中的复习计划，在 `reviewTasks` 数组中追加未来的复习任务，自动规划并填入 `dueDate`、`stage`（如 D7/D30）、`type`（due/scheduled/rest）、`estimate` 和 `description`，关联 `relatedRecordId` 为本记录的 ID。
+     - 在 `reviewRecords` 数组中追加本次的学习快照（包含 detail 中的 stats, keyPoints, map, sections, blindspots, highlights, report 等详细卡片数据）。**注意，记录的 `id` 应该与对应 React 页面在 `reviewPages.ts` 中的注册 ID 保持关联（例如遵循 `YYYY-MM-DD-pinyin-theme` 的格式）。**
+     - 根据报告中的复习计划，在 `reviewTasks` 数组中追加未来的复习任务，自动规划并填入 `dueDate`、`stage`（如 D7/D30）、`type`（due/scheduled/rest）、`estimate` 和 `description`。
+     - **【强关联要求 · 必须添加复习依据】**：无论是当前周期产生的任务，还是为未来制定的复习任务（如 D2, D7, D30 等），**都必须显式包含 `relatedRecordId` 属性**，其值直接指向**本次学习/复习产生的 `ReviewRecord` 的 ID**。这样，当复习页面渲染任务卡片时，学习教练和看板系统能提供“复习依据”按钮，让学习者一键点击直达对应的 React 文档组件。任何没有关联依据的任务都是不合格的。
 
 #### TSX 视觉与设计系统规范
 

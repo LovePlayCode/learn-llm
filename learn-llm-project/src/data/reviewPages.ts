@@ -1,5 +1,7 @@
 import type { ComponentType } from 'react';
 import Review20260531ErrorAccumulation from '../review-pages/Review20260531ErrorAccumulation';
+import Review20260602TrustworthyAgent from '../review-pages/Review20260602TrustworthyAgent';
+import Review20260603PlanningDesign from '../review-pages/Review20260603PlanningDesign';
 import Review20260604TccPD from '../review-pages/Review20260604TccPD';
 
 export interface ReviewPage {
@@ -19,6 +21,22 @@ export const reviewPages: ReviewPage[] = [
     shortTitle: '错误累积 D2 · TCC D3 · 线性 vs 指数钥匙焊死',
     sourceFile: '复习/2026-05-31-错误累积D2+TCC-D3+线性指数钥匙焊死.html',
     Component: Review20260531ErrorAccumulation,
+  },
+  {
+    id: 'review-2026-06-02-trustworthy-agent',
+    date: '2026-06-02',
+    title: '2026-06-02 · 构建可信赖 AI Agent 初学',
+    shortTitle: '构建可信赖 AI Agent 初学',
+    sourceFile: 'learn/2026-06-02-构建可信赖AI代理.html',
+    Component: Review20260602TrustworthyAgent,
+  },
+  {
+    id: 'review-2026-06-03-planning-design',
+    date: '2026-06-03',
+    title: '2026-06-03 · Planning Design 规划设计 初学',
+    shortTitle: 'Planning Design 规划设计 初学',
+    sourceFile: 'learn/2026-06-03-Planning-Design规划设计.html',
+    Component: Review20260603PlanningDesign,
   },
   {
     id: 'review-2026-06-04-tcc-planning-design-trustworthy-agent',
