@@ -1,10 +1,40 @@
 import { useMemo, useState } from 'react';
-import { Button, Calendar, Card, Chip, Tabs } from '@heroui/react';
+import { Alert, Button, Calendar, Card, Chip, Tabs } from '@heroui/react';
 import { parseDate, type DateValue } from '@internationalized/date';
+import { Books, Flame, GraduationCap, FileText, SparklesFill, BookOpen, CircleCheck, CalendarXmark, TargetDart, Rocket, CheckShapeFill } from '@gravity-ui/icons';
 import './App.css';
 import ReviewPageViewer from './components/ReviewPageViewer';
 import { getReviewPageBySource, reviewPages } from './data/reviewPages';
 import { reviewRecords, reviewTasks, today, type ReviewRecord, type ReviewTask } from './data/summaries';
+
+function computeStreakStats() {
+  const allDates = new Set([
+    ...reviewRecords.map(r => r.date),
+    ...reviewTasks.filter(t => t.completed).map(t => t.dueDate),
+  ])
+  const totalDays = allDates.size
+  const graduated = reviewTasks.filter(t => t.stage === 'D7' && t.completed).length
+  const inProgress = new Set(reviewTasks.filter(t => !t.completed).map(t => t.title)).size
+
+  // Compute streak: consecutive days ending at today
+  let streak = 0
+  const d = new Date(`${today}T08:00:00`)
+  while (true) {
+    const key = [
+      d.getFullYear(),
+      String(d.getMonth() + 1).padStart(2, '0'),
+      String(d.getDate()).padStart(2, '0'),
+    ].join('-')
+    if (allDates.has(key)) {
+      streak++
+      d.setDate(d.getDate() - 1)
+    } else {
+      break
+    }
+  }
+
+  return { totalDays, streak, graduated, inProgress }
+}
 
 function formatDate(date: string) {
   const d = new Date(`${date}T08:00:00`);
@@ -23,13 +53,13 @@ function renderCalendarHeaderDate(dateStr: string) {
   const weekday = new Intl.DateTimeFormat('zh-CN', { weekday: 'short' }).format(d);
   
   return (
-    <div className="calendar-widget-card">
+    <>
       <div className="calendar-widget-top">{weekday}</div>
       <div className="calendar-widget-body">
         <span className="calendar-widget-day">{day}</span>
         <span className="calendar-widget-month">{month}月</span>
       </div>
-    </div>
+    </>
   );
 }
 
@@ -64,10 +94,12 @@ function dateValueToKey(date: DateValue) {
 function App() {
   const [selectedDate, setSelectedDate] = useState(today)
   const [selectedPageId, setSelectedPageId] = useState<string | null>(null)
+  const [focusedCalendarDate, setFocusedCalendarDate] = useState<DateValue>(parseDate(today))
 
   const recordDates = useMemo(() => new Set(reviewRecords.map((record) => record.date)), [])
   const taskDates = useMemo(() => new Set(reviewTasks.map((task) => task.dueDate)), [])
   const selectedCalendarDate = useMemo(() => parseDate(selectedDate), [selectedDate])
+  const streakStats = useMemo(computeStreakStats, [])
 
   const selectedRecords = reviewRecords.filter((record) => record.date === selectedDate)
   const selectedLearningRecords = selectedRecords.filter(isLearningRecord)
@@ -75,6 +107,16 @@ function App() {
   const selectedTasks = reviewTasks.filter((task) => task.dueDate === selectedDate)
   const selectedPage = reviewPages.find((page) => page.id === selectedPageId) ?? null
   const todayTasks = reviewTasks.filter((task) => task.dueDate === today)
+  const allTodayCompleted = todayTasks.length > 0 && todayTasks.every(t => t.completed)
+  const isViewingOtherDate = selectedDate !== today
+
+  // Smart default tab: pick first tab with content
+  const smartDefaultTab = useMemo(() => {
+    if (selectedLearningRecords.length > 0) return 'learning'
+    if (selectedReviewRecords.length > 0) return 'review'
+    if (selectedTasks.length > 0) return 'tasks'
+    return 'learning'
+  }, [selectedLearningRecords.length, selectedReviewRecords.length, selectedTasks.length])
 
   if (selectedPage) {
     return <ReviewPageViewer page={selectedPage} onBack={() => setSelectedPageId(null)} />
@@ -82,10 +124,12 @@ function App() {
 
   function selectDate(date: string) {
     setSelectedDate(date)
+    setFocusedCalendarDate(parseDate(date))
   }
 
   function openTask(task: ReviewTask) {
     setSelectedDate(task.dueDate)
+    setFocusedCalendarDate(parseDate(task.dueDate))
   }
 
   return (
@@ -95,8 +139,26 @@ function App() {
           <span className="eyebrow">Learning Workbench</span>
           <h1>今天的学习，只看下一步。</h1>
           <p>首页只保留今日复习目标和日历。点开某一天，再看那天学了什么、复习了什么。</p>
+          <div className="streak-stats">
+            <span className="streak-stat"><Books className="streak-icon" /> 已学习 {streakStats.totalDays} 天</span>
+            {streakStats.streak > 0 && <span className="streak-stat"><Flame className="streak-icon fire" /> 连续 {streakStats.streak} 天</span>}
+            {streakStats.graduated > 0 && <span className="streak-stat"><GraduationCap className="streak-icon grad" /> {streakStats.graduated} 项已毕业</span>}
+            {streakStats.inProgress > 0 && <span className="streak-stat"><FileText className="streak-icon edit" /> {streakStats.inProgress} 项进行中</span>}
+          </div>
         </div>
-        {renderCalendarHeaderDate(today)}
+        <button
+          className={`calendar-widget-card ${isViewingOtherDate ? 'clickable' : ''}`}
+          onClick={() => {
+            if (isViewingOtherDate) {
+              setSelectedDate(today)
+              setFocusedCalendarDate(parseDate(today))
+            }
+          }}
+          title={isViewingOtherDate ? '回到今天' : '今天'}
+          aria-label={isViewingOtherDate ? '回到今天' : '今天'}
+        >
+          {renderCalendarHeaderDate(today)}
+        </button>
       </header>
 
       <section className="workbench-grid">
@@ -112,7 +174,29 @@ function App() {
             </Card.Header>
             <Card.Content>
               <div className="today-task-list">
-                {todayTasks.length > 0 ? (
+                {allTodayCompleted ? (
+                  <div className="celebration-state">
+                    <Alert status="success" className="celebration-alert">
+                      <Alert.Indicator>
+                        <SparklesFill className="celebration-icon" />
+                      </Alert.Indicator>
+                      <Alert.Content>
+                        <Alert.Title>今天的复习已全部完成！</Alert.Title>
+                        <Alert.Description>
+                          干得漂亮。可以在日历中回看过去的记录，或者休息一下。
+                        </Alert.Description>
+                      </Alert.Content>
+                    </Alert>
+                    {todayTasks.map((task) => (
+                      <Card className="completed-task-mini" key={task.id} variant="transparent">
+                        <div className="completed-task-mini-inner">
+                          <CheckShapeFill className="completed-task-icon" />
+                          <span>{task.title}</span>
+                        </div>
+                      </Card>
+                    ))}
+                  </div>
+                ) : todayTasks.length > 0 ? (
                   todayTasks.map((task) => (
                     <Button
                       className={`target-card ${task.completed ? 'completed' : ''}`}
@@ -156,6 +240,8 @@ function App() {
                 className="w-full max-w-sm mx-auto"
                 value={selectedCalendarDate}
                 onChange={(date) => selectDate(dateValueToKey(date))}
+                focusedValue={focusedCalendarDate}
+                onFocusChange={setFocusedCalendarDate}
               >
                 <Calendar.Header>
                   <Calendar.NavButton slot="previous" />
@@ -225,7 +311,7 @@ function App() {
               </div>
             </Card.Header>
             <Card.Content>
-              <Tabs className="w-full" defaultSelectedKey="learning">
+              <Tabs className="w-full" key={smartDefaultTab} defaultSelectedKey={smartDefaultTab}>
                 <Tabs.ListContainer>
                   <Tabs.List aria-label="日历详情分类" className="w-full justify-between">
                     <Tabs.Tab id="learning" className="flex-1 text-center">
@@ -251,12 +337,15 @@ function App() {
                       ))}
                     </div>
                   ) : (
-                    <div className="empty-state-container">
-                      <svg className="empty-state-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
-                      </svg>
-                      <span>无新增学习记录</span>
-                    </div>
+                    <Alert className="empty-state-alert">
+                      <Alert.Indicator>
+                        <BookOpen className="empty-icon" />
+                      </Alert.Indicator>
+                      <Alert.Content>
+                        <Alert.Title>无新增学习记录</Alert.Title>
+                        <Alert.Description>这一天没有新的学习笔记。</Alert.Description>
+                      </Alert.Content>
+                    </Alert>
                   )}
                 </Tabs.Panel>
 
@@ -268,12 +357,15 @@ function App() {
                       ))}
                     </div>
                   ) : (
-                    <div className="empty-state-container">
-                      <svg className="empty-state-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
-                      </svg>
-                      <span>无复习完成记录</span>
-                    </div>
+                    <Alert className="empty-state-alert">
+                      <Alert.Indicator>
+                        <CircleCheck className="empty-icon" />
+                      </Alert.Indicator>
+                      <Alert.Content>
+                        <Alert.Title>无复习完成记录</Alert.Title>
+                        <Alert.Description>这一天没有完成复习。</Alert.Description>
+                      </Alert.Content>
+                    </Alert>
                   )}
                 </Tabs.Panel>
 
@@ -298,12 +390,15 @@ function App() {
                       ))}
                     </div>
                   ) : (
-                    <div className="empty-state-container">
-                      <svg className="empty-state-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                      </svg>
-                      <span>当天没有安排复习任务</span>
-                    </div>
+                    <Alert className="empty-state-alert">
+                      <Alert.Indicator>
+                        <CalendarXmark className="empty-icon" />
+                      </Alert.Indicator>
+                      <Alert.Content>
+                        <Alert.Title>当天没有安排复习任务</Alert.Title>
+                        <Alert.Description>可以安排新的学习或回顾旧笔记。</Alert.Description>
+                      </Alert.Content>
+                    </Alert>
                   )}
                 </Tabs.Panel>
               </Tabs>
@@ -323,8 +418,10 @@ type RecordSummaryProps = {
 function TaskBadge({ type, completed }: { type: ReviewTask['type']; completed?: boolean }) {
   const label = completed ? '已复习' : taskLabel(type)
   const color = completed ? 'success' : taskColor(type)
+  const BadgeIcon = completed ? CircleCheck : type === 'due' ? TargetDart : type === 'rest' ? Rocket : CalendarXmark
   return (
     <Chip className={`task-badge ${type} ${completed ? 'completed' : ''}`} color={color} size="sm" variant="soft">
+      <BadgeIcon className="task-badge-icon" />
       {label}
     </Chip>
   )
@@ -332,13 +429,20 @@ function TaskBadge({ type, completed }: { type: ReviewTask['type']; completed?: 
 
 function RecordSummary({ record, onOpenPage }: RecordSummaryProps) {
   const page = getReviewPageBySource(record.sourceFile)
+  const isLearning = isLearningRecord(record)
+  const RecordIcon = isLearning ? BookOpen : CircleCheck
 
   return (
     <Card className="record-card" variant="default">
       <Card.Header className="record-card-header">
-        <Chip className="record-source" color="accent" size="sm" variant="soft">
-          {recordTypeLabel(record)} · {record.time}
-        </Chip>
+        <div className="record-badge-row">
+          <div className={`record-icon-badge ${isLearning ? 'learning' : 'review'}`}>
+            <RecordIcon className="record-icon-svg" />
+          </div>
+          <Chip className="record-source" color={isLearning ? 'accent' : 'success'} size="sm" variant="soft">
+            {recordTypeLabel(record)} · {record.time}
+          </Chip>
+        </div>
         <Card.Title>{record.title}</Card.Title>
       </Card.Header>
       <Card.Content>
