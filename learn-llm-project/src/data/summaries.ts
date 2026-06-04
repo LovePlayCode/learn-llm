@@ -19,6 +19,7 @@ export type ReviewTask = {
   estimate: string
   description: string
   relatedRecordId?: string
+  completed?: boolean
 }
 
 export type ReviewRecord = {
@@ -160,6 +161,92 @@ export const reviewRecords: ReviewRecord[] = [
       tags: ['错误累积', 'TCC', 'checkpoint', '线性 vs 指数', '上下兄弟问三句'],
     },
   },
+  {
+    id: '2026-06-04-tcc-planning-design-trustworthy-agent',
+    date: '2026-06-04',
+    time: '晚间复习',
+    title: 'TCC D7 毕业 + 双 D2 通过',
+    subtitle: 'TCC 正式毕业 + 2条新线稳住首轮',
+    sourceFile: '复习/2026-06-04-TCC-D7毕业+PlanningDesign-D2+可信赖Agent-D2.html',
+    summary:
+      '上半场 TCC + 错误累积 D7 综合压测 5 题全过，正式毕业。下半场 Planning Design D2 和构建可信赖 AI 代理 D2 各 3 题通过。',
+    detail: {
+      lead:
+        '本次复习重点在于 TCC 正式毕业，以及 Planning Design 和可信赖 AI 代理两条新线的 D2 顺利通过。最大亮点是打通了 checkpoint 在工程容错与安全治理中的双重身份。',
+      stats: [
+        { value: '11', label: '题目总量' },
+        { value: '3', label: '复习主题' },
+        { value: '1', label: '正式毕业项' },
+        { value: '2', label: '记忆锚点补漏' },
+      ],
+      keyPoints: [
+        {
+          label: 'TCC / D7',
+          title: 'TCC 毕业',
+          body: 'Transparent 看得见，Controllable 管得住，Consistency 信得过。通过 D7 压测正式毕业。',
+        },
+        {
+          label: '数学 / 抽象',
+          title: 'checkpoint 双重身份',
+          body: 'checkpoint 既是错误累积 p^N 损伤控制的存档点，又是可信赖 Agent 安全治理 HITL 审批关卡。',
+        },
+        {
+          label: 'Planning / D2',
+          title: '六字段口诀',
+          body: '目标、约束、任务、依赖、分配、验收。明确约束防止 Agent 正确地做错事。',
+        },
+        {
+          label: '安全 / D2',
+          title: '五类威胁与安全边界',
+          body: '五类威胁为注入、越权、过载、投毒、级联。安全边界分为自动执行、人类审批和绝对禁止三档。',
+        },
+      ],
+      map: `TCC 运行时治理三维度 ── Transparent (看得见) / Controllable (管得住) / Consistency (信得过)
+                       └── Controllable 儿子们: HITL审批 / 重试 / 打断 / 回滚`,
+      sections: [
+        {
+          title: '同一个 checkpoint 两件事同时干',
+          body: '身份 A：工程容错，存档点局部重试，降低 p^N 的伤害。身份 B：安全治理，高风险操作前人类确认（红色大按钮）。',
+        },
+        {
+          title: '安全边界三档分类',
+          body: '根据操作的只读性、可逆性和高危程度，将安全边界分为自动执行、人类审批和绝对禁止三档。',
+        },
+      ],
+      blindspots: [
+        {
+          title: 'Plan 六字段漏了"约束"',
+          body: '没有约束会导致 Agent 超预算、超时间，走入死胡同。需牢记“约束”字段。',
+        },
+        {
+          title: '五威胁漏了"级联"',
+          body: '之前还在使用级联的概念，提取威胁模型时却遗漏。需要把威胁整体熟记。',
+        },
+      ],
+      highlights: [
+        {
+          title: 'Checkpoint 跨章节打通',
+          body: '同一个 checkpoint 缝合了错误累积、可信赖 Agent 和 Planning Design，成为知识网络的核心交汇点。',
+        },
+      ],
+      report: [
+        {
+          title: 'A 层 · 正式毕业',
+          items: ['TCC 运行时治理三维度', '错误累积数学及 checkpoint 损伤控制机制'],
+        },
+        {
+          title: 'A- 层 · D2 通过',
+          items: ['Planning Design 六字段', '可信赖 AI 代理五类威胁'],
+        },
+        {
+          title: '需要加强',
+          items: ['记全 Plan 六字段口诀（勿漏约束）', '记全五威胁口诀（勿漏级联）'],
+          tone: 'warn',
+        },
+      ],
+      tags: ['TCC', '错误累积', 'Checkpoint', 'Planning Design', '可信赖 Agent'],
+    },
+  },
 ]
 
 export const reviewTasks: ReviewTask[] = [
@@ -182,6 +269,27 @@ export const reviewTasks: ReviewTask[] = [
     estimate: '12 min',
     description: '跨章节综合题。重点检查 checkpoint 为什么属于 Controllable，以及它如何把长指数切成局部低阶 N。',
     relatedRecordId: '2026-05-31-error-accumulation-tcc-linear-exponential',
+    completed: true,
+  },
+  {
+    id: 'rest-0605',
+    dueDate: '2026-06-05',
+    title: '不安排复习',
+    stage: '整合期',
+    type: 'rest',
+    estimate: '0 min',
+    description: '让 6/4 的跨章节连接（checkpoint 的多重身份）和补漏口诀自然整合。',
+    relatedRecordId: '2026-06-04-tcc-planning-design-trustworthy-agent',
+  },
+  {
+    id: 'planning-trustworthy-d7',
+    dueDate: '2026-06-09',
+    title: 'Planning Design + 可信赖 Agent D7 综合压测',
+    stage: 'D7',
+    type: 'due',
+    estimate: '15 min',
+    description: '5题闭卷及跨章节关联题。重点验证 Planning 约束字段 and 五威胁级联是否焊死。',
+    relatedRecordId: '2026-06-04-tcc-planning-design-trustworthy-agent',
   },
   {
     id: 'reasoning-compute-d60',
