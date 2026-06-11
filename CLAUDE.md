@@ -154,7 +154,7 @@
    - 修改 `learn-llm-project/src/data/summaries.ts`：
      - 在 `reviewRecords` 数组中追加本次的学习快照（包含 detail 中的 stats, keyPoints, map, sections, blindspots, highlights, report 等详细卡片数据）。**注意，记录的 `id` 应该与对应 React 页面在 `reviewPages.ts` 中的注册 ID 保持关联（例如遵循 `YYYY-MM-DD-pinyin-theme` 的格式）。**
      - 根据报告中的复习计划，在 `reviewTasks` 数组中追加未来的复习任务，自动规划并填入 `dueDate`、`stage`（如 D7/D30）、`type`（due/scheduled/rest）、`estimate` 和 `description`。
-     - **【强关联要求 · 必须添加复习依据】**：无论是当前周期产生的任务，还是为未来制定的复习任务（如 D2, D7, D30 等），**都必须显式包含 `relatedRecordId` 属性**，其值直接指向**本次学习/复习产生的 `ReviewRecord` 的 ID**。这样，当复习页面渲染任务卡片时，学习教练和看板系统能提供“复习依据”按钮，让学习者一键点击直达对应的 React 文档组件。任何没有关联依据的任务都是不合格的。
+     - **【强关联要求 · 必须添加复习依据】**：无论是当前周期产生的任务，还是为未来制定的复习任务（如 D2, D7, D30 等），**都必须显式包含 `relatedRecordId` 属性**，其值直接指向**学习文档的 `ReviewRecord`  ID**。这样，当复习页面渲染任务卡片时，学习教练和看板系统能提供“复习依据”按钮，让学习者一键点击直达对应的 React 文档组件。任何没有关联依据的任务都是不合格的。举个例子，当我今天复习Agent时，我应该依据的是上周学习agent的文档。
 
 #### TSX 视觉与设计系统规范
 
