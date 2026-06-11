@@ -1,0 +1,386 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>2026-06-06 · 多代理设计模式 D2 复习</title>
+  <style>
+    :root {
+      --bg-deep: #07090d;
+      --bg-surface: #0f1319;
+      --bg-card: #151b24;
+      --border: #1e2733;
+      --text-primary: #eef0f3;
+      --text-secondary: #8a929e;
+      --text-muted: #5c6675;
+      --accent-blue: #6b89a8;
+      --accent-gold: #c9b687;
+      --accent-green: #7a9985;
+      --accent-warn: #a87c5c;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      background: var(--bg-deep);
+      color: var(--text-primary);
+      font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Inter', sans-serif;
+      font-weight: 200;
+      line-height: 1.7;
+      padding: 3rem 1.5rem;
+      max-width: 900px;
+      margin: 0 auto;
+    }
+
+    h1 {
+      font-size: 2rem;
+      font-weight: 300;
+      letter-spacing: -0.02em;
+      margin-bottom: 0.5rem;
+    }
+
+    h1 strong { font-weight: 500; color: var(--accent-blue); }
+
+    h2 {
+      font-size: 1.2rem;
+      font-weight: 300;
+      color: var(--text-primary);
+      margin: 2.5rem 0 1rem;
+      padding-bottom: 0.4rem;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .eyebrow {
+      display: block;
+      font-size: 0.7rem;
+      font-weight: 400;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: var(--accent-gold);
+      margin-bottom: 0.4rem;
+    }
+
+    .hero-date {
+      font-size: 0.85rem;
+      color: var(--text-muted);
+      margin-bottom: 2rem;
+    }
+
+    .stats-row {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+      gap: 1rem;
+      margin: 1.5rem 0;
+    }
+
+    .stat-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 1.2rem;
+      text-align: center;
+    }
+
+    .stat-card strong {
+      display: block;
+      font-size: 1.8rem;
+      font-weight: 300;
+    }
+
+    .stat-card span {
+      font-size: 0.75rem;
+      color: var(--text-secondary);
+    }
+
+    .card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 1.5rem;
+      margin: 1rem 0;
+      transition: border-color 0.2s;
+    }
+
+    .card:hover { border-color: var(--accent-blue); }
+
+    .card-tag {
+      font-size: 0.65rem;
+      font-weight: 500;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--accent-gold);
+      margin-bottom: 0.3rem;
+    }
+
+    .card h3 {
+      font-size: 1rem;
+      font-weight: 300;
+      margin-bottom: 0.6rem;
+    }
+
+    .card p, .card li {
+      font-size: 0.88rem;
+      color: var(--text-secondary);
+      line-height: 1.6;
+    }
+
+    .card ul { list-style: none; padding-left: 0; }
+    .card li::before { content: '· '; color: var(--accent-blue); }
+
+    pre {
+      background: var(--bg-surface);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 1.2rem;
+      font-size: 0.78rem;
+      line-height: 1.8;
+      overflow-x: auto;
+      color: var(--text-secondary);
+      margin: 1rem 0;
+    }
+
+    blockquote {
+      border-left: 3px solid var(--accent-gold);
+      padding: 1rem 1.5rem;
+      margin: 1.5rem 0;
+      background: rgba(201, 182, 135, 0.04);
+      border-radius: 0 6px 6px 0;
+      font-size: 0.88rem;
+      color: var(--text-secondary);
+    }
+
+    blockquote strong { color: var(--text-primary); font-weight: 400; }
+
+    .grid-two {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 1rem;
+    }
+
+    .result-badge {
+      display: inline-block;
+      padding: 0.15rem 0.6rem;
+      border-radius: 4px;
+      font-size: 0.7rem;
+      font-weight: 500;
+      letter-spacing: 0.05em;
+    }
+
+    .badge-pass { background: rgba(122, 153, 133, 0.15); color: var(--accent-green); border: 1px solid rgba(122, 153, 133, 0.3); }
+    .badge-partial { background: rgba(201, 182, 135, 0.12); color: var(--accent-gold); border: 1px solid rgba(201, 182, 135, 0.3); }
+    .badge-fail { background: rgba(168, 124, 92, 0.12); color: var(--accent-warn); border: 1px solid rgba(168, 124, 92, 0.3); }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.82rem;
+      margin: 1rem 0;
+    }
+
+    th, td {
+      text-align: left;
+      padding: 0.6rem 1rem;
+      border-bottom: 1px solid var(--border);
+    }
+
+    th { color: var(--text-muted); font-weight: 400; font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.08em; }
+    td { color: var(--text-secondary); }
+
+    .checklist { list-style: none; padding: 0; }
+    .checklist li {
+      padding: 0.5rem 0;
+      font-size: 0.85rem;
+      color: var(--text-secondary);
+      border-bottom: 1px solid var(--border);
+    }
+    .checklist li:last-child { border-bottom: none; }
+
+    .tag-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+      margin-top: 2rem;
+    }
+
+    .tag-row span {
+      padding: 0.2rem 0.7rem;
+      border-radius: 4px;
+      font-size: 0.7rem;
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      color: var(--text-muted);
+    }
+
+    footer {
+      margin-top: 3rem;
+      padding-top: 1.5rem;
+      border-top: 1px solid var(--border);
+      font-size: 0.75rem;
+      color: var(--text-muted);
+    }
+  </style>
+</head>
+<body>
+
+  <!-- HERO -->
+  <header>
+    <span class="eyebrow">REVIEW · 2026 · 06 · 06 · D2 · 多代理设计模式</span>
+    <h1>协同过滤薄弱点<strong>焊死</strong><br/>上下兄弟分层<strong>半稳</strong></h1>
+    <p class="hero-date">复习日期：2026-06-06 · 阶段：间隔检索 D2 · 预计时长：10 min · 实际时长：~12 min</p>
+    <p style="font-size: 0.9rem; color: var(--text-secondary); margin-bottom: 1.5rem;">
+      协同过滤从"复制流水线"到"多视角互补"——这个两次复犯的薄弱点今天正式焊死。
+      fan-out/fan-in 图画得漂亮。上下文隔离的分层定位仍有遗漏（"兄"忘了 tool 子集划分），D7 继续追。
+    </p>
+
+    <div class="stats-row">
+      <div class="stat-card"><strong style="color: var(--accent-blue);">3</strong><span>闭卷题总量</span></div>
+      <div class="stat-card"><strong style="color: var(--accent-green);">1</strong><span>薄弱点焊死</span></div>
+      <div class="stat-card"><strong style="color: var(--accent-gold);">2</strong><span>修正轮次</span></div>
+      <div class="stat-card"><strong style="color: var(--text-primary);">1</strong><span>兄弟记忆缺口</span></div>
+    </div>
+  </header>
+
+  <!-- SECTION 01: 打字默写检查 -->
+  <h2><span class="eyebrow">SECTION 01 · 打字默写检查 · 协同过滤</span>焊死瞬间：视角多样性</h2>
+
+  <div class="card">
+    <div class="card-tag">最终输出 · 学习者原话</div>
+    <h3>"协同过滤的核心力量来自视角的不同，而相同的视角，大模型输出的答案虽然有随机性，但是视角是一致的。"</h3>
+    <p><span class="result-badge badge-pass">PASS</span> 从两次复犯"复制流水线"到今天精准说出"视角多样性"——这是从"知道"到"内化"的跨越。</p>
+  </div>
+
+  <blockquote>
+    <strong>焊死公式：</strong>协同过滤 = 多视角并行 + 汇总。威力来自视角多样性，不是数量。三个相同的 agent 只是重复同一视角。
+  </blockquote>
+
+  <!-- SECTION 02: Fan-out / Fan-in 图 -->
+  <h2><span class="eyebrow">SECTION 02 · 结构验证 · fan-out / fan-in</span>亲手画图：数据流完整</h2>
+
+  <pre>
+[ 用户原始输入 / 任务 Prompt ]
+                 │
+ ┌───────────────┼───────────────┐     (Fan-out: 任务分发)
+ ▼               ▼               ▼
+┌────────┐  ┌────────┐  ┌────────┐
+│Agent A │  │Agent B │  │Agent C │    [不同专长 · 不同视角]
+│(Llama) │  │(DeepSk)│  │(Claude)│
+└────────┘  └────────┘  └────────┘
+ │               │               │
+ └───────────────┼───────────────┘     (Fan-in: 数据汇聚)
+                 ▼
+        ┌─────────────────┐
+        │   Aggregator    │            [对比异同 · 剔除噪声 · 融合]
+        │  (裁判 + 总编)  │
+        └─────────────────┘
+                 ▼
+        [ 最终高质量输出 ]
+  </pre>
+
+  <p style="font-size: 0.85rem; color: var(--text-secondary);">
+    <span class="result-badge badge-pass">PASS</span>
+    图结构正确，关键标注"各模型发挥自身优势"证明理解到位。与 6/4 "画成三条流水线"的错误相比已是完全不同层级。
+  </p>
+
+  <!-- SECTION 03: 三种模式判断 -->
+  <h2><span class="eyebrow">SECTION 03 · 直觉验证 · 模式判断决策树</span>三种场景：一次全对</h2>
+
+  <table>
+    <thead>
+      <tr><th>场景</th><th>正确模式</th><th>判断依据</th><th>结果</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>法律+财务+技术评估合同</td><td>协同过滤</td><td>多视角并行评估同一材料</td><td><span class="result-badge badge-pass">PASS</span></td></tr>
+      <tr><td>翻译→摘要→提取</td><td>任务转接</td><td>线性串行处理</td><td><span class="result-badge badge-pass">PASS</span></td></tr>
+      <tr><td>开放性架构讨论</td><td>群聊</td><td>多对多互相质疑补充</td><td><span class="result-badge badge-pass">PASS</span></td></tr>
+    </tbody>
+  </table>
+
+  <!-- SECTION 04: 上下兄弟分层 -->
+  <h2><span class="eyebrow">SECTION 04 · 盲点自查 · 上下文隔离分层定位</span>上·下 OK，兄弟差一个</h2>
+
+  <pre>
+第 3 层（理念目标）    专业化 Specialization
+                       │
+第 2 层（工程手段）    上下文隔离 / 任务拆分 / tool 子集划分   ← 三兄弟
+                       │
+第 1 层（底层工具）    subgraph / 独立 state / message filter
+  </pre>
+
+  <div class="grid-two">
+    <div class="card">
+      <div class="card-tag">学习者回答</div>
+      <h3>回答情况</h3>
+      <ul>
+        <li>上：专业性 <span class="result-badge badge-pass">PASS</span></li>
+        <li>下：subgraph / 独立 state / message filter <span class="result-badge badge-pass">PASS</span></li>
+        <li>兄：任务拆分 <span class="result-badge badge-partial">半对</span> （漏了 tool 子集划分）</li>
+      </ul>
+    </div>
+    <div class="card">
+      <div class="card-tag">记忆口诀 · D7 必考</div>
+      <h3>三兄弟口诀：隔信息 / 分任务 / 限工具</h3>
+      <p>上下文隔离 = 信息独立<br/>任务拆分 = 职责独立<br/>tool 子集划分 = 能力独立<br/>三者共同服务于"专业化"这一理念目标。</p>
+    </div>
+  </div>
+
+  <!-- SECTION 05: 详细细节与进步轨迹 -->
+  <h2><span class="eyebrow">SECTION 05 · 修正过程 · 两轮迭代轨迹</span>从模糊到精准</h2>
+
+  <div class="card">
+    <div class="card-tag">协同过滤 · 修正链</div>
+    <h3>第一轮 → 第二轮 → 最终</h3>
+    <ul>
+      <li>第一轮："同一份任务，不同专家分析汇总"——方向对，但没对比"复制流水线"</li>
+      <li>第二轮："复制给三个人没人汇总"——只说了形式（有无 Aggregator），没说本质</li>
+      <li>最终版："核心力量来自视角的不同"——精准命中！从形式上升到本质</li>
+    </ul>
+  </div>
+
+  <div class="card">
+    <div class="card-tag">上下文隔离 · 修正链</div>
+    <h3>两次尝试 → 引导后焊住</h3>
+    <ul>
+      <li>首次："上=agent实现，下=工具调用，兄=上下文隔离"——三个全偏，还把主体放进兄弟</li>
+      <li>二次："上=如何构建专业agent，下=状态图/检查点"——方向摸对但不够锋利</li>
+      <li>最终：上=专业化，下=subgraph/独立state/message filter ✓ | 兄=任务拆分 ✓（漏 tool 子集划分）</li>
+    </ul>
+  </div>
+
+  <!-- SECTION 06: 学习报告 -->
+  <h2><span class="eyebrow">SECTION 06 · D2 学习报告</span>总评：协同过滤焊死，分层半稳</h2>
+
+  <table>
+    <thead>
+      <tr><th>检查项</th><th>状态</th><th>备注</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>协同过滤 = 多视角并行 + 汇总</td><td><span class="result-badge badge-pass">焊死</span></td><td>不再犯"复制流水线"错误</td></tr>
+      <tr><td>fan-out/fan-in 结构图</td><td><span class="result-badge badge-pass">过关</span></td><td>图画得清晰完整</td></tr>
+      <tr><td>三种模式直觉判断</td><td><span class="result-badge badge-pass">稳固</span></td><td>一次全对</td></tr>
+      <tr><td>上下文隔离·上</td><td><span class="result-badge badge-pass">专业化</span></td><td>两轮后对了</td></tr>
+      <tr><td>上下文隔离·下</td><td><span class="result-badge badge-pass">全记住</span></td><td>subgraph / 独立state / message filter</td></tr>
+      <tr><td>上下文隔离·兄</td><td><span class="result-badge badge-partial">半记住</span></td><td>记得任务拆分，漏了 tool 子集划分</td></tr>
+    </tbody>
+  </table>
+
+  <blockquote>
+    <strong>下次 D7 重点：</strong>① "tool 子集划分"必须答出 ② 误用多代理的 3 个坏后果 ③ 设计动机的"主动选择"视角。
+  </blockquote>
+
+  <!-- FOOTER -->
+  <footer>
+    <div class="tag-row">
+      <span>多代理</span>
+      <span>协同过滤</span>
+      <span>fan-out/fan-in</span>
+      <span>视角多样性</span>
+      <span>上下文隔离</span>
+      <span>专业化</span>
+      <span>上下兄弟问三句</span>
+      <span>D2</span>
+    </div>
+    <p style="margin-top: 1.5rem;">Generated: 2026-06-06 · Learning Coach Session · 间隔检索 D2</p>
+  </footer>
+
+</body>
+</html>
