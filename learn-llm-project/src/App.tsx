@@ -188,8 +188,8 @@ function App() {
                       </Alert.Content>
                     </Alert>
                     {todayTasks.map((task) => {
-                      const relatedRecord = reviewRecords.find(r => r.id === task.relatedRecordId);
-                      const page = relatedRecord ? getReviewPageBySource(relatedRecord.sourceFile) : null;
+                      const firstRecord = (task.relatedRecordIds ?? []).map(id => reviewRecords.find(r => r.id === id)).find(Boolean);
+                      const firstPage = firstRecord ? getReviewPageBySource(firstRecord.sourceFile) : null;
                       return (
                         <Card className="completed-task-mini" key={task.id} variant="transparent">
                           <div className="completed-task-mini-inner justify-between">
@@ -197,12 +197,12 @@ function App() {
                               <CheckShapeFill className="completed-task-icon" />
                               <span>{task.title}</span>
                             </div>
-                            {relatedRecord && page && (
+                            {firstRecord && firstPage && (
                               <Button
                                 size="sm"
                                 variant="ghost"
                                 className="px-2 min-w-0"
-                                onClick={() => setSelectedPageId(page.id)}
+                                onClick={() => setSelectedPageId(firstPage.id)}
                               >
                                 <BookOpen className="w-4 h-4" />
                                 依据
@@ -215,8 +215,11 @@ function App() {
                   </div>
                 ) : todayTasks.length > 0 ? (
                   todayTasks.map((task) => {
-                    const relatedRecord = reviewRecords.find(r => r.id === task.relatedRecordId);
-                    const page = relatedRecord ? getReviewPageBySource(relatedRecord.sourceFile) : null;
+                    const relatedPages = (task.relatedRecordIds ?? [])
+                      .map(id => reviewRecords.find(r => r.id === id))
+                      .filter((r): r is NonNullable<typeof r> => r != null)
+                      .map(record => ({ record, page: getReviewPageBySource(record.sourceFile) }))
+                      .filter((item): item is { record: typeof item.record; page: NonNullable<typeof item.page> } => item.page != null);
                     return (
                       <Card
                         className={`task-card-premium ${task.completed ? 'completed' : ''}`}
@@ -236,20 +239,23 @@ function App() {
                         <Card.Content className="py-1">
                           <Card.Description className="task-desc">{task.description}</Card.Description>
                         </Card.Content>
-                        {relatedRecord && page && (
-                          <Card.Footer className="pt-2">
-                            <Button
-                              size="sm"
-                              variant="ghost"
-                              className="w-full justify-center review-basis-btn"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                setSelectedPageId(page.id);
-                              }}
-                            >
-                              <BookOpen className="w-4 h-4 mr-1.5" />
-                              复习依据：{relatedRecord.title}
-                            </Button>
+                        {relatedPages.length > 0 && (
+                          <Card.Footer className="pt-2 flex flex-col gap-1">
+                            {relatedPages.map(({ record, page }) => (
+                              <Button
+                                key={record.id}
+                                size="sm"
+                                variant="ghost"
+                                className="w-full justify-center review-basis-btn"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setSelectedPageId(page.id);
+                                }}
+                              >
+                                <BookOpen className="w-4 h-4 mr-1.5" />
+                                复习依据：{record.title}
+                              </Button>
+                            ))}
                           </Card.Footer>
                         )}
                       </Card>
@@ -417,8 +423,11 @@ function App() {
                   {selectedTasks.length > 0 ? (
                     <div className="task-list">
                       {selectedTasks.map((task) => {
-                        const relatedRecord = reviewRecords.find(r => r.id === task.relatedRecordId);
-                        const page = relatedRecord ? getReviewPageBySource(relatedRecord.sourceFile) : null;
+                        const relatedPages = (task.relatedRecordIds ?? [])
+                          .map(id => reviewRecords.find(r => r.id === id))
+                          .filter((r): r is NonNullable<typeof r> => r != null)
+                          .map(record => ({ record, page: getReviewPageBySource(record.sourceFile) }))
+                          .filter((item): item is { record: typeof item.record; page: NonNullable<typeof item.page> } => item.page != null);
                         return (
                           <Card
                             className={`task-card-premium ${task.completed ? 'completed' : ''}`}
@@ -438,20 +447,23 @@ function App() {
                             <Card.Content className="py-1">
                               <Card.Description className="task-desc">{task.description}</Card.Description>
                             </Card.Content>
-                            {relatedRecord && page && (
-                              <Card.Footer className="pt-2">
-                                <Button
-                                  size="sm"
-                                  variant="ghost"
-                                  className="w-full justify-center review-basis-btn"
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    setSelectedPageId(page.id);
-                                  }}
-                                >
-                                  <BookOpen className="w-4 h-4 mr-1.5" />
-                                  复习依据：{relatedRecord.title}
-                                </Button>
+                            {relatedPages.length > 0 && (
+                              <Card.Footer className="pt-2 flex flex-col gap-1">
+                                {relatedPages.map(({ record, page }) => (
+                                  <Button
+                                    key={record.id}
+                                    size="sm"
+                                    variant="ghost"
+                                    className="w-full justify-center review-basis-btn"
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      setSelectedPageId(page.id);
+                                    }}
+                                  >
+                                    <BookOpen className="w-4 h-4 mr-1.5" />
+                                    复习依据：{record.title}
+                                  </Button>
+                                ))}
                               </Card.Footer>
                             )}
                           </Card>

@@ -7,6 +7,7 @@ import Review20260604DuoDaiLi from "../review-pages/Review20260604DuoDaiLi";
 import Review20260606DuoDaiLiD2 from "../review-pages/Review20260606DuoDaiLiD2";
 import Review20260610PlanningDesignD7TuiLi from "../review-pages/Review20260610PlanningDesignD7TuiLi";
 import Review20260611DuoDaiLiD7 from "../review-pages/Review20260611DuoDaiLiD7";
+import Review20260613HuanCunContextD30 from "../review-pages/Review20260613HuanCunContextD30";
 
 export interface ReviewPage {
   id: string;
@@ -83,6 +84,14 @@ export const reviewPages: ReviewPage[] = [
     shortTitle: "多代理设计模式 D7 · 跨章节综合",
     sourceFile: "复习/2026-06-11-多代理设计模式D7.html",
     Component: Review20260611DuoDaiLiD7,
+  },
+  {
+    id: "review-2026-06-13-huancun-context-d30",
+    date: "2026-06-13",
+    title: "2026-06-13 · 缓存 + Claude Code 上下文管理 D30 综合压测",
+    shortTitle: "缓存 + 上下文管理 D30 · 进入长期记忆",
+    sourceFile: "复习/2026-06-13-缓存+ClaudeCode上下文管理D30.html",
+    Component: Review20260613HuanCunContextD30,
   },
 ];
 

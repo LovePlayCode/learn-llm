@@ -18,7 +18,7 @@ export type ReviewTask = {
   type: "rest" | "due" | "scheduled";
   estimate: string;
   description: string;
-  relatedRecordId?: string;
+  relatedRecordIds?: string[];
   completed?: boolean;
 };
 
@@ -931,6 +931,133 @@ export const reviewRecords: ReviewRecord[] = [
       ],
     },
   },
+  {
+    id: "2026-06-13-huancun-context-d30",
+    date: "2026-06-13",
+    time: "复习 D30",
+    title: "缓存 + Claude Code 上下文管理 D30",
+    subtitle: "双线通过 · 进入长期记忆区",
+    sourceFile: "复习/2026-06-13-缓存+ClaudeCode上下文管理D30.html",
+    summary:
+      "5/21 双毕业项 D30 回访。核心框架 23 天后依然站得住：缓存三兄弟命中机制分得清、开工 4 问映射能力在、错误累积公式秒出。薄弱点：两道生死题问法退化 + checkpoint=Controllable 归类犹豫。整体通过，进入长期记忆区。",
+    detail: {
+      lead: "D30 不是验证'你记不记得'，而是验证'你能不能在一个全新的场景里，把这些知识当工具用出来'。23 天无接触后核心框架判断力完好，退化点均为提取通道生锈。",
+      stats: [
+        { value: "2", label: "复习主题" },
+        { value: "3", label: "综合题" },
+        { value: "2", label: "退化点重焊" },
+        { value: "✓", label: "进入长期记忆" },
+      ],
+      keyPoints: [
+        {
+          label: "缓存 / D30",
+          title: "两道生死题重焊",
+          body: "① 输出会随时间变化吗？② 输出依赖私人上下文吗？问句形式退化后接触即恢复。缓存三兄弟在新场景中正确调取。",
+        },
+        {
+          label: "Context / D30",
+          title: "开工 4 问场景应用",
+          body: "作文批改场景逐一过 4 问，判断全对。追问 subagent 触发双条件（任务独立 + 读多文件）也答出。",
+        },
+        {
+          label: "跨章节 / D30",
+          title: "错误累积 × TCC 缝合",
+          body: "1-p^N 公式秒出，checkpoint 工程落地三要素完整。TCC 归类犹豫后重焊 checkpoint=Controllable。",
+        },
+      ],
+      map: `缓存决策流（D30 验证版）：
+两道生死题 → ① 时效性 / ② 私人依赖
+  ├── 双否 → 语义缓存
+  ├── ②是 → 不缓存（语义/精确）但提示词缓存可能可用
+  └── ①是 → 不缓存或短 TTL
+
+开工 4 问 → 4 工具：
+  ① 相关？→ /clear  ② 读多？→ subagent  ③ 跨文件？→ Plan  ④ 放哪？→ LitM
+
+TCC：checkpoint = Controllable 的儿子`,
+      sections: [
+        {
+          title: "在线教育 AI 助手缓存设计",
+          body: "牛顿定律→语义缓存（双否）；作文分析→提示词缓存（前缀不变）；这道数学题→不缓存（私人依赖）。关键陷阱：'这道'= 绑定具体题目 ≠ 时效性。",
+        },
+        {
+          title: "解题链 checkpoint 落地",
+          body: "4步95%→18.55%失败率。方案A动p换强模型，方案B动结构每步插checkpoint。落地三要素：验证器检查、错误回传、局部重试（非盲重试）。",
+        },
+      ],
+      blindspots: [
+        {
+          title: "两道生死题问句形式退化",
+          body: "只记得关键词'私人依赖''时效性'，完整问句提取不出。属于提取通道生锈而非知识消失——重新接触后秒恢复。",
+        },
+        {
+          title: "checkpoint=Controllable 归类犹豫",
+          body: "先答T+C双维度，再改口Consistency。三选犹豫暴露跨章节钩子在D30时松动。需实战中反复激活。",
+        },
+        {
+          title: "开工 4 问措辞抽象化",
+          body: "从'需要读很多文件吗'退化成'任务是否可拆分'。方向对但操作性下降。",
+        },
+      ],
+      highlights: [
+        {
+          title: "缓存三兄弟调取能力",
+          body: "作文题→提示词缓存的跨兄弟连接自动触发。说明命中机制的区分（output级 vs computation级）已内化。",
+        },
+        {
+          title: "subagent 触发双条件",
+          body: "追问时主动补出'任务独立 + 读多文件'双维度触发信号，比 D7 时的单一判断更成熟。",
+        },
+        {
+          title: "checkpoint 工程落地",
+          body: "从抽象概念到'谁检查/检查什么/不通过怎么办'三要素完整落地。且主动说'带错误信息的重试'而非盲重试。",
+        },
+      ],
+      report: [
+        {
+          title: "A 层 · 长期记忆 ✓",
+          items: [
+            "缓存三兄弟命中机制",
+            "两道生死题判断式",
+            "开工 4 问 → 4 工具映射",
+            "错误累积 1-p^N",
+            "checkpoint 工程落地三要素",
+          ],
+        },
+        {
+          title: "需监控 · 已重焊",
+          items: [
+            "两道生死题问句原话提取",
+            "checkpoint = Controllable 归类",
+            "开工 4 问精确措辞",
+          ],
+          tone: "warn",
+        },
+        {
+          title: "横向连接",
+          items: [
+            "提示词缓存 × 作文批改场景",
+            "subagent × 多文件读取场景",
+            "checkpoint × TCC Controllable",
+            "错误累积 × 验证器 Self-Correction",
+          ],
+        },
+      ],
+      tags: [
+        "缓存",
+        "两道生死题",
+        "Claude Code",
+        "开工 4 问",
+        "Lost in the Middle",
+        "错误累积",
+        "checkpoint",
+        "TCC",
+        "Controllable",
+        "D30",
+        "长期记忆",
+      ],
+    },
+  },
 ];
 
 export const reviewTasks: ReviewTask[] = [
@@ -943,7 +1070,7 @@ export const reviewTasks: ReviewTask[] = [
     estimate: "8 min",
     description:
       "复习可信赖 Agent 初学内容。重点检查 5 类威胁和 3 档安全边界，核对是否漏掉级联错误和人类审批边界。",
-    relatedRecordId: "2026-06-02-trustworthy-agent",
+    relatedRecordIds: ["2026-06-02-trustworthy-agent"],
     completed: true,
   },
   {
@@ -955,7 +1082,7 @@ export const reviewTasks: ReviewTask[] = [
     estimate: "10 min",
     description:
       "复习 Planning Design 核心。闭卷复述合格 Plan 包含的 6 个核心字段，特别注意不能漏掉约束。",
-    relatedRecordId: "2026-06-03-planning-design",
+    relatedRecordIds: ["2026-06-03-planning-design"],
     completed: true,
   },
   {
@@ -967,7 +1094,7 @@ export const reviewTasks: ReviewTask[] = [
     estimate: "0 min",
     description:
       "让 5/31 的新焊点自然整合：线性 vs 指数、局部低阶 N、截断与降幂。",
-    relatedRecordId: "2026-05-31-error-accumulation-tcc-linear-exponential",
+    relatedRecordIds: ["2026-05-31-error-accumulation-tcc-linear-exponential"],
   },
   {
     id: "tcc-error-d7",
@@ -978,7 +1105,7 @@ export const reviewTasks: ReviewTask[] = [
     estimate: "12 min",
     description:
       "跨章节综合题。重点检查 checkpoint 为什么属于 Controllable，以及它如何把长指数切成局部低阶 N。",
-    relatedRecordId: "2026-05-31-error-accumulation-tcc-linear-exponential",
+    relatedRecordIds: ["2026-05-31-error-accumulation-tcc-linear-exponential"],
     completed: true,
   },
   {
@@ -990,7 +1117,7 @@ export const reviewTasks: ReviewTask[] = [
     estimate: "0 min",
     description:
       "让 6/4 的跨章节连接（checkpoint 的多重身份）和补漏口诀自然整合。",
-    relatedRecordId: "2026-06-04-tcc-planning-design-trustworthy-agent",
+    relatedRecordIds: ["2026-06-04-tcc-planning-design-trustworthy-agent"],
   },
   {
     id: "planning-trustworthy-d7",
@@ -1001,7 +1128,7 @@ export const reviewTasks: ReviewTask[] = [
     estimate: "15 min",
     description:
       "5题闭卷及跨章节关联题。重点验证 Planning 约束字段 and 五威胁级联是否焊死。",
-    relatedRecordId: "2026-06-10-planning-design-d7-tuili-d60",
+    relatedRecordIds: ["2026-06-10-planning-design-d7-tuili-d60"],
     completed: true,
   },
   {
@@ -1012,7 +1139,7 @@ export const reviewTasks: ReviewTask[] = [
     type: "scheduled",
     estimate: "18 min",
     description: "RLHF × 推理时计算交叉复习。该条目前还未迁移具体详情。",
-    relatedRecordId: "2026-06-10-planning-design-d7-tuili-d60",
+    relatedRecordIds: ["2026-06-10-planning-design-d7-tuili-d60"],
     completed: true,
   },
   {
@@ -1023,6 +1150,8 @@ export const reviewTasks: ReviewTask[] = [
     type: "scheduled",
     estimate: "15 min",
     description: "5/21 双毕业项回访。后续可迁移对应 HTML 后关联详情。",
+    relatedRecordIds: ["2026-06-13-huancun-context-d30"],
+    completed: true,
   },
   {
     id: "rlhf-confidence-d30",
@@ -1043,7 +1172,7 @@ export const reviewTasks: ReviewTask[] = [
     estimate: "20 min",
     description:
       "含 checkpoint 工程场景题：用“线性 vs 指数”钥匙审视未知新方案。",
-    relatedRecordId: "2026-05-31-error-accumulation-tcc-linear-exponential",
+    relatedRecordIds: ["2026-05-31-error-accumulation-tcc-linear-exponential"],
   },
   {
     id: "linear-exponential-d30",
@@ -1053,7 +1182,7 @@ export const reviewTasks: ReviewTask[] = [
     type: "scheduled",
     estimate: "20 min",
     description: "给一个新场景，如缓存衰减或注意力衰减，用今天的钥匙独立拆解。",
-    relatedRecordId: "2026-05-31-error-accumulation-tcc-linear-exponential",
+    relatedRecordIds: ["2026-05-31-error-accumulation-tcc-linear-exponential"],
   },
   {
     id: "duo-dai-li-d2",
@@ -1064,7 +1193,7 @@ export const reviewTasks: ReviewTask[] = [
     estimate: "10 min",
     description:
       '3 题闭卷：① 协同过滤本质必须答出"多视角并行+汇总"且亲手画 fan-out/fan-in 图（重点复检薄弱点）② 三种模式判断决策树（开放性/线性/多视角各对应哪种）③ "上下文隔离"用上下兄弟分层并归类到工程手段。',
-    relatedRecordId: "2026-06-04-duo-dai-li-she-ji",
+    relatedRecordIds: ["2026-06-04-duo-dai-li-she-ji"],
     completed: true,
   },
   {
@@ -1076,7 +1205,7 @@ export const reviewTasks: ReviewTask[] = [
     estimate: "15 min",
     description:
       '5 题含跨章节：① 多代理 vs 微服务三大差异（通信/调度/错误）② 用 LangGraph 描述协同过滤 fan-out/fan-in 实现（State/Node/Edge 设计）③ "主动选择"视角下多代理的设计哲学（补痛点驱动的盲点）④ 误用多代理的 3 个坏后果 ⑤ "tool 子集划分"必须答出（D2 遗留）。',
-    relatedRecordId: "2026-06-11-duo-dai-li-d7",
+    relatedRecordIds: ["2026-06-04-duo-dai-li-she-ji"],
     completed: true,
   },
   {
@@ -1088,7 +1217,7 @@ export const reviewTasks: ReviewTask[] = [
     estimate: "20 min",
     description:
       '综合题：用今天学的多代理思维重新审视一个以前用 LangGraph 写过的项目，回答"如果重做会用哪种模式 + 为什么"，并把这一章和 Planning Design / 可信赖 Agent 缝合在一起。D30 追击：① 多代理 vs 微服务三维度精准表达 ② "错误源放大"肌肉记忆 ③ 误用三后果口诀"开销·扩散·调试"。',
-    relatedRecordId: "2026-06-11-duo-dai-li-d7",
+    relatedRecordIds: ["2026-06-04-duo-dai-li-she-ji"],
   },
   {
     id: "planning-trustworthy-d30",
@@ -1099,6 +1228,7 @@ export const reviewTasks: ReviewTask[] = [
     estimate: "20 min",
     description:
       '综合压测含安全边界场景追击。重点：① 给 3-5 个新场景判断三档安全边界（D7 b/c 判反的追击）② Plan 六字段闭卷默写 + 举例 ③ 五威胁闭卷 + "越权"不被替代 ④ 跨章节：用依赖关系 + 安全边界 + checkpoint 设计一个完整执行计划。',
-    relatedRecordId: "2026-06-10-planning-design-d7-tuili-d60",
+    relatedRecordIds: ["2026-06-03-planning-design", "2026-06-02-trustworthy-agent"],
   },
 ];
+
