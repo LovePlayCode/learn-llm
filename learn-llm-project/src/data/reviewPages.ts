@@ -8,6 +8,7 @@ import Review20260606DuoDaiLiD2 from "../review-pages/Review20260606DuoDaiLiD2";
 import Review20260610PlanningDesignD7TuiLi from "../review-pages/Review20260610PlanningDesignD7TuiLi";
 import Review20260611DuoDaiLiD7 from "../review-pages/Review20260611DuoDaiLiD7";
 import Review20260613HuanCunContextD30 from "../review-pages/Review20260613HuanCunContextD30";
+import Review20260623RlhfPianXiangZiXinD30 from "../review-pages/Review20260623RlhfPianXiangZiXinD30";
 
 export interface ReviewPage {
   id: string;
@@ -92,6 +93,14 @@ export const reviewPages: ReviewPage[] = [
     shortTitle: "缓存 + 上下文管理 D30 · 进入长期记忆",
     sourceFile: "复习/2026-06-13-缓存+ClaudeCode上下文管理D30.html",
     Component: Review20260613HuanCunContextD30,
+  },
+  {
+    id: "review-2026-06-23-rlhf-pian-xiang-zi-xin-d30",
+    date: "2026-06-23",
+    title: "2026-06-23 · RLHF 偏向自信 D30 综合压测",
+    shortTitle: "RLHF 偏向自信 D30 · 通过",
+    sourceFile: "复习/2026-06-23-RLHF偏向自信D30.html",
+    Component: Review20260623RlhfPianXiangZiXinD30,
   },
 ];
 
