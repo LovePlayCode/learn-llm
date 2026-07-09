@@ -104,9 +104,15 @@ function App() {
   const selectedRecords = reviewRecords.filter((record) => record.date === selectedDate)
   const selectedLearningRecords = selectedRecords.filter(isLearningRecord)
   const selectedReviewRecords = selectedRecords.filter((record) => !isLearningRecord(record))
-  const selectedTasks = reviewTasks.filter((task) => task.dueDate === selectedDate)
+  const selectedTasks = reviewTasks.filter((task) =>
+    task.dueDate === selectedDate ||
+    (selectedDate >= today && task.dueDate < today && !task.completed)
+  )
   const selectedPage = reviewPages.find((page) => page.id === selectedPageId) ?? null
-  const todayTasks = reviewTasks.filter((task) => task.dueDate === today)
+  const todayTasks = reviewTasks.filter((task) =>
+    task.dueDate === today ||
+    (task.dueDate < today && !task.completed)
+  )
   const allTodayCompleted = todayTasks.length > 0 && todayTasks.every(t => t.completed)
   const isViewingOtherDate = selectedDate !== today
 

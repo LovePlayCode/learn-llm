@@ -1175,6 +1175,453 @@ TCC：checkpoint = Controllable 的儿子`,
       ],
     },
   },
+  {
+    id: "2026-07-01-yuan-ren-zhi-d7-sheng-chan-d2",
+    date: "2026-07-01",
+    time: "复习",
+    title: "元认知 D2+D7 通过 + 生产环境 D2 通过",
+    subtitle: "三轮连通 · 改策略不只改答案 · 动态觉察vs固定checkpoint",
+    sourceFile: "复习/2026-07-01-元认知D7+生产环境D2.html",
+    summary:
+      "元认知从 D2 基础验证到 D7 跨章节综合一次性打通，生产环境 D2 三题全过。核心焊点：改策略不只改答案、战术vs战略级思考、协调层审视协作策略、动态觉察切短N、成本三策略串联。",
+    detail: {
+      lead: "今天三轮连通，最大收获不是具体知识点，而是把元认知和之前学的多代理、错误累积全部缝到了一起——知识网络越密，提取越快。",
+      stats: [
+        { value: "11", label: "总题量" },
+        { value: "3", label: "复习轮次" },
+        { value: "3", label: "跨章节连接" },
+        { value: "✓", label: "全部通过" },
+      ],
+      keyPoints: [
+        {
+          label: "元认知 / D2",
+          title: "改策略不只改答案",
+          body: '普通纠错改答案（换酒店X→Y），元认知改策略（"选最便宜"→"选最高评分"）。LLM无状态缺三样：决策历史存储、评估机制、策略切换逻辑。',
+        },
+        {
+          label: "元认知 / D7",
+          title: "战术vs战略级思考",
+          body: "ReAct 思考是战术级（下一步做什么），加 Reflection 升级为战略级（我的做法本身对不对）。协调层元认知审视的是协作策略，不是个体输出。",
+        },
+        {
+          label: "跨章节 / D7",
+          title: "动态觉察 vs 固定 checkpoint",
+          body: "元认知在错误刚发生时主动阻断传播链（早发现早止损）。checkpoint在固定位置插暂停点。两者配合：元认知是主动刹车，checkpoint是安全网。",
+        },
+        {
+          label: "生产环境 / D2",
+          title: "成本三策略串联",
+          body: "缓存做围栏（拦截重复）→ 路由做分发（判断复杂度）→ 小模型做兜底（简单不浪费大模型）。不是三选一，是依次串联。",
+        },
+      ],
+      map: `元认知 D7 跨章节连接图：
+
+元认知（改策略）
+    ├── × 多代理 → 协调层审视协作策略
+    ├── × 错误累积 → 动态觉察切短 N（主动刹车）
+    └── × checkpoint → 配合使用（觉察+兜底）
+
+生产环境三支柱：
+  可观测性（Trace/Span树形） · 评估（闭环五步） · 成本（串联三策略）`,
+      sections: [
+        {
+          title: "Over-Reflection 判断口诀",
+          body: "不该反思：简单任务/熟悉任务常规小错。该反思：连续失败/新领域首次失败/用户反复不满意。核心：错的是答案还是策略本身？",
+        },
+        {
+          title: "评估迭代闭环",
+          body: "离线测试 → 部署上线 → 在线收集真实 case → 回流离线测试集 → 优化 → 重复。离线还可嵌入 CI/CD 防回归。",
+        },
+        {
+          title: "Trace/Span 树形结构",
+          body: "Trace = 完整任务生命周期。Span = 单步骤，关键特性：Span 可嵌套子 Span。多代理场景下树更深更宽。",
+        },
+      ],
+      blindspots: [
+        {
+          title: "改策略意识滑回纠错",
+          body: '两次差点从元认知滑回纠错思维（描述成"改决策"而非"改策略"）。需肌肉记忆化。',
+        },
+        {
+          title: "协调层 vs 质检混淆",
+          body: "首答把协调层元认知描述成检查输出对不对——这是质检。元认知审视的是任务分配、协作模式、Agent选择。",
+        },
+        {
+          title: "Over-Reflection 场景C误判",
+          body: "新类型任务首次失败应该反思策略，首答判为不需反思。",
+        },
+      ],
+      highlights: [
+        {
+          title: "无状态性秒出",
+          body: "LLM无状态的关键词零延迟提取，说明D2间隔期知识没有退化。",
+        },
+        {
+          title: "纠正型vs先发式类比精准",
+          body: "考试翻书 vs 考前放公式表——类比精准且好记。",
+        },
+        {
+          title: "成本三策略串联逻辑清晰",
+          body: "不仅说出顺序，还展开了每一层的决策逻辑：命中返回，未命中路由判断复杂度分发。",
+        },
+      ],
+      report: [
+        {
+          title: "A 层 · 通过",
+          items: [
+            "元认知 vs 纠错（改策略不只改答案）",
+            "LLM 无状态 → 三缺失（历史/评估/切换）",
+            "ReAct vs ReAct+Reflection（战术vs战略）",
+            "元认知 × 错误累积 = 动态觉察切短N",
+            "成本三策略串联（缓存→路由→小模型）",
+            "评估迭代闭环流转",
+          ],
+        },
+        {
+          title: "需 D30 追击",
+          items: [
+            "改策略意识肌肉记忆化（勿滑回纠错）",
+            "协调层元认知 vs 质检的精确区分",
+            "Over-Reflection 判断标准（新领域首次失败=该反思）",
+            "可观测性四大价值完整列举",
+          ],
+          tone: "warn",
+        },
+        {
+          title: "横向连接",
+          items: [
+            "元认知 × 多代理（协调层审视协作策略）",
+            "元认知 × 错误累积（动态觉察 vs 固定checkpoint）",
+            "成本缓存 × 之前的缓存三兄弟体系",
+            "可观测性 × TCC Transparent",
+          ],
+        },
+      ],
+      tags: [
+        "元认知",
+        "Metacognition",
+        "ReAct",
+        "Reflection",
+        "战术vs战略",
+        "协调层",
+        "Over-Reflection",
+        "错误累积",
+        "动态觉察",
+        "checkpoint",
+        "Trace/Span",
+        "评估闭环",
+        "成本三策略",
+        "D2",
+        "D7",
+      ],
+    },
+  },
+  {
+    id: "2026-07-02-sheng-chan-huan-jing-d7",
+    date: "2026-07-02",
+    time: "复习 D7",
+    title: "生产环境可观测性与评估 D7",
+    subtitle: "跨章节五题通过 · 分层钥匙秒响 · 视角自我修正",
+    sourceFile: "复习/2026-07-02-生产环境D7.html",
+    summary:
+      "五题跨章节综合压测通过。可观测性四大价值引导后补全，评估闭环×错误累积分清，缓存围栏 vs 三兄弟视角切换精彩，TCC Transparent 分层秒答。",
+    detail: {
+      lead: "D7 核心验证跨章节连接能力。最大亮点：缓存视角的自我修正和 TCC 分层钥匙零犹豫秒响。最大暴露：checkpoint 和评估闭环首轮混淆。",
+      stats: [
+        { value: "5", label: "总题量" },
+        { value: "5", label: "通过" },
+        { value: "3", label: "跨章节关联题" },
+        { value: "2", label: "自我修正" },
+      ],
+      keyPoints: [
+        {
+          label: "价值维度",
+          title: "可观测性四大价值",
+          body: "排查定位 / 成本管理 / 持续改进（迭代闭环）/ 安全合规审计。前三个首轮答出，安全合规引导后补出。",
+        },
+        {
+          label: "跨章节",
+          title: "评估闭环 × 错误累积",
+          body: "路径 A：评估迭代提高 p（优化 Prompt/Tool）。路径 B：在线监控定位薄弱步后加 checkpoint 切短 N。可观测性是两者的前提。",
+        },
+        {
+          label: "视角切换",
+          title: "缓存围栏 vs 三兄弟",
+          body: "同一件事不同视角：三兄弟回答「怎么命中」（机制分类），围栏回答「放在哪/干什么」（架构角色）。从「上下层」修正到此。",
+        },
+        {
+          label: "秒答",
+          title: "TCC Transparent × 可观测性",
+          body: "Transparent 是理念目标（看得见），可观测性是实现它的工程手段。分层钥匙零犹豫自动启动。",
+        },
+      ],
+      map: `可观测性四大价值：
+  排查定位 · 成本管理 · 持续改进 · 安全合规
+
+评估闭环 × 错误累积 1-p^N：
+  路径A：迭代优化 → 提高 p
+  路径B：监控定位 → 加 checkpoint → 切短 N
+  前提：可观测性（不知道哪步出错就无法动刀）
+
+TCC Transparent 分层：
+  理念目标 → 工程手段 → 底层工具
+  Transparent → 可观测性 → OTel/Trace/Span`,
+      sections: [
+        {
+          title: "Checkpoint vs 评估闭环的本质区别",
+          body: "Checkpoint = 运行时即时拦截，当场重试（Controllable 的儿子）。评估闭环 = 跨时间迭代改进，发现问题→优化→重新部署。一个是秒级，一个是天/周级。",
+        },
+        {
+          title: "缓存两个切面",
+          body: "机制切面（三兄弟）：精确=字符匹配 / 语义=向量匹配 / 提示词=前缀匹配省 attention。架构切面（围栏）：成本三策略串联中的第一道防线。",
+        },
+        {
+          title: "多代理 Trace 变化",
+          body: "单 Agent 树浅窄（2-3 层），多代理树更深更宽（Controller 下挂多个 Agent Span，每个 Agent 内部再嵌套工具 Span）。一个用户任务仍是一个 Trace。",
+        },
+      ],
+      blindspots: [
+        {
+          title: "四大价值未首轮分格子",
+          body: '"debug"和"及时发现问题"撞车（本质是同一维度的两面），安全合规审计需引导。四个格子在脑中尚未形成独立提取通道。',
+        },
+        {
+          title: "Checkpoint vs 评估闭环首轮混淆",
+          body: '把"固定节点检查+重试"说成评估闭环。核心区别：运行时即时 vs 跨时间迭代。引导后分清。',
+        },
+        {
+          title: "多代理 Trace 未画图",
+          body: '"更深更宽"方向对但没画 ASCII 图。D30 追击可视化表达。',
+        },
+      ],
+      highlights: [
+        {
+          title: "缓存视角自我修正",
+          body: '从"上下层关系"修正到"同一事件不同视角"——自主质疑并推翻第一版答案，展示好的元认知。',
+        },
+        {
+          title: "TCC 分层钥匙秒响",
+          body: '零犹豫答出"Transparent 是理念目标，可观测性是工程手段"。上下兄弟工具已成肌肉记忆。',
+        },
+        {
+          title: "评估闭环双路径完整",
+          body: '修正后同时答出"提高 p"和"定位后切短 N"两条路径，且点明可观测性是前提。逻辑闭合。',
+        },
+      ],
+      report: [
+        {
+          title: "A 层 · 通过",
+          items: [
+            "可观测性四大价值（排查/成本/迭代/合规）",
+            "多代理 Trace 更深更宽",
+            "评估闭环 × 错误累积（提高 p + 切短 N）",
+            "缓存围栏 vs 三兄弟（同一事件不同视角）",
+            "TCC Transparent = 理念，可观测性 = 工程手段",
+          ],
+        },
+        {
+          title: "需 D30 追击",
+          items: [
+            "四大价值首轮分格子答出（不撞车）",
+            "Checkpoint vs 评估闭环不混淆",
+            "多代理 Trace 画 ASCII 图",
+          ],
+          tone: "warn",
+        },
+        {
+          title: "横向连接",
+          items: [
+            "评估闭环 × 错误累积 1-p^N",
+            "缓存围栏 × 缓存三兄弟体系",
+            "可观测性 × TCC Transparent",
+            "多代理 × Trace/Span 树形层级",
+          ],
+        },
+      ],
+      tags: [
+        "生产环境",
+        "可观测性",
+        "Trace/Span",
+        "评估闭环",
+        "错误累积",
+        "缓存三兄弟",
+        "缓存围栏",
+        "TCC",
+        "Transparent",
+        "多代理",
+        "D7",
+        "跨章节",
+      ],
+    },
+  },
+  {
+    id: "2026-07-07-planning-trustworthy-duo-dai-li-d30",
+    date: "2026-07-07",
+    time: "复习 D30 · 三章合并毕业",
+    title: "Planning Design + 可信赖 Agent + 多代理 D30 三章合并毕业",
+    subtitle: "东京自由行单场景一次性焊死六件套 · 学习者主动 push back 老师",
+    sourceFile: "复习/2026-07-07-PlanningDesign+可信赖Agent+多代理D30.html",
+    summary:
+      "以东京 5 天自由行多代理规划系统作单一场景，把 Plan 六字段、五威胁、三档安全边界、多代理切短+隔离、Checkpoint、依赖图六件套一次性焊死。五道大题全通过，学习者主动识破老师依赖图画错的地方，是今天最漂亮的一击。",
+    detail: {
+      lead: "三章 D30 合并压测：Plan 六字段、五威胁、三档安全边界、多代理切短+隔离、依赖图 + Checkpoint。最大亮点是学习者主动 push back 老师错画的依赖图，最大暴露是抽象层能答但落地层易退回纯串行。",
+      stats: [
+        { value: "5", label: "大题" },
+        { value: "5", label: "通过" },
+        { value: "3", label: "章节缝合" },
+        { value: "3", label: "D7 追击焊死" },
+      ],
+      keyPoints: [
+        {
+          label: "钥匙 / 缝合",
+          title: "依赖图=时间 · 安全边界=权限 · Checkpoint=错误",
+          body: "三章 D30 缝合成三维钥匙：依赖图管执行顺序，安全边界管每个动作的权限档位，Checkpoint 管错误被切断的位置。缺一失控。",
+        },
+        {
+          label: "错误累积双武器",
+          title: "切短 + 隔离",
+          body: "学习者原话打字答出：切短是将长链路的 N 切成小段 K，隔离是将上下文隔离，Agent A 的上下文不会污染 Agent B。含变量名，直接可上黑板。",
+        },
+        {
+          label: "五威胁分层",
+          title: "输入 2 · 推理 1 · 输出 2 = 2+1+2 = 5",
+          body: "输入侧（注入 + 投毒）、推理侧（幻觉）、输出/行为侧（越权 + 过度代理）。独立答出 3/5，提示后答出 2/5。",
+        },
+        {
+          label: "判反有洞察",
+          title: "幻觉 ≠ 越权",
+          body: "2 句话反驳：幻觉是说错话（信息层），越权是对环境作出实际影响（行为层）；强模型幻觉少但配了多个工具仍可能越权（反例一击）。",
+        },
+        {
+          label: "联手作案",
+          title: "Prompt Injection × 越权",
+          body: "提示注入是入口威胁（让 Agent 上当），越权是后果威胁（让上当变成实际损失）。两个必须都在场，攻击才成立。防御必须两条线都设。",
+        },
+        {
+          label: "Agent 边界原则",
+          title: "一个技能栈 · 一个权限面 · 一个失败域",
+          body: '"每个 Agent 一个技能栈、一个权限面、一个失败域" —— 这句话锁死后，所有"这个功能该不该塞进这个 Agent"的问题都能秒答。',
+        },
+      ],
+      map: `东京 5 天自由行 · 多代理执行计划（修正后）
+
+第 1 步：主管 Agent
+           │  理解意图 · 拆解任务 · 分配预算
+           ▼
+第 2 步 (并行)：机票 Agent    酒店 Agent
+           │                   │
+           └────── join ───────┘   🎯 CP2 汇合校验
+                     │             （时间匹配 · 预算总和 · 冲突检测）
+                     ▼
+第 3 步：行程 Agent   （必须等机票时间+酒店位置）
+                     │
+第 4 步：餐饮 Agent   （必须等行程输出——每天在哪个区域）
+                     │
+第 5 步：主管汇总 → 用户 Review (CP4)
+
+关键：并行只发生在"机票+酒店"这一层；
+      行程和餐饮是串行的（餐饮依赖行程输出）。`,
+      sections: [
+        {
+          title: "Plan 六字段落地 · 预订 Agent 施工蓝图",
+          body: "目标：根据预算/日期/偏好预订机票和酒店。任务：搜→筛→选→付。依赖：预算配额、日期、偏好、用户身份。工具：查询类 flight_search_api/hotel_search_api + 执行类 booking_api/payment_api。验收：业务层(符合约束)+技术层(订单号/支付成功)+可信赖层(日志/可追溯/可回滚)。Checkpoint：支付前用户确认 + 预订后 review。",
+        },
+        {
+          title: "三档安全边界 · 三维度判据",
+          body: "档位判定靠三维度组合：副作用范围（无/仅内部/外部或敏感）× 可逆性（可逆/部分可逆/不可逆）× 金钱影响（无/有）。5 题场景 4/5 秒答，'给用户自己发邮件'首轮过度保守判档②，用三维度矩阵后修正为档①。金额小陷阱一次跳过，D7 追击焊死。",
+        },
+        {
+          title: "多代理 vs 微服务三维度",
+          body: "通信：结构化 vs 自然语言。调度：静态 API 编排 vs LLM 动态决策。错误：局部化 vs 顺着自然语言被下游 Agent 当真、传播放大。三个锁词一辈子记牢。",
+        },
+        {
+          title: "依赖图修正 · 学习者 push back",
+          body: "老师第一版画的依赖图把'行程+餐饮'放并行，学习者一句'行程和餐饮可以并行吗？应该会有依赖吧'直接指出问题——餐饮依赖行程输出（每天在哪个区域）。修正后的图：主管→(机票 || 酒店 汇合 CP2)→行程→餐饮→用户 Review。",
+        },
+      ],
+      blindspots: [
+        {
+          title: "抽象层能答但落地层易退回纯串行",
+          body: "Q1(a) 秒答 Hierarchical，Q5(a) 画图时却退回主管→机票+酒店→行程→餐饮的纯串行，漏了 fan-out。下次画图前先问自己：这个层里有兄弟节点吗？",
+        },
+        {
+          title: "Plan 六字段首轮串层",
+          body: "第一版预订 Agent 的目标写成了整个自由行的目标，任务混进了行程/餐饮。分层意识落地层还有小失灵，需要每次填表前提醒自己：这是员工 Agent 的 Plan，不是主管的。",
+        },
+        {
+          title: "过度保守判档②",
+          body: "给用户自己发邮件被判成档②，说明还没内化'确认不是免费的'。需要建立'档① 是默认，只有金钱/敏感/破坏才升档'的直觉。",
+        },
+        {
+          title: "'约束不遵守'误判为幻觉",
+          body: "Q4(c) 首选把幻觉当预订 Agent 头号威胁，理由是'可能订到超预算酒店'。这其实是 Plan 验收失灵，不是幻觉（编造事实）。术语归位差一步。",
+        },
+      ],
+      highlights: [
+        {
+          title: "主动 push back 老师的图",
+          body: "'行程和餐饮可以并行吗？应该会有依赖吧' —— 学习者独立识破老师画错的地方，是今天最漂亮的一击。分层意识不仅立起来了，还能反向审查权威答案。",
+        },
+        {
+          title: "切短+隔离一次到位",
+          body: "用完整句式'切短是将长链路的 N 切成小段 K，隔离是将上下文隔离'打出机制。变量名 N/K 都在，污染动词也在，这句可以直接抄进复习卡片。",
+        },
+        {
+          title: "2 句话反驳判反题",
+          body: "'幻觉是说错话，越权是对环境作出实际影响'+'强模型幻觉少，工具多仍可能越权' —— D30 该有的言简意赅穿透力。",
+        },
+        {
+          title: "金额小陷阱一次跳过",
+          body: "200 元订金的诱饵没骗到，理由直接调用了 Q2 埋下的判据'金额操作是敏感操作'。D7 追击焊死。",
+        },
+        {
+          title: "Checkpoint 自动缝合可信赖 Agent",
+          body: "Plan 六字段的 Checkpoint 位置答出'支付前用户确认 + 预订后 review'，同时踩到三档安全边界的档②。跨章节缝合能力到位。",
+        },
+      ],
+      report: [
+        {
+          title: "A 层 · 通过",
+          items: [
+            "Plan 六字段：目标·任务·依赖·工具·验收标准·Checkpoint",
+            "五威胁：注入·投毒·幻觉·越权·过度代理",
+            "三档安全边界 & 三维度判据",
+            "多代理'切短+隔离'双武器 · 多代理 vs 微服务三维度",
+          ],
+        },
+        {
+          title: "B 层 · 跨章节缝合",
+          items: [
+            "Prompt Injection × 越权联手作案机制",
+            "依赖图 + 安全边界 + Checkpoint 三维缝合（时间·权限·错误）",
+            "Checkpoint × 可信赖 Agent 档② 自动踩点",
+          ],
+        },
+        {
+          title: "需 D30+ 追击",
+          items: [
+            "落地层不退回纯串行 · 画图前主动找 fan-out",
+            "档① 是默认档 · 别过度保守",
+            "'约束不遵守' ≠ 幻觉 · Plan 验收失灵是独立维度",
+          ],
+          tone: "warn",
+        },
+      ],
+      tags: [
+        "Planning Design",
+        "可信赖 Agent",
+        "多代理",
+        "Plan 六字段",
+        "五威胁",
+        "三档安全边界",
+        "切短+隔离",
+        "Checkpoint",
+        "依赖图",
+        "D30 毕业",
+        "跨章节缝合",
+      ],
+    },
+  },
 ];
 
 export const reviewTasks: ReviewTask[] = [
@@ -1278,7 +1725,7 @@ export const reviewTasks: ReviewTask[] = [
     type: "scheduled",
     estimate: "15 min",
     description:
-      "检查 RLHF 为什么会强化“看起来很确定”的表达，以及如何识别幻觉风险。",
+      '检查 RLHF 为什么会强化"看起来很确定"的表达，以及如何识别幻觉风险。',
     relatedRecordIds: ["2026-06-23-rlhf-pian-xiang-zi-xin-d30"],
     completed: true,
   },
@@ -1290,7 +1737,7 @@ export const reviewTasks: ReviewTask[] = [
     type: "scheduled",
     estimate: "20 min",
     description:
-      "含 checkpoint 工程场景题：用“线性 vs 指数”钥匙审视未知新方案。",
+      '含 checkpoint 工程场景题：用"线性 vs 指数"钥匙审视未知新方案。',
     relatedRecordIds: ["2026-05-31-error-accumulation-tcc-linear-exponential"],
   },
   {
@@ -1337,6 +1784,7 @@ export const reviewTasks: ReviewTask[] = [
     description:
       '综合题：用今天学的多代理思维重新审视一个以前用 LangGraph 写过的项目，回答"如果重做会用哪种模式 + 为什么"，并把这一章和 Planning Design / 可信赖 Agent 缝合在一起。D30 追击：① 多代理 vs 微服务三维度精准表达 ② "错误源放大"肌肉记忆 ③ 误用三后果口诀"开销·扩散·调试"。',
     relatedRecordIds: ["2026-06-04-duo-dai-li-she-ji"],
+    completed: true,
   },
   {
     id: "planning-trustworthy-d30",
@@ -1348,6 +1796,93 @@ export const reviewTasks: ReviewTask[] = [
     description:
       '综合压测含安全边界场景追击。重点：① 给 3-5 个新场景判断三档安全边界（D7 b/c 判反的追击）② Plan 六字段闭卷默写 + 举例 ③ 五威胁闭卷 + "越权"不被替代 ④ 跨章节：用依赖关系 + 安全边界 + checkpoint 设计一个完整执行计划。',
     relatedRecordIds: ["2026-06-03-planning-design", "2026-06-02-trustworthy-agent"],
+    completed: true,
+  },
+  {
+    id: "planning-trustworthy-duo-dai-li-q3-review",
+    dueDate: "2026-10-07",
+    title: "Planning + 可信赖 + 多代理 · 季度综合回访",
+    stage: "季度回访",
+    type: "scheduled",
+    estimate: "30 min",
+    description:
+      '三章 D30 已全部毕业，进入长期存档。以一个全新场景（如"多代理客服系统"或"多代理代码审查系统"）重新压测三章缝合能力。重点追击 2026-07-07 标红的三个 D30+ 追击点：① 落地层不退回纯串行·画图前主动找 fan-out ② 档① 是默认档·别过度保守 ③ "约束不遵守" ≠ 幻觉·Plan 验收失灵是独立维度。',
+    relatedRecordIds: [
+      "2026-06-03-planning-design",
+      "2026-06-02-trustworthy-agent",
+      "2026-06-04-duo-dai-li-she-ji",
+      "2026-07-07-planning-trustworthy-duo-dai-li-d30",
+    ],
+  },
+  {
+    id: "yuan-ren-zhi-d2",
+    dueDate: "2026-06-26",
+    title: "元认知 Metacognition D2",
+    stage: "D2",
+    type: "scheduled",
+    estimate: "10 min",
+    description:
+      '3题闭卷：① 元认知 vs 纠错的本质区别（必须答出"改策略不只改答案"）② LLM 为什么不能独立实现元认知（必须答出"无状态性"）③ 纠正型 RAG vs 先发式加载的触发时机和触发条件。',
+    relatedRecordIds: ["2026-06-24-yuan-ren-zhi"],
+    completed: true,
+  },
+  {
+    id: "yuan-ren-zhi-d7",
+    dueDate: "2026-07-01",
+    title: "元认知 Metacognition D7 跨章节综合",
+    stage: "D7",
+    type: "scheduled",
+    estimate: "15 min",
+    description:
+      '5题含跨章节关联：① 酒店 Agent 元认知三步流程默写 ② Over-Reflection 判断标准（给3个场景判断该不该反思）③ ReAct vs ReAct+Reflection 的差异用一句话说清 ④ 元认知 × 多代理：多代理系统中元认知应该放在哪一层？⑤ 元认知 × 错误累积：元认知如何帮助切短 N？',
+    relatedRecordIds: ["2026-06-24-yuan-ren-zhi"],
+    completed: true,
+  },
+  {
+    id: "yuan-ren-zhi-d30",
+    dueDate: "2026-07-24",
+    title: "元认知 Metacognition D30 综合应用",
+    stage: "D30",
+    type: "scheduled",
+    estimate: "20 min",
+    description:
+      '综合压测：① 给一个新 Agent 场景，设计元认知模块（包含何时触发反思、反思什么、如何调整策略）② 跨章节缝合：元认知 × 可信赖Agent × 错误累积——元认知如何提升 Agent 的可信赖性？③ 实际项目回顾：你的 ReAct Agent 加了 Reflection 后效果如何？',
+    relatedRecordIds: ["2026-06-24-yuan-ren-zhi"],
+  },
+  {
+    id: "sheng-chan-huan-jing-d2",
+    dueDate: "2026-06-27",
+    title: "生产环境可观测性与评估 D2",
+    stage: "D2",
+    type: "scheduled",
+    estimate: "10 min",
+    description:
+      '3题闭卷：① Trace/Span 的定义与树形结构关系（必须答出"Span可嵌套子Span"）② 在线/离线评估的区别及迭代闭环五步 ③ 成本三策略串联顺序与各自角色（缓存围栏→路由分发→小模型兜底）',
+    relatedRecordIds: ["2026-06-25-sheng-chan-huan-jing"],
+    completed: true,
+  },
+  {
+    id: "sheng-chan-huan-jing-d7",
+    dueDate: "2026-07-02",
+    title: "生产环境可观测性与评估 D7 跨章节综合",
+    stage: "D7",
+    type: "scheduled",
+    estimate: "15 min",
+    description:
+      '5题含跨章节：① 可观测性四大价值完整列举 ② 多代理系统中 Trace/Span 的树形结构如何变化 ③ 评估闭环 × 错误累积：评估如何帮助切短 N ④ 成本缓存 × 之前学的缓存三兄弟对比 ⑤ 可观测性 × TCC Transparent 的关联',
+    relatedRecordIds: ["2026-06-25-sheng-chan-huan-jing"],
+    completed: true,
+  },
+  {
+    id: "sheng-chan-huan-jing-d30",
+    dueDate: "2026-07-25",
+    title: "生产环境可观测性与评估 D30 综合应用",
+    stage: "D30",
+    type: "scheduled",
+    estimate: "20 min",
+    description:
+      '综合压测：给一个新 Agent 场景（如客服多代理系统），设计完整的：① 可观测性方案（Trace/Span 结构设计 + 关键指标选择）② 评估体系（离线测试集设计 + 在线监控指标 + 闭环流程）③ 成本管理方案（三策略如何串联应用）。跨章节缝合：与多代理、可信赖Agent、错误累积的连接。',
+    relatedRecordIds: ["2026-06-25-sheng-chan-huan-jing"],
   },
 ];
 

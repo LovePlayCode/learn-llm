@@ -9,6 +9,12 @@ import Review20260610PlanningDesignD7TuiLi from "../review-pages/Review20260610P
 import Review20260611DuoDaiLiD7 from "../review-pages/Review20260611DuoDaiLiD7";
 import Review20260613HuanCunContextD30 from "../review-pages/Review20260613HuanCunContextD30";
 import Review20260623RlhfPianXiangZiXinD30 from "../review-pages/Review20260623RlhfPianXiangZiXinD30";
+import Review20260624YuanRenZhi from "../review-pages/Review20260624YuanRenZhi";
+import Review20260625ShengChanHuanJing from "../review-pages/Review20260625ShengChanHuanJing";
+import Review20260701YuanRenZhiD7ShengChanD2 from "../review-pages/Review20260701YuanRenZhiD7ShengChanD2";
+import Review20260702ShengChanHuanJingD7 from "../review-pages/Review20260702ShengChanHuanJingD7";
+import Review20260707PlanningTrustworthyDuoDaiLiD30 from "../review-pages/Review20260707PlanningTrustworthyDuoDaiLiD30";
+import Review20260707PlanningTrustworthyDuoDaiLiD30 from "../review-pages/Review20260707PlanningTrustworthyDuoDaiLiD30";
 
 export interface ReviewPage {
   id: string;
@@ -101,6 +107,46 @@ export const reviewPages: ReviewPage[] = [
     shortTitle: "RLHF 偏向自信 D30 · 通过",
     sourceFile: "复习/2026-06-23-RLHF偏向自信D30.html",
     Component: Review20260623RlhfPianXiangZiXinD30,
+  },
+  {
+    id: "review-2026-06-24-yuan-ren-zhi",
+    date: "2026-06-24",
+    title: "2026-06-24 · 元认知 Metacognition 初学",
+    shortTitle: "元认知 Metacognition 初学",
+    sourceFile: "learn/2026-06-24-元认知Metacognition.html",
+    Component: Review20260624YuanRenZhi,
+  },
+  {
+    id: "review-2026-06-25-sheng-chan-huan-jing",
+    date: "2026-06-25",
+    title: "2026-06-25 · 生产环境 AI 代理：可观测性与评估 初学",
+    shortTitle: "生产环境可观测性与评估 初学",
+    sourceFile: "learn/2026-06-25-生产环境AI代理可观测性与评估.html",
+    Component: Review20260625ShengChanHuanJing,
+  },
+  {
+    id: "review-2026-07-01-yuan-ren-zhi-d7-sheng-chan-d2",
+    date: "2026-07-01",
+    title: "2026-07-01 · 元认知 D2+D7 通过 + 生产环境 D2 通过",
+    shortTitle: "元认知 D7 + 生产环境 D2 · 三轮连通",
+    sourceFile: "复习/2026-07-01-元认知D7+生产环境D2.html",
+    Component: Review20260701YuanRenZhiD7ShengChanD2,
+  },
+  {
+    id: "review-2026-07-02-sheng-chan-huan-jing-d7",
+    date: "2026-07-02",
+    title: "2026-07-02 · 生产环境可观测性与评估 D7 跨章节综合",
+    shortTitle: "生产环境 D7 · 跨章节综合",
+    sourceFile: "复习/2026-07-02-生产环境D7.html",
+    Component: Review20260702ShengChanHuanJingD7,
+  },
+  {
+    id: "review-2026-07-07-planning-trustworthy-duo-dai-li-d30",
+    date: "2026-07-07",
+    title: "2026-07-07 · Planning Design + 可信赖 Agent + 多代理 D30 三章合并毕业",
+    shortTitle: "Planning + 可信赖 + 多代理 D30 · 三章合并毕业",
+    sourceFile: "复习/2026-07-07-PlanningDesign+可信赖Agent+多代理D30.html",
+    Component: Review20260707PlanningTrustworthyDuoDaiLiD30,
   },
 ];
 
