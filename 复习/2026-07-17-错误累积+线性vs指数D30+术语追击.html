@@ -1,0 +1,633 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1.0" />
+<title>2026-07-17 · 错误累积 + 线性 vs 指数 · D30+ 术语追击</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@200;300;400;500&family=JetBrains+Mono:wght@200;300;400&display=swap" rel="stylesheet">
+<style>
+:root {
+  --silver-1: #eef0f3;
+  --silver-2: #d8dde3;
+  --silver-3: #b6bdc7;
+  --steel-1: #8a929e;
+  --steel-2: #5c6675;
+  --steel-3: #3f4754;
+  --slate-1: #2a2f38;
+  --slate-2: #1a1f28;
+  --slate-3: #0f1319;
+  --void:    #07090d;
+  --accent:  #6b89a8;
+  --accent-dim: #4a6378;
+  --warn:    #b07a5a;
+  --good:    #7a9985;
+  --gold:    #c9b687;
+  --mx: 50%;
+  --my: 50%;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+html, body {
+  background: var(--void);
+  color: var(--silver-2);
+  font-family: 'Inter', -apple-system, sans-serif;
+  font-weight: 300;
+  line-height: 1.7;
+  letter-spacing: 0.02em;
+  overflow-x: hidden;
+}
+
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  background: radial-gradient(600px circle at var(--mx) var(--my), rgba(107, 137, 168, 0.08), transparent 40%);
+  z-index: 1;
+}
+
+body::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 2;
+  opacity: 0.5;
+  mix-blend-mode: overlay;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='220' height='220'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 0.6  0 0 0 0 0.65  0 0 0 0 0.72  0 0 0 0.55 0'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>");
+}
+
+main { position: relative; z-index: 3; }
+
+.hero {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 8vh 8vw;
+  background: linear-gradient(180deg, var(--slate-3) 0%, var(--void) 100%);
+  border-bottom: 1px solid rgba(107, 137, 168, 0.12);
+}
+
+.hero .stamp {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  letter-spacing: 0.5em;
+  text-transform: uppercase;
+  color: var(--steel-1);
+  margin-bottom: 40px;
+}
+
+.hero h1 {
+  font-size: clamp(36px, 6vw, 84px);
+  font-weight: 200;
+  line-height: 1.05;
+  color: var(--silver-1);
+  letter-spacing: -0.02em;
+  margin-bottom: 32px;
+}
+.hero h1 em { font-style: normal; color: var(--accent); font-weight: 300; }
+
+.hero .lead {
+  font-size: clamp(15px, 1.6vw, 19px);
+  max-width: 720px;
+  margin-bottom: 48px;
+}
+.hero .lead em { font-style: normal; color: var(--accent); }
+.hero .lead strong { color: var(--silver-1); font-weight: 400; }
+
+.hero .stats {
+  display: flex;
+  gap: 48px;
+  flex-wrap: wrap;
+}
+.hero .stats .cell { text-align: center; }
+.hero .stats .num {
+  font-size: clamp(32px, 4vw, 56px);
+  font-weight: 200;
+  color: var(--silver-1);
+  line-height: 1;
+  margin-bottom: 8px;
+}
+.hero .stats .num.warn { color: var(--warn); }
+.hero .stats .num.acc { color: var(--accent); }
+.hero .stats .num.good { color: var(--good); }
+.hero .stats .num.gold { color: var(--gold); }
+.hero .stats .lbl {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--steel-1);
+}
+
+/* Sections */
+section.reveal {
+  padding: 8vh 8vw;
+  opacity: 0;
+  transform: translateY(30px);
+  transition: opacity 0.9s ease, transform 0.9s ease;
+}
+section.reveal.visible { opacity: 1; transform: translateY(0); }
+section.alt { background: rgba(107, 137, 168, 0.03); }
+
+.sec-num {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  letter-spacing: 0.4em;
+  text-transform: uppercase;
+  color: var(--steel-1);
+  margin-bottom: 16px;
+}
+
+.sec-title {
+  font-size: clamp(26px, 3.5vw, 48px);
+  font-weight: 200;
+  color: var(--silver-1);
+  letter-spacing: -0.01em;
+  margin-bottom: 32px;
+  line-height: 1.15;
+}
+.sec-title em { font-style: normal; color: var(--accent); font-weight: 300; }
+
+p { font-size: 15px; margin-bottom: 16px; max-width: 760px; }
+p em { font-style: normal; color: var(--accent); }
+p strong { color: var(--silver-1); font-weight: 400; }
+
+/* Cards */
+.cards { display: grid; gap: 24px; margin-top: 32px; }
+.cards.col-2 { grid-template-columns: repeat(2, 1fr); }
+.cards.col-3 { grid-template-columns: repeat(3, 1fr); }
+@media (max-width: 900px) { .cards.col-2, .cards.col-3 { grid-template-columns: 1fr; } }
+
+.card {
+  background: var(--slate-2);
+  border: 1px solid rgba(107, 137, 168, 0.12);
+  padding: 32px 28px;
+  transition: all 0.4s ease;
+}
+.card:hover {
+  transform: translateY(-3px);
+  background: var(--slate-1);
+  border-color: rgba(107, 137, 168, 0.32);
+  box-shadow: 0 24px 48px -24px rgba(0, 0, 0, 0.6);
+}
+.card .label {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--steel-1);
+  margin-bottom: 16px;
+}
+.card h3 {
+  font-size: 20px;
+  font-weight: 300;
+  color: var(--silver-1);
+  margin-bottom: 16px;
+}
+.card p { font-size: 14px; margin-bottom: 12px; }
+
+/* ASCII */
+pre.ascii {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 13px;
+  line-height: 1.65;
+  color: var(--silver-3);
+  background: var(--slate-3);
+  padding: 28px 32px;
+  border: 1px solid rgba(107, 137, 168, 0.16);
+  box-shadow: inset 0 2px 12px rgba(0, 0, 0, 0.4);
+  overflow-x: auto;
+  margin: 32px 0;
+  white-space: pre;
+}
+pre.ascii .hl { color: var(--accent); font-weight: 400; }
+pre.ascii .warn { color: var(--warn); }
+pre.ascii .good { color: var(--good); }
+pre.ascii .gold { color: var(--gold); }
+
+/* Report Grid */
+.report-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1px;
+  background: rgba(107, 137, 168, 0.12);
+  margin-top: 32px;
+}
+.report-grid .cell {
+  background: var(--slate-2);
+  padding: 28px;
+  transition: background 0.3s;
+}
+.report-grid .cell:hover { background: var(--slate-1); }
+.report-grid .cell .tag {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--accent);
+  margin-bottom: 12px;
+}
+.report-grid .cell.warn-cell .tag { color: var(--warn); }
+.report-grid .cell.gold-cell .tag { color: var(--gold); }
+.report-grid .cell h4 {
+  font-size: 16px;
+  font-weight: 400;
+  color: var(--silver-1);
+  margin-bottom: 12px;
+}
+.report-grid .cell ul { list-style: none; font-size: 13px; color: var(--silver-3); }
+.report-grid .cell ul li {
+  padding-left: 16px;
+  position: relative;
+  margin-bottom: 6px;
+}
+.report-grid .cell ul li::before {
+  content: '·';
+  position: absolute;
+  left: 0;
+  color: var(--accent);
+}
+.report-grid .cell.warn-cell ul li::before { color: var(--warn); }
+.report-grid .cell.gold-cell ul li::before { color: var(--gold); }
+@media (max-width: 720px) { .report-grid { grid-template-columns: 1fr; } }
+
+/* Timeline */
+.timeline { margin: 32px 0; }
+.timeline .row {
+  display: grid;
+  grid-template-columns: 140px 1fr;
+  gap: 32px;
+  padding: 20px 0;
+  border-bottom: 1px solid rgba(107, 137, 168, 0.08);
+}
+.timeline .ts {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 12px;
+  color: var(--accent);
+  letter-spacing: 0.05em;
+}
+.timeline .desc { color: var(--silver-3); font-size: 14px; }
+.timeline .desc strong { color: var(--silver-1); font-weight: 500; }
+.timeline .desc em { color: var(--accent); font-style: normal; }
+@media (max-width: 720px) { .timeline .row { grid-template-columns: 1fr; gap: 8px; } }
+
+/* Keyline */
+.keyline {
+  font-size: clamp(20px, 2.4vw, 30px);
+  font-weight: 200;
+  color: var(--silver-1);
+  margin: 48px 0;
+  letter-spacing: -0.01em;
+  line-height: 1.4;
+  max-width: 900px;
+}
+.keyline em { font-style: normal; color: var(--accent); font-weight: 300; }
+
+/* Blockquote */
+blockquote {
+  border-left: 2px solid var(--accent);
+  padding: 12px 24px;
+  margin: 24px 0;
+  background: rgba(107, 137, 168, 0.05);
+  font-size: 14px;
+  color: var(--silver-2);
+  font-style: italic;
+}
+
+/* Footer */
+footer {
+  padding: 60px 8vw 40px;
+  background: var(--slate-3);
+  border-top: 1px solid rgba(107, 137, 168, 0.16);
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  color: var(--steel-1);
+  letter-spacing: 0.1em;
+}
+footer .row {
+  display: flex;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 16px;
+  margin-bottom: 32px;
+}
+footer .tags { display: flex; flex-wrap: wrap; gap: 8px; }
+footer .tags span {
+  padding: 6px 12px;
+  background: var(--slate-2);
+  border: 1px solid rgba(107, 137, 168, 0.12);
+  color: var(--silver-3);
+  text-transform: uppercase;
+  font-size: 10px;
+}
+footer .tags span.gold { color: var(--gold); border-color: rgba(201, 182, 135, 0.35); }
+</style>
+</head>
+<body>
+<main>
+
+<!-- ═══════════════ HERO ═══════════════ -->
+<section class="hero">
+  <div class="stamp">REVIEW · 2026 · 07 · 17 · D30+ 术语追击 · 错误累积 + 线性 vs 指数</div>
+  <h1>三次摔倒<br>第四次<em>站起来</em></h1>
+  <p class="lead">
+    距学习日(5/28-5/31)已过 <strong>47-50 天</strong>。三题术语追击：三个生锈术语全部重焊。
+    最大亮点——<em>「动别的」这个元层级薄弱点</em>，5/31、7/9、7/17 三次摔倒，
+    今天学习者自己说出<em>「既没改 N 也没改 P」</em>站起来。线性 vs 指数钥匙跨域迁移到代码审查场景。
+  </p>
+  <div class="stats">
+    <div class="cell">
+      <div class="num acc">3</div>
+      <div class="lbl">总题量</div>
+    </div>
+    <div class="cell">
+      <div class="num good">3</div>
+      <div class="lbl">术语焊死</div>
+    </div>
+    <div class="cell">
+      <div class="num gold">1</div>
+      <div class="lbl">金光时刻</div>
+    </div>
+    <div class="cell">
+      <div class="num warn">1</div>
+      <div class="lbl">心算修复</div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════ SECTION 01 · Q1 公式 + 心算 ═══════════════ -->
+<section class="reveal">
+  <div class="sec-num">SECTION 01 ─── Q1 · 公式默写 + 心算方向感</div>
+  <h1 class="sec-title">公式<em>记住了 1−</em> · 心算首判<em>仍偏线性</em></h1>
+
+  <div class="cards col-2">
+    <div class="card">
+      <div class="label">✅ 公式精度 · 修复</div>
+      <h3>1 − p^N 不再漏 1−</h3>
+      <p>7/9 写成 <strong>p^N</strong>（漏 1−），今天闭卷直接写出 <strong>1 − p^N</strong>。从「理解层」往「肌肉层」挪了一步。</p>
+      <p>p^N 是累积<em>成功</em>率，1 − p^N 才是累积<em>错误</em>率。</p>
+    </div>
+    <div class="card">
+      <div class="label">🟡 心算方向感 · 首判反了</div>
+      <h3>0.85^12 估成「90%以上」</h3>
+      <p>实际累积错误率 ≈ <strong>86%</strong>。答「90%以上」方向对、偏高一点，比 7/9 的「50%」准太多。</p>
+      <p>但比较题首判翻车：<em>「0.85^12 更大，因为指数更大」</em>——只看指数，漏看底数。</p>
+    </div>
+  </div>
+
+  <pre class="ascii">心算比较题 · 两根杠杆：
+
+  0.85¹²   vs   0.9¹⁰
+   │              │
+   │  底数 0.85 < 0.9   ← <span class="warn">底数更小 → 结果更小（杠杆①）</span>
+   │  指数  12  >  10   ← <span class="warn">指数更大 → 结果更小（杠杆②，底数&lt;1时反向）</span>
+   │
+   └─ 两根杠杆同向压 → 0.85¹² <span class="good">双重地</span>小于 0.9¹⁰
+
+  实际值：0.85¹² ≈ <span class="warn">0.14</span>   0.9¹⁰ ≈ <span class="hl">0.35</span>
+
+  ┌────────────────┬────────────────┐
+  │  线性直觉       │  指数现实       │
+  │  指数大→结果大  │  底数&lt;1：指数大→结果小 │
+  │  （底数&gt;1 才成立）│  （加 vs 乘）  │
+  └────────────────┴────────────────┘</pre>
+
+  <blockquote>
+    学习者修正后原话：「底数小于 1 时，指数越大，最后的数值越少。」——方向感红点重焊。
+  </blockquote>
+</section>
+
+<!-- ═══════════════ SECTION 02 · Q2 三术语焊死 ⭐ ═══════════════ -->
+<section class="alt reveal">
+  <div class="sec-num">SECTION 02 ─── Q2 · 三术语一字不差 · ⭐ 元层级焊死</div>
+  <h1 class="sec-title">「动别的」三次摔倒<br>第四次<em>自己站起来</em></h1>
+
+  <p class="keyline">
+    这是今天的金光时刻。一个元层级薄弱点，<em>5/31 → 7/9 → 7/17</em> 摔了三次，
+    第四次学习者自己捅破了「杠杆 ≠ 杠杆的效果」那层窗户纸。
+  </p>
+
+  <pre class="ascii">累积错误率治理 · 三兄弟框架（三个平级杠杆）：
+
+  1 − p^N
+      │
+   ┌──┴──────────┬──────────────┐
+  动 N          动 p           动「别的」(checkpoint)
+   │            │              │
+ 砍步数        提精度          切段 + 重试
+ 直接删一步    换更强模型       插存档点
+              /好 prompt       失败可重来
+
+  ┌──────────────────────────────────────────────────┐
+  │ checkpoint 既不改 N（步数不减），也不改 p（精度不变）│
+  │ 它改的是<span class="gold">指数累积的结构</span> → 局部低阶 N · 截断与降幂 │
+  └──────────────────────────────────────────────────┘</pre>
+
+  <div class="cards col-3">
+    <div class="card">
+      <div class="label">① 局部低阶 N · ✅ 首轮</div>
+      <h3>一字不差</h3>
+      <p>闭卷首轮即答出「局部低阶 N」。5/31 自己起的数学名字，47 天后首轮提取成功。</p>
+    </div>
+    <div class="card">
+      <div class="label">② 动「别的」· ⭐ 三次摔→站起</div>
+      <h3>既没改 N 也没改 P</h3>
+      <p>首答「动 P 和 N」❌（第三次摔）。复述后自己说出「<em>既没改 N 也没改 P</em>」✅。</p>
+      <p>关键洞察：之前把<em>效果</em>（有效 p 升、N 降）当成了<em>招式</em>。</p>
+    </div>
+    <div class="card">
+      <div class="label">③ 三件套 · ✅ 修正后全中</div>
+      <h3>可中断 · 可恢复 · 可指导</h3>
+      <p>首答「可重试·可恢复·可打断」——把 checkpoint 的<em>机制</em>（重试）串门进三件套。修正后全中。</p>
+      <p>可指导 = 重试有方向（带错误信息，非盲重试）。</p>
+    </div>
+  </div>
+
+  <pre class="ascii">「动别的」追踪链 · 元层级薄弱点焊死记录：
+
+  5/31  →  「动 p」                     ❌  摔倒 ①
+  7/09  →  「动 p」（误判）              ❌  摔倒 ②
+  7/17  →  「动 P 和 N」                 ❌  摔倒 ③
+       └→ 复述 → 「既没改 N 也没改 P」   <span class="good">✅  站起来了</span>
+
+  <span class="gold">⭐ 三次摔倒，第四次自己捅破「杠杆 ≠ 杠杆的效果」</span>
+     这不是一道题的对错，是元层级思维习惯的失灵被修复。</pre>
+
+  <blockquote>
+    能主动说「不知道」而不是瞎编，复述时用「既没改 N 也没改 P」而非背原文——
+    这是真的在学，不是在表演学。
+  </blockquote>
+</section>
+
+<!-- ═══════════════ SECTION 03 · Q3 钥匙跨域 ═══════════════ -->
+<section class="reveal">
+  <div class="sec-num">SECTION 03 ─── Q3 · 钥匙跨域迁移 · 代码审查 Agent</div>
+  <h1 class="sec-title">钥匙从客服对话<br>迁移到<em>代码审查</em></h1>
+
+  <p class="keyline">
+    场景：多轮代码审查 Agent，每轮读历史对话 + 当前 PR diff，轮数越多审查质量越下降。<br>
+    学习者判定为<em>指数问题</em>，并设计 <em>上下文 checkpoint + 裁判审批</em> 方案。
+    7/9 在客服场景用过的钥匙，换到代码审查照样掏得出来。
+  </p>
+
+  <div class="cards col-2">
+    <div class="card">
+      <div class="label">(a) 线性还是指数 · ✅ 结论对</div>
+      <h3>乘法累积 → 指数</h3>
+      <p>每轮信息要「穿过」后面所有轮的注意力才能留下。信息保真度 ≈ p^N——<em>乘法累积</em>，所以是指数。</p>
+      <p>首答点出链式依赖 + Lost in the Middle，但缺「乘 vs 加」一句话，补全后完美收口。</p>
+    </div>
+    <div class="card">
+      <div class="label">(b) 对抗方案 · ✅ 钥匙迁移</div>
+      <h3>函数边界 checkpoint + 裁判</h3>
+      <p>按「每个函数」切段（局部低阶 N）→ 审查完 = 存档点 → 清空上下文 → 裁判（模型/人类）审批后继续。</p>
+      <p>亮点：把 checkpoint 同时用成<em>审批关卡</em>（HITL），不止是存档点。</p>
+    </div>
+  </div>
+
+  <pre class="ascii">上下文 checkpoint 骨架 · save → reset → continue：
+
+  审查函数 A
+      ↓
+  save     持久化审查结论/决策        ← 首答漏了这一步，补全
+      ↓
+  reset    清空上下文窗口（恢复干净窗口）
+      ↓
+  continue 带结论进下一段（审查函数 B）
+      ↓
+  裁判审批（模型 / 人类）── 可信赖 Agent 的 HITL 关卡
+
+  ───────────────────────────────────────────
+  错误累积 checkpoint          代码审查 checkpoint
+  执行 N 步                    审查 N 个函数
+  插存档点                     函数边界 = 存档点
+  局部低阶 N                   每段 ≤ 单函数
+  <span class="gold">同一把「动别的」钥匙，迁移成功</span></pre>
+
+  <blockquote>
+    7/9 客服场景 → 7/17 代码审查场景，同一把钥匙两次跨域工作。
+    它不再只属于「错误累积」那一章——成了拆所有「链式过程」的通用工具。
+  </blockquote>
+</section>
+
+<!-- ═══════════════ SECTION 04 · 总成绩单 ═══════════════ -->
+<section class="alt reveal">
+  <div class="sec-num">SECTION 04 ─── 总成绩单 · 术语追击收口</div>
+  <h1 class="sec-title">三个生锈术语<em>全部重焊</em></h1>
+
+  <div class="report-grid">
+    <div class="cell">
+      <div class="tag">A 层 · 术语焊死 ✅</div>
+      <h4>追击目标 3/3 达成</h4>
+      <ul>
+        <li>公式 1 − p^N（不再漏 1−）</li>
+        <li>局部低阶 N（首轮提取成功）</li>
+        <li>动「别的」（三次摔倒后站起）</li>
+        <li>可中断 · 可恢复 · 可指导</li>
+      </ul>
+    </div>
+    <div class="cell gold-cell">
+      <div class="tag">💎 金光时刻</div>
+      <h4>元层级薄弱点焊死</h4>
+      <ul>
+        <li>「动别的」三次摔倒 → 第四次站起</li>
+        <li>自己捅破「杠杆 ≠ 杠杆的效果」</li>
+        <li>钥匙跨域迁移：客服 → 代码审查</li>
+        <li>checkpoint 双重身份：存档 + 审批</li>
+      </ul>
+    </div>
+    <div class="cell warn-cell">
+      <div class="tag">⚠️ 需保持</div>
+      <h4>尚未到肌肉层</h4>
+      <ul>
+        <li>公式第一直觉仍需巩固（已不漏 1−）</li>
+        <li>心算首判仍偏线性（底数&lt;1 反向规律）</li>
+        <li>checkpoint 骨架的 save 步骤会漏</li>
+      </ul>
+    </div>
+    <div class="cell">
+      <div class="tag">📈 成长曲线</div>
+      <h4>跨场次对比</h4>
+      <ul>
+        <li>公式：7/9 漏 1− → 7/17 不漏</li>
+        <li>动别的：7/9 误判动 p → 7/17 站起</li>
+        <li>三件套：7/9 漏可指导 → 7/17 修正全中</li>
+        <li>钥匙迁移：7/9 客服 → 7/17 代码审查</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════ SECTION 05 · 复习计划 ═══════════════ -->
+<section class="reveal">
+  <div class="sec-num">SECTION 05 ─── 复习计划 · 下一站</div>
+  <h1 class="sec-title">两个 D30 在路上 · <em>季度回访</em>验肌肉</h1>
+
+  <div class="timeline">
+    <div class="row">
+      <div class="ts">7/24 (D30)</div>
+      <div class="desc"><strong>元认知 Metacognition D30</strong> · 综合压测含元认知 × 可信赖 Agent × 错误累积缝合。</div>
+    </div>
+    <div class="row">
+      <div class="ts">7/25 (D30)</div>
+      <div class="desc"><strong>生产环境可观测性与评估 D30</strong> · 给新 Agent 场景设计可观测性 + 评估 + 成本管理完整方案。</div>
+    </div>
+    <div class="row">
+      <div class="ts">10/17 (季度)</div>
+      <div class="desc"><strong>错误累积 + 线性 vs 指数 · 季度回访</strong> · 验证三术语肌肉记忆是否保持：闭卷默写 1 − p^N、三术语一字不差、新场景钥匙拆解。</div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════ FOOTER ═══════════════ -->
+<footer>
+  <div class="row">
+    <div>2026 · 07 · 17 · 错误累积 + 线性 vs 指数 · D30+ 术语追击</div>
+    <div>SECTION 01–05 · 3 题 · 3 术语焊死 · 元层级站起来</div>
+    <div>NEXT: 2026 · 07 · 24 · 元认知 D30</div>
+  </div>
+  <div class="tags">
+    <span class="gold">动别的 · 三次摔→站起</span>
+    <span class="gold">钥匙跨域迁移</span>
+    <span class="gold">元层级焊死</span>
+    <span>错误累积</span>
+    <span>线性 vs 指数</span>
+    <span>1 − p^N</span>
+    <span>局部低阶 N</span>
+    <span>截断与降幂</span>
+    <span>checkpoint</span>
+    <span>可中断·可恢复·可指导</span>
+    <span>上下文 checkpoint</span>
+    <span>save→reset→continue</span>
+    <span>Lost in the Middle</span>
+    <span>D30+ 术语追击</span>
+  </div>
+</footer>
+
+</main>
+
+<script>
+document.addEventListener('mousemove', (e) => {
+  document.documentElement.style.setProperty('--mx', e.clientX + 'px');
+  document.documentElement.style.setProperty('--my', e.clientY + 'px');
+});
+
+const io = new IntersectionObserver((entries) => {
+  entries.forEach(e => {
+    if (e.isIntersecting) {
+      e.target.classList.add('visible');
+      io.unobserve(e.target);
+    }
+  });
+}, { threshold: 0.1 });
+
+document.querySelectorAll('.reveal').forEach(el => io.observe(el));
+</script>
+
+</body>
+</html>

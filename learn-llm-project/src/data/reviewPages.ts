@@ -14,6 +14,8 @@ import Review20260625ShengChanHuanJing from "../review-pages/Review20260625Sheng
 import Review20260701YuanRenZhiD7ShengChanD2 from "../review-pages/Review20260701YuanRenZhiD7ShengChanD2";
 import Review20260702ShengChanHuanJingD7 from "../review-pages/Review20260702ShengChanHuanJingD7";
 import Review20260707PlanningTrustworthyDuoDaiLiD30 from "../review-pages/Review20260707PlanningTrustworthyDuoDaiLiD30";
+import Review20260709CuoWuLeiJiXianXingZhiShuD30 from "../review-pages/Review20260709CuoWuLeiJiXianXingZhiShuD30";
+import Review20260717CuoWuLeiJiXianXingZhiShuZhuiJi from "../review-pages/Review20260717CuoWuLeiJiXianXingZhiShuZhuiJi";
 
 export interface ReviewPage {
   id: string;
@@ -146,6 +148,22 @@ export const reviewPages: ReviewPage[] = [
     shortTitle: "Planning + 可信赖 + 多代理 D30 · 三章合并毕业",
     sourceFile: "复习/2026-07-07-PlanningDesign+可信赖Agent+多代理D30.html",
     Component: Review20260707PlanningTrustworthyDuoDaiLiD30,
+  },
+  {
+    id: "review-2026-07-09-cuowu-leiji-xianxing-zhishu-d30",
+    date: "2026-07-09",
+    title: "2026-07-09 · 错误累积 + 线性 vs 指数 D30+ 综合压测",
+    shortTitle: "错误累积 + 线性vs指数 D30+ · 钥匙跨域迁移",
+    sourceFile: "复习/2026-07-09-错误累积+线性vs指数D30.html",
+    Component: Review20260709CuoWuLeiJiXianXingZhiShuD30,
+  },
+  {
+    id: "review-2026-07-17-cuowu-leiji-xianxing-zhishu-zhui-ji",
+    date: "2026-07-17",
+    title: "2026-07-17 · 错误累积 + 线性 vs 指数 D30+ 术语追击",
+    shortTitle: "错误累积 + 线性vs指数 D30+ · 术语追击",
+    sourceFile: "复习/2026-07-17-错误累积+线性vs指数D30+术语追击.html",
+    Component: Review20260717CuoWuLeiJiXianXingZhiShuZhuiJi,
   },
 ];
 

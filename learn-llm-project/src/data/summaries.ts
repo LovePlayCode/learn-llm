@@ -1622,6 +1622,299 @@ TCC Transparent 分层：
       ],
     },
   },
+  {
+    id: "2026-07-09-cuowu-leiji-xianxing-zhishu-d30",
+    date: "2026-07-09",
+    time: "下午复习",
+    title: "错误累积 + 线性 vs 指数 D30+ 综合压测",
+    subtitle: "方向感通过 · 术语需追击 · 钥匙跨域迁移金光",
+    sourceFile: "复习/2026-07-09-错误累积+线性vs指数D30.html",
+    summary:
+      "距学习日(5/28-5/31)已过39-42天的D30+综合压测。四题考核：数学默写、checkpoint工程场景、钥匙跨域迁移、四概念串珠。方向感全部正确，但术语精度（局部低阶N、动别的、Controllable三件套）D30生锈。最大亮点：线性vs指数钥匙在全新场景（多轮对话注意力衰减）自动激活，独立设计出上下文checkpoint方案。",
+    detail: {
+      lead: "39-42天后的D30+压测。方向感全过，术语生锈需追击。钥匙跨域迁移是今天的金光时刻。",
+      stats: [
+        { value: "4", label: "总题量" },
+        { value: "2", label: "通过" },
+        { value: "1", label: "金光时刻" },
+        { value: "3", label: "术语需追击" },
+      ],
+      keyPoints: [
+        {
+          label: "公式精度",
+          title: "1 − p^N 不是 p^N",
+          body: "初始漏了 1−，在 Q4 自修复。心算方向感也反了一次（0.85^12 估算 50%，实际 14%）。D30 后公式还没成为肌肉记忆。",
+        },
+        {
+          label: "术语生锈",
+          title: "三个核心术语 D30 后模糊",
+          body: "局部低阶N·截断与降幂、动别的、可中断·可恢复·可指导——三个术语在课内重新焊上，但说明长期记忆还不够牢。",
+        },
+        {
+          label: "钥匙迁移 ⭐",
+          title: "线性 vs 指数钥匙在新领域自动激活",
+          body: "给了一个多轮客服对话注意力衰减的全新场景，学习者成功用线性vs指数框架分析，并独立设计出上下文checkpoint方案（持久化+清空上下文窗口），还主动调用了Lost in the Middle概念。",
+        },
+      ],
+      map: "累积错误率 = 1 − p^N\n        │\n  ┌─────┼─────┐\n  动N    动p    动\"别的\"(checkpoint)\n  砍步数  提精度  局部低阶N · 截断与降幂\n                    │\n          ┌─────────┤\n          可中断   可恢复   可指导\n               └── TCC · Controllable",
+      sections: [
+        {
+          title: "Q1 · 数学默写 + 两个家族",
+          body: "公式写成p^N（漏了1−），心算0.85^12估50%（方向反了，实际14%）。线性vs指数两个家族名字答对。模糊运算/平均直觉细节遗忘。Q4自修复公式。",
+        },
+        {
+          title: "Q2 · checkpoint工程场景",
+          body: "误判checkpoint为动p，实际是动别的。局部低阶N和截断与降幂遗忘。Controllable说成controller，循环定义出现一次，三件套漏了可指导。课内全部修复。",
+        },
+        {
+          title: "Q3 · 钥匙跨域迁移 ⭐ 金光",
+          body: "多轮客服场景：成功应用线性vs指数分析注意力衰减。设计上下文checkpoint（持久化写入+清空窗口），主动调用Lost in the Middle。checkpoint骨架完美映射。",
+        },
+        {
+          title: "Q4 · 四概念串珠",
+          body: "错误累积→线性vs指数→checkpoint→Controllable全串通。自修复：公式补上1−、使用局部低阶N、Controllable三件套补全。",
+        },
+      ],
+      blindspots: [
+        {
+          title: "公式肌肉记忆未焊死",
+          body: "累积错误率 = 1 − p^N，不是 p^N。D30后仍漏 1−，说明公式还停在‘理解’层，没到‘肌肉’层。",
+        },
+        {
+          title: "心算方向感",
+          body: "底数更小 + 指数更大 = 结果更小。0.85^12 < 0.9^10，但估算成50%（比35%还大）。方向感需要练。",
+        },
+        {
+          title: "同义词循环定义复发",
+          body: "用‘可以控制’解释Controllable。比5/31的3次已减少到1次，但仍需警惕。",
+        },
+      ],
+      highlights: [
+        {
+          title: "钥匙跨域迁移成功",
+          body: "线性vs指数钥匙从错误累积领域迁移到多轮对话注意力衰减领域，自动激活且方案合理。这是D30最有价值的验证——钥匙不只能解原题，能解新题。",
+        },
+        {
+          title: "上下文 checkpoint 方案",
+          body: "独立设计出‘子任务完成→关键信息持久化→清空上下文→干净窗口继续’的方案，与checkpoint的save/reset/continue骨架完美映射。还主动补充了Lost in the Middle。",
+        },
+        {
+          title: "课内自修复能力",
+          body: "Q1-Q2的所有错误（公式漏1−、局部低阶N遗忘、可指导遗漏）在Q4全部自动修复。说明底子扎实，只是39天没碰生锈。",
+        },
+      ],
+      report: [
+        {
+          title: "A 层 · 方向感通过",
+          items: [
+            "两个思维家族（线性 vs 指数）",
+            "累积错误率公式 1 − p^N（课内自修复）",
+            "checkpoint = 动别的（课内修正）",
+            "TCC Controllable 三件套（课内补全）",
+          ],
+        },
+        {
+          title: "B 层 · 跨域迁移",
+          items: [
+            "钥匙从错误累积迁移到注意力衰减 ⭐",
+            "上下文 checkpoint 独立设计",
+            "Lost in the Middle 主动调用",
+            "四概念一线串珠",
+          ],
+        },
+        {
+          title: "需 D30+ 追击",
+          items: [
+            "公式肌肉记忆：1 − p^N 不是 p^N",
+            "三术语再焊：局部低阶N · 动别的 · 可中断可恢复可指导",
+            "心算方向感：底数小+指数大=结果更小",
+          ],
+          tone: "warn",
+        },
+      ],
+      tags: [
+        "错误累积",
+        "线性 vs 指数",
+        "局部低阶 N",
+        "截断与降幂",
+        "checkpoint",
+        "TCC",
+        "Controllable",
+        "动别的",
+        "钥匙跨域迁移",
+        "Lost in the Middle",
+        "上下文 checkpoint",
+        "D30+",
+        "自修复",
+      ],
+    },
+  },
+  {
+    id: "2026-07-17-cuowu-leiji-xianxing-zhishu-zhui-ji",
+    date: "2026-07-17",
+    time: "复习 D30+ 术语追击",
+    title: "错误累积 + 线性 vs 指数 D30+ 术语追击",
+    subtitle: "三术语全部重焊 · 动别的元层级站起来 · 钥匙跨域迁移",
+    sourceFile: "复习/2026-07-17-错误累积+线性vs指数D30+术语追击.html",
+    summary:
+      "距学习日(5/28-5/31)已 47-50 天的 D30+ 术语追击。三个生锈术语（局部低阶N · 动别的 · 可中断可恢复可指导）全部重焊。最大亮点：「动别的」这个元层级薄弱点 5/31→7/9→7/17 三次摔倒，第四次学习者自己说出「既没改 N 也没改 P」站起来。线性vs指数钥匙跨域迁移到代码审查场景，设计上下文 checkpoint + 裁判审批方案。",
+    detail: {
+      lead: "术语追击使命达成。三个 D30+ 标红术语全部重焊。今天最有价值的不是答对题，而是「动别的」这个跨三次复习复发的元层级薄弱点被一次性焊死——学习者自己捅破了「杠杆 ≠ 杠杆的效果」。",
+      stats: [
+        { value: "3", label: "总题量" },
+        { value: "3", label: "术语焊死" },
+        { value: "1", label: "金光时刻" },
+        { value: "1", label: "心算修复" },
+      ],
+      keyPoints: [
+        {
+          label: "公式 / 修复",
+          title: "1 − p^N 不再漏 1−",
+          body: "7/9 闭卷写成 p^N（漏 1−），今天首轮即写出 1 − p^N。p^N 是累积成功率，1 − p^N 才是累积错误率。从理解层往肌肉层挪了一步。",
+        },
+        {
+          label: "心算 / 修复",
+          title: "底数<1 时指数越大结果越小",
+          body: "比较题 0.85^12 vs 0.9^10 首判「0.85^12 更大因为指数更大」❌（只看指数漏看底数）。修正后说出「底数小于1时指数越大数值越少」。两根杠杆同向压：底数更小 + 指数更大 = 双重变小。实际 0.85^12≈0.14 < 0.9^10≈0.35。",
+        },
+        {
+          label: "术语 / ⭐ 元层级焊死",
+          title: "动别的 = 既没改 N 也没改 P",
+          body: "checkpoint 首答「动 P 和 N」❌（第三次摔）。复述后自己说出「既没改 N 也没改 P」✅。关键洞察：之前把效果（有效 p 升、N 降）当成了招式。三兄弟框架：动N=砍步数、动p=提精度、动别的=切段+重试（插存档点）。",
+        },
+        {
+          label: "术语 / 焊死",
+          title: "可中断 · 可恢复 · 可指导",
+          body: "首答「可重试·可恢复·可打断」——把 checkpoint 的机制（重试）串门进三件套，漏可指导。修正后全中：可中断（停得住）· 可恢复（回得去）· 可指导（重试有方向，带错误信息非盲重试）。",
+        },
+        {
+          label: "钥匙 / 跨域迁移",
+          title: "代码审查 Agent = 指数问题",
+          body: "每轮信息要穿过后面所有轮的注意力才能留下，信息保真度≈p^N，乘法累积所以是指数。Lost in the Middle 主动调用。7/9 客服场景的钥匙迁移到代码审查场景。",
+        },
+        {
+          label: "方案 / 钥匙迁移",
+          title: "上下文 checkpoint + 裁判审批",
+          body: "按每个函数切段（局部低阶N）→ 函数边界=存档点 → 清空上下文 → 裁判（模型/人类）审批后继续。骨架 save→reset→continue，首答漏 save 步骤（补全）。亮点：checkpoint 同时用成 HITL 审批关卡，不止存档点。",
+        },
+      ],
+      map: `三兄弟框架（三个平级杠杆）：
+  1 − p^N
+      │
+   ┌──┴──────────┬──────────────┐
+  动 N          动 p           动「别的」(checkpoint)
+  砍步数        提精度          切段 + 重试
+  直接删一步    换更强模型       插存档点
+               /好 prompt       失败可重来
+
+「动别的」追踪链：
+  5/31 →「动 p」❌  7/09 →「动 p」❌  7/17 →「动P和N」❌ → 复述「既没改N也没改P」✅
+
+上下文 checkpoint 骨架：
+  save（持久化结论）→ reset（清空窗口）→ continue（带结论进下一段）→ 裁判审批`,
+      sections: [
+        {
+          title: "Q1 · 公式 + 心算",
+          body: "公式 1−p^N 首轮正确（7/9 漏 1− 已修复）。心算 0.85^12 估「90%以上」实际 86%，方向对偏高。比较题首判反（只看指数），修正后答出底数<1反向规律。加 vs 乘的区别补全：线性是每轮减一份，指数是每轮乘一个留存率。",
+        },
+        {
+          title: "Q2 · 三术语一字不差（重头戏）",
+          body: "局部低阶N 首轮✅。动别的首答「动P和N」第三次摔，复述后「既没改N也没改P」站起——元层级薄弱点焊死。三件套首答把可重试串门进来漏可指导，修正后全中。学习者能主动说「不知道」而非瞎编，复述用自己话而非背原文。",
+        },
+        {
+          title: "Q3 · 钥匙跨域迁移到代码审查",
+          body: "(a) 判定指数问题，点出链式依赖+Lost in the Middle，补「乘vs加」后完美。(b) 设计函数边界checkpoint+裁判审批，save→reset→continue骨架首答漏save补全。钥匙从客服迁移到代码审查，第二次跨域工作，成为通用工具。",
+        },
+      ],
+      blindspots: [
+        {
+          title: "公式第一直觉仍需巩固",
+          body: "虽不再漏 1−，但公式尚未完全到肌肉层。需季度回访再验。",
+        },
+        {
+          title: "心算首判仍偏线性",
+          body: "底数<1 时「指数大→结果小」的反向规律，第一直觉仍会用底数>1 的规律。修正后能说出，但首判会错。",
+        },
+        {
+          title: "checkpoint 骨架 save 步骤会漏",
+          body: "设计上下文 checkpoint 时漏了「持久化结论再清空」的 save 步骤。7/9 有这步，今天漏了，补全。",
+        },
+      ],
+      highlights: [
+        {
+          title: "「动别的」元层级薄弱点焊死 ⭐",
+          body: "5/31→7/9→7/17 三次摔倒，第四次自己说出「既没改 N 也没改 P」。这是跨三次复习复发的元层级思维失灵被修复，不是一道题的对错问题。",
+        },
+        {
+          title: "钥匙跨域迁移成功",
+          body: "线性vs指数钥匙 7/9 客服场景 → 7/17 代码审查场景，第二次跨域工作。它不再只属于错误累积那一章，成为拆所有链式过程的通用工具。",
+        },
+        {
+          title: "checkpoint 双重身份活学活用",
+          body: "代码审查方案里把 checkpoint 同时用成存档点 + HITL 审批关卡（裁判），是 7/7「checkpoint 双重身份」的活学活用。",
+        },
+        {
+          title: "心算方向感红点重焊",
+          body: "7/9 判反，7/17 首判仍反但修正后自己说出「底数<1 指数越大越小」反向规律。两根杠杆（底数+指数）同向压的直觉建立。",
+        },
+      ],
+      report: [
+        {
+          title: "A 层 · 术语焊死 ✅",
+          items: [
+            "公式 1 − p^N（不再漏 1−）",
+            "局部低阶 N（首轮提取成功）",
+            "动「别的」（三次摔倒后站起）",
+            "可中断 · 可恢复 · 可指导",
+          ],
+        },
+        {
+          title: "💎 金光时刻",
+          items: [
+            "「动别的」元层级薄弱点焊死（三次摔→站起）",
+            "钥匙跨域迁移：客服 → 代码审查",
+            "checkpoint 双重身份：存档 + 审批",
+            "心算方向感红点重焊",
+          ],
+        },
+        {
+          title: "需保持 · 尚未到肌肉层",
+          items: [
+            "公式第一直觉巩固（已不漏 1−）",
+            "心算首判仍偏线性（底数<1 反向规律）",
+            "checkpoint 骨架 save 步骤会漏",
+          ],
+          tone: "warn",
+        },
+        {
+          title: "横向连接",
+          items: [
+            "动别的 × 杠杆vs效果（元层级思维）",
+            "线性vs指数 × 代码审查注意力衰减",
+            "上下文 checkpoint × 可信赖 Agent HITL",
+            "checkpoint 双重身份 × 7/7 三章合并毕业",
+          ],
+        },
+      ],
+      tags: [
+        "错误累积",
+        "线性 vs 指数",
+        "1 − p^N",
+        "局部低阶 N",
+        "截断与降幂",
+        "动别的",
+        "元层级焊死",
+        "三兄弟框架",
+        "可中断·可恢复·可指导",
+        "checkpoint",
+        "上下文 checkpoint",
+        "save→reset→continue",
+        "钥匙跨域迁移",
+        "Lost in the Middle",
+        "D30+ 术语追击",
+      ],
+    },
+  },
 ];
 
 export const reviewTasks: ReviewTask[] = [
@@ -1739,6 +2032,7 @@ export const reviewTasks: ReviewTask[] = [
     description:
       '含 checkpoint 工程场景题：用"线性 vs 指数"钥匙审视未知新方案。',
     relatedRecordIds: ["2026-05-31-error-accumulation-tcc-linear-exponential"],
+    completed: true,
   },
   {
     id: "linear-exponential-d30",
@@ -1749,6 +2043,19 @@ export const reviewTasks: ReviewTask[] = [
     estimate: "20 min",
     description: "给一个新场景，如缓存衰减或注意力衰减，用今天的钥匙独立拆解。",
     relatedRecordIds: ["2026-05-31-error-accumulation-tcc-linear-exponential"],
+    completed: true,
+  },
+  {
+    id: "cuowu-leiji-xianxing-zhishu-d30-plus",
+    dueDate: "2026-07-16",
+    title: "错误累积 + 线性vs指数 D30+ 术语追击",
+    stage: "D30+",
+    type: "scheduled",
+    estimate: "10 min",
+    description:
+      "术语追击：① 闭卷默写 1 − p^N + 心算 0.85^12 ② 三术语（局部低阶N · 动别的 · 可中断可恢复可指导）一字不差 ③ 给新场景用线性vs指数钥匙拆解。",
+    relatedRecordIds: ["2026-07-09-cuowu-leiji-xianxing-zhishu-d30"],
+    completed: true,
   },
   {
     id: "duo-dai-li-d2",
@@ -1883,6 +2190,17 @@ export const reviewTasks: ReviewTask[] = [
     description:
       '综合压测：给一个新 Agent 场景（如客服多代理系统），设计完整的：① 可观测性方案（Trace/Span 结构设计 + 关键指标选择）② 评估体系（离线测试集设计 + 在线监控指标 + 闭环流程）③ 成本管理方案（三策略如何串联应用）。跨章节缝合：与多代理、可信赖Agent、错误累积的连接。',
     relatedRecordIds: ["2026-06-25-sheng-chan-huan-jing"],
+  },
+  {
+    id: "cuowu-leiji-xianxing-zhishu-quarterly",
+    dueDate: "2026-10-17",
+    title: "错误累积 + 线性vs指数 · 季度回访验肌肉",
+    stage: "季度回访",
+    type: "scheduled",
+    estimate: "15 min",
+    description:
+      "验证 D30+ 术语追击（7/17）焊死的三个术语是否进入长期肌肉记忆：① 闭卷默写 1 − p^N + 心算 0.85^12 vs 0.9^10（底数<1 反向规律不复发）② 三术语一字不差：局部低阶N · 动别的（既没改N也没改P）· 可中断可恢复可指导 ③ 给全新场景用线性vs指数钥匙拆解 + 设计上下文 checkpoint（save→reset→continue 骨架不漏 save）。",
+    relatedRecordIds: ["2026-07-17-cuowu-leiji-xianxing-zhishu-zhui-ji"],
   },
 ];
 

@@ -1,0 +1,641 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1.0" />
+<title>2026-07-09 · 错误累积 + 线性 vs 指数 · D30+ 综合压测</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@200;300;400;500&family=JetBrains+Mono:wght@200;300;400&display=swap" rel="stylesheet">
+<style>
+:root {
+  --silver-1: #eef0f3;
+  --silver-2: #d8dde3;
+  --silver-3: #b6bdc7;
+  --steel-1: #8a929e;
+  --steel-2: #5c6675;
+  --steel-3: #3f4754;
+  --slate-1: #2a2f38;
+  --slate-2: #1a1f28;
+  --slate-3: #0f1319;
+  --void:    #07090d;
+  --accent:  #6b89a8;
+  --accent-dim: #4a6378;
+  --warn:    #b07a5a;
+  --good:    #7a9985;
+  --gold:    #c9b687;
+  --mx: 50%;
+  --my: 50%;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+html, body {
+  background: var(--void);
+  color: var(--silver-2);
+  font-family: 'Inter', -apple-system, sans-serif;
+  font-weight: 300;
+  line-height: 1.7;
+  letter-spacing: 0.02em;
+  overflow-x: hidden;
+}
+
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  background: radial-gradient(600px circle at var(--mx) var(--my), rgba(107, 137, 168, 0.08), transparent 40%);
+  z-index: 1;
+}
+
+body::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 2;
+  opacity: 0.5;
+  mix-blend-mode: overlay;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='220' height='220'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 0.6  0 0 0 0 0.65  0 0 0 0 0.72  0 0 0 0.55 0'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>");
+}
+
+main { position: relative; z-index: 3; }
+
+.hero {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 8vh 8vw;
+  background: linear-gradient(180deg, var(--slate-3) 0%, var(--void) 100%);
+  border-bottom: 1px solid rgba(107, 137, 168, 0.12);
+}
+
+.hero .stamp {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  letter-spacing: 0.5em;
+  text-transform: uppercase;
+  color: var(--steel-1);
+  margin-bottom: 40px;
+}
+
+.hero h1 {
+  font-size: clamp(36px, 6vw, 84px);
+  font-weight: 200;
+  line-height: 1.05;
+  color: var(--silver-1);
+  letter-spacing: -0.02em;
+  margin-bottom: 32px;
+}
+.hero h1 em { font-style: normal; color: var(--accent); font-weight: 300; }
+
+.hero .lead {
+  font-size: clamp(15px, 1.6vw, 19px);
+  max-width: 720px;
+  margin-bottom: 48px;
+}
+.hero .lead em { font-style: normal; color: var(--accent); }
+.hero .lead strong { color: var(--silver-1); font-weight: 400; }
+
+.hero .stats {
+  display: flex;
+  gap: 48px;
+  flex-wrap: wrap;
+}
+.hero .stats .cell { text-align: center; }
+.hero .stats .num {
+  font-size: clamp(32px, 4vw, 56px);
+  font-weight: 200;
+  color: var(--silver-1);
+  line-height: 1;
+  margin-bottom: 8px;
+}
+.hero .stats .num.warn { color: var(--warn); }
+.hero .stats .num.acc { color: var(--accent); }
+.hero .stats .num.good { color: var(--good); }
+.hero .stats .num.gold { color: var(--gold); }
+.hero .stats .lbl {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--steel-1);
+}
+
+/* Sections */
+section.reveal {
+  padding: 8vh 8vw;
+  opacity: 0;
+  transform: translateY(30px);
+  transition: opacity 0.9s ease, transform 0.9s ease;
+}
+section.reveal.visible { opacity: 1; transform: translateY(0); }
+section.alt { background: rgba(107, 137, 168, 0.03); }
+
+.sec-num {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  letter-spacing: 0.4em;
+  text-transform: uppercase;
+  color: var(--steel-1);
+  margin-bottom: 16px;
+}
+
+.sec-title {
+  font-size: clamp(26px, 3.5vw, 48px);
+  font-weight: 200;
+  color: var(--silver-1);
+  letter-spacing: -0.01em;
+  margin-bottom: 32px;
+  line-height: 1.15;
+}
+.sec-title em { font-style: normal; color: var(--accent); font-weight: 300; }
+
+p { font-size: 15px; margin-bottom: 16px; max-width: 760px; }
+p em { font-style: normal; color: var(--accent); }
+p strong { color: var(--silver-1); font-weight: 400; }
+
+/* Cards */
+.cards { display: grid; gap: 24px; margin-top: 32px; }
+.cards.col-2 { grid-template-columns: repeat(2, 1fr); }
+.cards.col-3 { grid-template-columns: repeat(3, 1fr); }
+@media (max-width: 900px) { .cards.col-2, .cards.col-3 { grid-template-columns: 1fr; } }
+
+.card {
+  background: var(--slate-2);
+  border: 1px solid rgba(107, 137, 168, 0.12);
+  padding: 32px 28px;
+  transition: all 0.4s ease;
+}
+.card:hover {
+  transform: translateY(-3px);
+  background: var(--slate-1);
+  border-color: rgba(107, 137, 168, 0.32);
+  box-shadow: 0 24px 48px -24px rgba(0, 0, 0, 0.6);
+}
+.card .label {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--steel-1);
+  margin-bottom: 16px;
+}
+.card h3 {
+  font-size: 20px;
+  font-weight: 300;
+  color: var(--silver-1);
+  margin-bottom: 16px;
+}
+.card p { font-size: 14px; margin-bottom: 12px; }
+
+/* ASCII */
+pre.ascii {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 13px;
+  line-height: 1.65;
+  color: var(--silver-3);
+  background: var(--slate-3);
+  padding: 28px 32px;
+  border: 1px solid rgba(107, 137, 168, 0.16);
+  box-shadow: inset 0 2px 12px rgba(0, 0, 0, 0.4);
+  overflow-x: auto;
+  margin: 32px 0;
+  white-space: pre;
+}
+pre.ascii .hl { color: var(--accent); font-weight: 400; }
+pre.ascii .warn { color: var(--warn); }
+pre.ascii .good { color: var(--good); }
+pre.ascii .gold { color: var(--gold); }
+
+/* Report Grid */
+.report-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1px;
+  background: rgba(107, 137, 168, 0.12);
+  margin-top: 32px;
+}
+.report-grid .cell {
+  background: var(--slate-2);
+  padding: 28px;
+  transition: background 0.3s;
+}
+.report-grid .cell:hover { background: var(--slate-1); }
+.report-grid .cell .tag {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--accent);
+  margin-bottom: 12px;
+}
+.report-grid .cell.warn-cell .tag { color: var(--warn); }
+.report-grid .cell h4 {
+  font-size: 16px;
+  font-weight: 400;
+  color: var(--silver-1);
+  margin-bottom: 12px;
+}
+.report-grid .cell ul { list-style: none; font-size: 13px; color: var(--silver-3); }
+.report-grid .cell ul li {
+  padding-left: 16px;
+  position: relative;
+  margin-bottom: 6px;
+}
+.report-grid .cell ul li::before {
+  content: '·';
+  position: absolute;
+  left: 0;
+  color: var(--accent);
+}
+.report-grid .cell.warn-cell ul li::before { color: var(--warn); }
+@media (max-width: 720px) { .report-grid { grid-template-columns: 1fr; } }
+
+/* Timeline */
+.timeline { margin: 32px 0; }
+.timeline .row {
+  display: grid;
+  grid-template-columns: 140px 1fr;
+  gap: 32px;
+  padding: 20px 0;
+  border-bottom: 1px solid rgba(107, 137, 168, 0.08);
+}
+.timeline .ts {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 12px;
+  color: var(--accent);
+  letter-spacing: 0.05em;
+}
+.timeline .desc { color: var(--silver-3); font-size: 14px; }
+.timeline .desc strong { color: var(--silver-1); font-weight: 500; }
+.timeline .desc em { color: var(--accent); font-style: normal; }
+@media (max-width: 720px) { .timeline .row { grid-template-columns: 1fr; gap: 8px; } }
+
+/* Keyline */
+.keyline {
+  font-size: clamp(20px, 2.4vw, 30px);
+  font-weight: 200;
+  color: var(--silver-1);
+  margin: 48px 0;
+  letter-spacing: -0.01em;
+  line-height: 1.4;
+  max-width: 900px;
+}
+.keyline em { font-style: normal; color: var(--accent); font-weight: 300; }
+
+/* Blockquote */
+blockquote {
+  border-left: 2px solid var(--accent);
+  padding: 12px 24px;
+  margin: 24px 0;
+  background: rgba(107, 137, 168, 0.05);
+  font-size: 14px;
+  color: var(--silver-2);
+  font-style: italic;
+}
+
+/* Footer */
+footer {
+  padding: 60px 8vw 40px;
+  background: var(--slate-3);
+  border-top: 1px solid rgba(107, 137, 168, 0.16);
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  color: var(--steel-1);
+  letter-spacing: 0.1em;
+}
+footer .row {
+  display: flex;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 16px;
+  margin-bottom: 32px;
+}
+footer .tags { display: flex; flex-wrap: wrap; gap: 8px; }
+footer .tags span {
+  padding: 6px 12px;
+  background: var(--slate-2);
+  border: 1px solid rgba(107, 137, 168, 0.12);
+  color: var(--silver-3);
+  text-transform: uppercase;
+  font-size: 10px;
+}
+footer .tags span.gold { color: var(--gold); border-color: rgba(201, 182, 135, 0.35); }
+</style>
+</head>
+<body>
+<main>
+
+<!-- ═══════════════ HERO ═══════════════ -->
+<section class="hero">
+  <div class="stamp">REVIEW · 2026 · 07 · 09 · D30+ 综合压测 · 错误累积 + 线性 vs 指数</div>
+  <h1>术语生锈<br>但<em>钥匙跨域</em>了</h1>
+  <p class="lead">
+    距学习日(5/28-5/31)已过 <strong>39-42 天</strong>。四题综合压测：方向感全部正确，
+    但三个核心术语 D30 后模糊了。最大亮点：<em>「线性 vs 指数」钥匙在全新领域（多轮对话注意力衰减）自动激活</em>，
+    并独立设计出上下文 checkpoint 方案。还主动调用了 <em>Lost in the Middle</em>。
+  </p>
+  <div class="stats">
+    <div class="cell">
+      <div class="num acc">4</div>
+      <div class="lbl">总题量</div>
+    </div>
+    <div class="cell">
+      <div class="num good">2</div>
+      <div class="lbl">通过</div>
+    </div>
+    <div class="cell">
+      <div class="num gold">1</div>
+      <div class="lbl">金光时刻</div>
+    </div>
+    <div class="cell">
+      <div class="num warn">3</div>
+      <div class="lbl">术语需追击</div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════ SECTION 01 · 数学默写 ═══════════════ -->
+<section class="reveal">
+  <div class="sec-num">SECTION 01 ─── Q1 · 数学默写 + 两个家族</div>
+  <h1 class="sec-title">公式差一步 · 心算<em>方向反了</em></h1>
+
+  <div class="cards col-2">
+    <div class="card">
+      <div class="label">⚠️ 公式精度</div>
+      <h3>p^N ≠ 1 − p^N</h3>
+      <p>初始写出 <strong>p^N</strong>，漏掉了 <strong>1 −</strong> 那一步。p^N 是累积<em>成功</em>率，不是错误率。</p>
+      <p>在 Q4 四概念串珠时<em>自修复</em>，自然写出 1 − p^N。</p>
+    </div>
+    <div class="card">
+      <div class="label">⚠️ 心算方向感</div>
+      <h3>0.85^12 估成 50%</h3>
+      <p>锚点是 0.9^10 ≈ 35%。底数更小 + 指数更大 = 结果应该<em>更小</em>，但估算成 50%（方向反了）。</p>
+      <p>引导后修正方向。实际 0.85^12 ≈ <strong>14%</strong>，累积错误率 ≈ <strong>86%</strong>。</p>
+    </div>
+  </div>
+
+  <pre class="ascii">心算技巧 · 平方的平方法：
+
+  0.85²   ≈  0.72
+  0.85⁴   ≈  0.72²  ≈  <span class="hl">0.52</span>
+  0.85⁸   ≈  0.52²  ≈  <span class="hl">0.27</span>
+  0.85¹²  =  0.85⁸ × 0.85⁴  ≈  0.27 × 0.52  ≈  <span class="warn">0.14</span>
+
+  累积成功率 ≈ 14%
+  累积错误率 = 1 − 14% ≈ <span class="warn">86%</span>
+
+  ┌─────────────┬─────────────┐
+  │  线性直觉    │  指数现实    │
+  │  ≈ 50%      │  ≈ 86%      │
+  │  「匀一匀」  │  1 − p^N    │
+  └─────────────┴─────────────┘
+         落差 ≈ 36 个百分点</pre>
+
+  <p><strong>两个思维家族</strong>（线性 vs 指数）：名字答对 ✅。但「模糊运算 / 平均直觉」细节遗忘。</p>
+
+  <blockquote>
+    普通人的"模糊运算"：单步错误率 30% × 10 步 → 脑子里"匀一匀"觉得 50%。真相是 97.18%。落差 47%。
+  </blockquote>
+</section>
+
+<!-- ═══════════════ SECTION 02 · checkpoint 工程 ═══════════════ -->
+<section class="alt reveal">
+  <div class="sec-num">SECTION 02 ─── Q2 · checkpoint 工程场景</div>
+  <h1 class="sec-title">误判<em>动 p</em> · 术语三个全模糊</h1>
+
+  <pre class="ascii">错误累积治理三方案 · 「动什么变量」框架：
+
+  方案 A · 缩短链路     动 <span class="hl">N</span>（砍指数）
+    p¹² → p³             代价：单步复杂度暴增
+
+  方案 B · 提升单步     动 <span class="hl">p</span>（提底数）
+    0.85 → 0.99           代价：成本飙升
+
+  方案 C · checkpoint   动 <span class="gold">「别的」</span>
+    p¹² → p⁴ × p⁴ × p⁴   把一条长指数切成多段短指数
+                          <span class="good">⭐ 性价比最优</span>
+
+  ┌─────────────────────────────────────────────────┐
+  │ checkpoint 不改 N（步数不减），不改 p（精度不变） │
+  │ 它改的是<span class="gold">指数累积的结构</span>                        │
+  │     → 局部低阶 N · 截断与降幂                    │
+  └─────────────────────────────────────────────────┘</pre>
+
+  <div class="cards col-2">
+    <div class="card">
+      <div class="label">⚠️ 术语遗忘 → 课内焊回</div>
+      <h3>「局部低阶 N · 截断与降幂」</h3>
+      <p>这是 5/31 你自己给 checkpoint 机制起的数学名字。D30 后已遗忘。</p>
+      <p>命名升级链：<br>
+        5/28 老师：「切短累积分母」← 不严谨<br>
+        5/31 你升级一：「指数分段」<br>
+        5/31 你升级二：<em>「局部低阶 N」+「截断与降幂」</em></p>
+    </div>
+    <div class="card">
+      <div class="label">⚠️ TCC 归属 · 老毛病复发</div>
+      <h3>Controllable 三件套</h3>
+      <p>说成 "controller"（词性差一点），用"可以控制"解释 Controllable —— <em>同义词循环定义</em>复发一次（比 5/31 的 3 次已减少）。</p>
+      <p>三件套首轮漏了<em>可指导</em>，Q4 补全：<br>
+        <strong>可中断</strong> · <strong>可恢复</strong> · <strong>可指导</strong></p>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════ SECTION 03 · 钥匙跨域 ⭐ ═══════════════ -->
+<section class="reveal">
+  <div class="sec-num">SECTION 03 ─── Q3 · ⭐ 钥匙跨域迁移 · 金光时刻</div>
+  <h1 class="sec-title">多轮对话注意力衰减<br>→ <em>上下文 checkpoint</em></h1>
+
+  <p class="keyline">
+    场景：多轮客服对话系统，超 10 轮后用户满意度从 90% <em>骤降</em>到 30%。<br>
+    学习者成功用「线性 vs 指数」钥匙分析衰减模式，<br>
+    并独立设计出 <em>上下文 checkpoint</em> 方案。
+  </p>
+
+  <div class="cards col-2">
+    <div class="card">
+      <div class="label">线性 vs 指数 · 跨域应用 ✅</div>
+      <h3>注意力衰减是指数的</h3>
+      <p>线性思维的客服经理：10 轮后满意度大概 60-70%。</p>
+      <p>指数现实：每轮注意力衰减后，累积效果远比直觉严重。</p>
+      <p>钥匙自动激活，无需提示。</p>
+    </div>
+    <div class="card">
+      <div class="label">工程方案 · 独立设计 ⭐</div>
+      <h3>上下文 checkpoint</h3>
+      <p>子任务完成后 → 关键信息<em>持久化写入</em>长期记忆 → <em>清空</em>上下文窗口 → 用干净上下文继续。</p>
+      <p>还主动补充了 <em>Lost in the Middle</em>（长上下文中间段注意力塌陷）。</p>
+    </div>
+  </div>
+
+  <pre class="ascii">骨架映射 · 完美对应：
+
+  错误累积 checkpoint             上下文 checkpoint
+  ─────────────────────          ─────────────────────
+  执行 4 步                       对话 N 轮
+       ↓                              ↓
+  validate（验证）               判断：子任务回答完了吗？
+       ↓                              ↓
+  save state（存档）             关键信息持久化（长期记忆）
+       ↓                              ↓
+  重置错误累积                    清空上下文窗口
+       ↓                              ↓
+  继续下 4 步                     用干净上下文 + 长期记忆继续
+
+  <span class="gold">局部低阶 N ≤ 4                  局部低阶 N ≤ 每段对话轮数</span></pre>
+
+  <blockquote>
+    39 天后，「线性 vs 指数」钥匙在一个全新领域自动激活。
+    这证明它不只是一道题的答案——它是一把能拆所有「链式过程」的万能钥匙。
+  </blockquote>
+</section>
+
+<!-- ═══════════════ SECTION 04 · 四概念串珠 ═══════════════ -->
+<section class="alt reveal">
+  <div class="sec-num">SECTION 04 ─── Q4 · 四概念一线串珠 · 通过 ✅</div>
+  <h1 class="sec-title">自修复了<em>所有错误</em></h1>
+
+  <pre class="ascii">学习者的逻辑链（Q4 原文复述）：
+
+  <span class="hl">错误累积</span>是指数递增的（成功率按指数衰减）
+       ↓
+  用 <span class="hl">1 − p^N</span> 计算                   ← 公式自修复：Q1 漏的 1− 这里补上了
+       ↓
+  治理方案之一：设 <span class="hl">checkpoint</span>
+       ↓
+  使用 <span class="gold">局部低阶 N</span>，提高成功率        ← 术语自修复：Q2 遗忘的这里用上了
+       ↓
+  对应 TCC 中的 <span class="hl">Controllable</span>
+       ↓
+  即 <span class="good">可恢复 · 可中断 · 可指导</span>           ← 三件套自修复：Q2 漏的可指导这里补全了
+
+  <span class="gold">⭐ 课内自修复率 = 100%</span></pre>
+
+  <blockquote>
+    一节课内把自己的错误全修回来——说明底子是扎实的，只是 39 天没碰生锈了。
+  </blockquote>
+</section>
+
+<!-- ═══════════════ SECTION 05 · 总成绩单 ═══════════════ -->
+<section class="reveal">
+  <div class="sec-num">SECTION 05 ─── 总成绩单 · A / B 层 + D30+ 追击</div>
+  <h1 class="sec-title">方向感<em>通过</em> · 术语需<em>追击</em></h1>
+
+  <div class="report-grid">
+    <div class="cell">
+      <div class="tag">A 层 · 方向感通过</div>
+      <h4>核心概念 ✅</h4>
+      <ul>
+        <li>两个思维家族（线性 vs 指数）</li>
+        <li>累积错误率公式 1 − p^N（课内自修复）</li>
+        <li>checkpoint = 动别的（课内修正）</li>
+        <li>TCC Controllable 三件套（课内补全）</li>
+      </ul>
+    </div>
+    <div class="cell">
+      <div class="tag">B 层 · 跨域迁移 ⭐</div>
+      <h4>钥匙在新领域工作了</h4>
+      <ul>
+        <li>钥匙从错误累积迁移到注意力衰减 ⭐</li>
+        <li>上下文 checkpoint 独立设计</li>
+        <li>Lost in the Middle 主动调用</li>
+        <li>四概念一线串珠 · 逻辑通畅</li>
+      </ul>
+    </div>
+    <div class="cell warn-cell">
+      <div class="tag">⚠️ 需 D30+ 追击</div>
+      <h4>术语精度生锈</h4>
+      <ul>
+        <li>公式肌肉记忆：1 − p^N 不是 p^N</li>
+        <li>三术语再焊：局部低阶N · 动别的 · 可中断可恢复可指导</li>
+        <li>心算方向感：底数小 + 指数大 = 结果更小</li>
+      </ul>
+    </div>
+    <div class="cell">
+      <div class="tag">💎 元层级成长</div>
+      <h4>老毛病追踪</h4>
+      <ul>
+        <li>同义词循环定义：5/31 出现 3 次 → 7/9 出现 1 次</li>
+        <li>课内自修复率：100%（Q4 修复了 Q1-Q2 所有错误）</li>
+        <li>钥匙提示量：0 次（自动激活）</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════ SECTION 06 · 复习计划 ═══════════════ -->
+<section class="alt reveal">
+  <div class="sec-num">SECTION 06 ─── 复习计划 · 下一站</div>
+  <h1 class="sec-title">D30+ 追击 + <em>两个 D30</em></h1>
+
+  <div class="timeline">
+    <div class="row">
+      <div class="ts">7/16 (D30+)</div>
+      <div class="desc"><strong>错误累积 + 线性vs指数 · 术语追击</strong> · ① 闭卷默写 1 − p^N + 心算 0.85^12 ② 三术语一字不差 ③ 给新场景用钥匙拆解。</div>
+    </div>
+    <div class="row">
+      <div class="ts">7/24 (D30)</div>
+      <div class="desc"><strong>元认知 Metacognition D30</strong> · 综合压测含元认知 × 可信赖Agent × 错误累积缝合。</div>
+    </div>
+    <div class="row">
+      <div class="ts">7/25 (D30)</div>
+      <div class="desc"><strong>生产环境可观测性与评估 D30</strong> · 给新 Agent 场景设计可观测性+评估+成本管理完整方案。</div>
+    </div>
+    <div class="row">
+      <div class="ts">10/7 (季度)</div>
+      <div class="desc"><strong>Planning + 可信赖 + 多代理 · 季度综合回访</strong> · 已排。</div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════ FOOTER ═══════════════ -->
+<footer>
+  <div class="row">
+    <div>2026 · 07 · 09 · 错误累积 + 线性 vs 指数 · D30+ 综合压测</div>
+    <div>SECTION 01–06 · 4 题 · 1 金光 · 钥匙跨域毕业</div>
+    <div>NEXT: 2026 · 07 · 16 · D30+ 术语追击</div>
+  </div>
+  <div class="tags">
+    <span class="gold">钥匙跨域迁移</span>
+    <span class="gold">上下文 checkpoint</span>
+    <span>错误累积</span>
+    <span>线性 vs 指数</span>
+    <span>局部低阶 N</span>
+    <span>截断与降幂</span>
+    <span>checkpoint</span>
+    <span>TCC</span>
+    <span>Controllable</span>
+    <span>动别的</span>
+    <span>Lost in the Middle</span>
+    <span>D30+</span>
+    <span>自修复</span>
+    <span>1 − p^N</span>
+  </div>
+</footer>
+
+</main>
+
+<script>
+document.addEventListener('mousemove', (e) => {
+  document.documentElement.style.setProperty('--mx', e.clientX + 'px');
+  document.documentElement.style.setProperty('--my', e.clientY + 'px');
+});
+
+const io = new IntersectionObserver((entries) => {
+  entries.forEach(e => {
+    if (e.isIntersecting) {
+      e.target.classList.add('visible');
+      io.unobserve(e.target);
+    }
+  });
+}, { threshold: 0.1 });
+
+document.querySelectorAll('.reveal').forEach(el => io.observe(el));
+</script>
+
+</body>
+</html>
