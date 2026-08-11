@@ -1,0 +1,572 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>2026-08-03 · 智能体协议 MCP、A2A 与 NLWeb 初学</title>
+  <style>
+    :root {
+      --bg-primary: #0f1318;
+      --bg-card: #1a2028;
+      --bg-card-hover: #212a34;
+      --border-subtle: #2a3540;
+      --text-primary: #e8ecf0;
+      --text-secondary: #9aa5b4;
+      --text-muted: #6b7a8a;
+      --accent-gold: #c9b687;
+      --accent-blue: #6b89a8;
+      --accent-green: #5a9a7a;
+      --accent-red: #a86b5c;
+      --accent-purple: #8b7aa8;
+      --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      --font-mono: 'JetBrains Mono', 'Fira Code', monospace;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      background: var(--bg-primary);
+      color: var(--text-primary);
+      font-family: var(--font-sans);
+      line-height: 1.7;
+      padding: 3rem 1.5rem;
+    }
+
+    .container {
+      max-width: 860px;
+      margin: 0 auto;
+    }
+
+    .hero {
+      text-align: center;
+      margin-bottom: 4rem;
+      padding: 3rem 0;
+      border-bottom: 1px solid var(--border-subtle);
+    }
+
+    .hero .eyebrow {
+      font-family: var(--font-mono);
+      font-size: 0.75rem;
+      color: var(--accent-gold);
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      margin-bottom: 1rem;
+      display: block;
+    }
+
+    .hero h1 {
+      font-size: 2.2rem;
+      font-weight: 700;
+      margin-bottom: 1.2rem;
+      background: linear-gradient(135deg, var(--text-primary), var(--accent-blue));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .hero p {
+      font-size: 1rem;
+      color: var(--text-secondary);
+      max-width: 640px;
+      margin: 0 auto;
+    }
+
+    .stats-row {
+      display: flex;
+      justify-content: center;
+      gap: 2rem;
+      margin-top: 2rem;
+      flex-wrap: wrap;
+    }
+
+    .stat-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-subtle);
+      border-radius: 12px;
+      padding: 1rem 1.5rem;
+      text-align: center;
+      min-width: 100px;
+    }
+
+    .stat-card strong {
+      display: block;
+      font-size: 1.5rem;
+      color: var(--accent-blue);
+    }
+
+    .stat-card strong.gold { color: var(--accent-gold); }
+    .stat-card strong.green { color: var(--accent-green); }
+
+    .stat-card span {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+    }
+
+    section {
+      margin-bottom: 3.5rem;
+    }
+
+    section .eyebrow {
+      font-family: var(--font-mono);
+      font-size: 0.7rem;
+      color: var(--accent-gold);
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      display: block;
+      margin-bottom: 0.5rem;
+    }
+
+    section h2 {
+      font-size: 1.5rem;
+      font-weight: 600;
+      margin-bottom: 1.2rem;
+      color: var(--text-primary);
+    }
+
+    section h3 {
+      font-size: 1.1rem;
+      font-weight: 600;
+      margin: 1.5rem 0 0.8rem;
+      color: var(--accent-blue);
+    }
+
+    p {
+      color: var(--text-secondary);
+      margin-bottom: 1rem;
+    }
+
+    .card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-subtle);
+      border-radius: 12px;
+      padding: 1.5rem;
+      margin-bottom: 1.2rem;
+    }
+
+    .card.border-green { border-left: 3px solid var(--accent-green); }
+    .card.border-blue { border-left: 3px solid var(--accent-blue); }
+    .card.border-gold { border-left: 3px solid var(--accent-gold); }
+    .card.border-purple { border-left: 3px solid var(--accent-purple); }
+    .card.border-red { border-left: 3px solid var(--accent-red); }
+
+    .card h4 {
+      font-size: 1rem;
+      font-weight: 600;
+      color: var(--text-primary);
+      margin-bottom: 0.5rem;
+    }
+
+    .card .tag {
+      font-family: var(--font-mono);
+      font-size: 0.65rem;
+      background: var(--border-subtle);
+      color: var(--accent-gold);
+      padding: 0.15rem 0.6rem;
+      border-radius: 4px;
+      margin-right: 0.5rem;
+    }
+
+    .card p {
+      font-size: 0.9rem;
+      margin-bottom: 0;
+    }
+
+    pre.ascii {
+      font-family: var(--font-mono);
+      font-size: 0.8rem;
+      color: var(--accent-blue);
+      background: var(--bg-card);
+      border: 1px solid var(--border-subtle);
+      border-radius: 10px;
+      padding: 1.5rem;
+      overflow-x: auto;
+      line-height: 1.6;
+      white-space: pre;
+      margin-bottom: 1.5rem;
+    }
+
+    .grid-2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1.2rem;
+    }
+
+    .grid-3 {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 1.2rem;
+    }
+
+    @media (max-width: 640px) {
+      .grid-2, .grid-3 { grid-template-columns: 1fr; }
+      .stats-row { gap: 1rem; }
+    }
+
+    .divider {
+      border: none;
+      border-top: 1px solid var(--border-subtle);
+      margin: 2.5rem 0;
+    }
+
+    .highlight {
+      display: inline-block;
+      background: rgba(201, 182, 135, 0.12);
+      color: var(--accent-gold);
+      padding: 0.1rem 0.5rem;
+      border-radius: 4px;
+      font-size: 0.9em;
+    }
+
+    ul {
+      list-style: none;
+      padding-left: 0;
+    }
+
+    ul li {
+      color: var(--text-secondary);
+      padding: 0.35rem 0;
+      padding-left: 1.5rem;
+      position: relative;
+    }
+
+    ul li::before {
+      content: "▸";
+      position: absolute;
+      left: 0;
+      color: var(--accent-blue);
+      font-size: 0.75rem;
+    }
+
+    footer {
+      margin-top: 4rem;
+      padding-top: 2rem;
+      border-top: 1px solid var(--border-subtle);
+      text-align: center;
+      color: var(--text-muted);
+      font-size: 0.8rem;
+    }
+  </style>
+</head>
+<body>
+<div class="container">
+
+  <!-- HERO -->
+  <section class="hero">
+    <span class="eyebrow">LEARN · 2026 · 08 · 03 · 智能体协议</span>
+    <h1>MCP · A2A · NLWeb<br>AI Agent 的三把钥匙</h1>
+    <p>
+      MCP 给 Agent 装上手（调工具），A2A 给 Agent 装上嘴和耳朵（通信协作），
+      NLWeb 给 Agent 装上眼睛（看懂网站）。三个协议各司其职，共同构成 AI Agent 的通信基础设施。
+    </p>
+    <div class="stats-row">
+      <div class="stat-card">
+        <strong>3</strong><span>核心协议</span>
+      </div>
+      <div class="stat-card">
+        <strong class="gold">7</strong><span>A 层知识点</span>
+      </div>
+      <div class="stat-card">
+        <strong class="green">1</strong><span>钥匙级洞察</span>
+      </div>
+      <div class="stat-card">
+        <strong>4</strong><span>追问通过</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- SECTION 01 · 知识地图 -->
+  <section>
+    <span class="eyebrow">SECTION 01 · 知识地图</span>
+    <h2>三协议全景：谁解决什么问题？</h2>
+    <pre class="ascii">┌─────────────────────────────────────────────────────────────────┐
+│                    AI Agent 协议生态                              │
+│                                                                 │
+│    ┌──────────────┐    ┌──────────────┐    ┌──────────────┐    │
+│    │     MCP      │    │     A2A      │    │    NLWeb     │    │
+│    │ 模型上下文协议 │    │ 代理间协议    │    │ 自然语言网页  │    │
+│    └──────┬───────┘    └──────┬───────┘    └──────┬───────┘    │
+│           │                   │                   │            │
+│    解决什么问题？          解决什么问题？        解决什么问题？    │
+│   "LLM 怎么调用         "不同 Agent           "网站怎么被        │
+│    外部工具？"           怎么互相通信？"        AI 直接访问？"     │
+│           │                   │                   │            │
+│  ┌────────┴────────┐  ┌────────┴────────┐  ┌────────┴────────┐ │
+│  │ 三大能力        │  │ 四大组件        │  │ 五大组件        │ │
+│  │ • Tools  动作   │  │ • Agent Card    │  │ • NLWeb App    │ │
+│  │ • Resources 读  │  │ • Executor  执  │  │ • 协议规范     │ │
+│  │ • Prompts 模版  │  │ • Artifact  果  │  │ • MCP 端点     │ │
+│  │                │  │ • EventQueue 信  │  │ • 嵌入模型     │ │
+│  └────────┬───────┘  └────────┬───────┘  │ • 向量数据库   │ │
+│           │                   │           └────────┬───────┘ │
+│           │                   │                    │         │
+│    核心架构：              核心流程：           核心思路：      │
+│   客户端-服务器           代理卡发现             网站内容        │
+│   Host→Client→Server     →委托执行             →向量化        │
+│                          →工件返回             →语义搜索      │
+│                          →事件队列             →自然语言回答   │
+│           │                   │                    │         │
+│           └───────────────────┼────────────────────┘         │
+│                               │                              │
+│                    三者如何互补？                               │
+│              MCP 给了 Agent "手"（调工具）                     │
+│              A2A 给了 Agent "嘴"（协作通信）                    │
+│            NLWeb 给了 Agent "眼睛"（看懂网站）                   │
+└─────────────────────────────────────────────────────────────────┘</pre>
+  </section>
+
+  <!-- SECTION 02 · MCP 深度解析 -->
+  <section>
+    <span class="eyebrow">SECTION 02 · MCP</span>
+    <h2>模型上下文协议：给 AI 装上标准化的 USB 接口</h2>
+
+    <p>MCP 的本质是 <span class="highlight">Adapter Pattern + Service Discovery</span>——它把传统适配器模式提升到了协议层面，加上运行时动态发现能力。一个 LLM 可以同时连接多个 MCP Server，每个 Server 管自己的领域（航班、酒店、天气…），互不干扰。</p>
+
+    <h3>核心架构</h3>
+    <pre class="ascii">┌──────────┐     ┌──────────┐     ┌──────────┐
+│   Host   │────▶│  Client  │────▶│  Server  │
+│ (VSCode) │     │ (连接维护) │     │ (轻量功能) │
+└──────────┘     └──────────┘     └──────────┘
+
+Host：启动 MCP 连接的 LLM 应用（如 Claude Desktop、VSCode）
+Client：维护与 Server 的一对一连接
+Server：暴露 Tools / Resources / Prompts 的轻量级程序</pre>
+
+    <h3>三大核心能力</h3>
+    <div class="grid-3">
+      <div class="card border-blue">
+        <span class="tag">动作</span>
+        <h4>Tools 工具</h4>
+        <p>Agent 可调用的离散动作——执行搜索、预订航班、写文件。会改变状态。每个 Tool 公布名称、描述和输入/输出格式。</p>
+      </div>
+      <div class="card border-green">
+        <span class="tag">只读</span>
+        <h4>Resources 资源</h4>
+        <p>只读数据项——文件内容、数据库记录、日志文件。可以是文本（代码/JSON）或二进制（图片/PDF）。看一眼就好，不动手。</p>
+      </div>
+      <div class="card border-gold">
+        <span class="tag">模版</span>
+        <h4>Prompts 提示</h4>
+        <p>预定义的对话模板，提供复杂工作流程的快捷入口。客户端拿模板直接填参数就能用，不是"说明书"。</p>
+      </div>
+    </div>
+
+    <h3>MCP 三大优势 vs 传统 API</h3>
+    <div class="grid-2">
+      <div class="card border-blue">
+        <h4>动态工具发现</h4>
+        <p>运行时获取可用工具列表。传统 API 需编译时写死，API 变则代码变。MCP 一次集成，Server 端更新 Client 自动感知。</p>
+      </div>
+      <div class="card border-green">
+        <h4>跨 LLM 互操作性</h4>
+        <p>不绑定任何 LLM 供应商。同一套 MCP Server 可被 OpenAI、Anthropic、本地模型共用——解决"兼容灾难"。</p>
+      </div>
+      <div class="card border-gold" style="grid-column: 1 / -1;">
+        <h4>标准化安全</h4>
+        <p>统一认证方法，一处认证处处通行。对比传统方式：每个 API 一套密钥、一种认证方式，安全管理 O(n²) 复杂度。</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- SECTION 03 · A2A 深度解析 -->
+  <section>
+    <span class="eyebrow">SECTION 03 · A2A</span>
+    <h2>代理间协议：让 Agent 像团队一样协作</h2>
+
+    <p>如果说 MCP 是"一只手"，那 A2A 就是"一张名片 + 一个团队协作流程"。它解决的核心问题是：<span class="highlight">一个 Agent 怎么在没见过另一个 Agent 的情况下，知道它能做什么、怎么用它？</span></p>
+
+    <h3>四大核心组件</h3>
+    <pre class="ascii">任务开始 → 读 Agent Card → Executor 传递上下文 → 远程 Agent 干活 → 产出 Artifact → Event Queue 通知
+
+  Agent Card              Executor               Artifact              Event Queue
+  ┌──────────────┐      ┌──────────────┐      ┌──────────────┐      ┌──────────────┐
+  │ 代理名称      │      │ 传递用户聊天  │      │ 任务结果      │      │ 更新 & 消息   │
+  │ 任务描述      │      │ 上下文给远程  │      │ 工作描述      │      │ 推送通知      │
+  │ 具体技能列表  │      │ Agent        │      │ 文本上下文    │      │ 长任务进度    │
+  │ 端点 URL      │      │              │      │              │      │ 断连恢复      │
+  │ 版本 & 功能   │      │              │      │              │      │              │
+  └──────────────┘      └──────────────┘      └──────────────┘      └──────────────┘</pre>
+
+    <div class="card border-blue">
+      <h4>🎯 Agent Card 的核心价值：动态能力发现</h4>
+      <p>旅游 Agent 不需要提前硬编码"我知道航空 Agent 能做什么"。它运行时去读航空 Agent 的 Agent Card，发现——"你能搜航班、能订航班、还能取消航班，你的端点在这里，你支持流式响应"。<strong>这是运行时发现的，不是编译时写死的。</strong></p>
+    </div>
+
+    <h3>没有 Event Queue 会怎样？</h3>
+    <div class="card border-red">
+      <h4>四个生产级灾难</h4>
+      <ul>
+        <li><strong>同步阻塞</strong>：Agent A 委托了"生成 100 页报告"，Agent B 要跑 20 分钟，A 傻等着什么也做不了。</li>
+        <li><strong>连接断开 = 前功尽弃</strong>：网络闪断一下，任务状态全部丢失，从头再来。</li>
+        <li><strong>无法推送通知</strong>：B 完成任务了 A 不知道——除非 A 主动轮询。</li>
+        <li><strong>无法汇报进度</strong>：用户等了 10 分钟没任何反馈——"到底在做还是卡死了？"</li>
+      </ul>
+    </div>
+
+    <h3>MCP vs A2A 的核心分界线</h3>
+    <div class="card border-gold">
+      <h4>⭐ 学习者自己的洞察</h4>
+      <p style="font-size:1.05rem;"><strong>"这个任务需要有自己的大脑（自主推理能力）吗？"</strong></p>
+      <p>不需要 → MCP Tool（被动执行，给参数返结果）<br>需要 → A2A Agent（自主决策，能说"我觉得你这个需求不太合理"）</p>
+    </div>
+
+    <h3>为什么需要这些协议？（历史视角）</h3>
+    <div class="grid-2">
+      <div class="card border-blue">
+        <h4>MCP 出现之前</h4>
+        <ul>
+          <li>OpenAI Function Calling → 供应商锁定</li>
+          <li>LangChain Tools → 框架锁定，换框架全废</li>
+          <li>自研中间层 → 每个团队重复造轮子</li>
+        </ul>
+        <p style="margin-top:0.5rem;"><strong>MCP 的本质：把"工具集成"从框架层面提升到协议层面。</strong></p>
+      </div>
+      <div class="card border-purple">
+        <h4>A2A 出现之前</h4>
+        <ul>
+          <li>硬编码编排 → 必须事先知道每个 Agent 能做什么</li>
+          <li>点对点集成 → N 个 Agent = N×(N-1) 套定制代码</li>
+          <li>各厂商自定标准 → Agent 之间无法直接对话</li>
+        </ul>
+        <p style="margin-top:0.5rem;"><strong>A2A 的本质：把 Agent 间通信从"点对点定制"变成"标准化名片交换"。</strong></p>
+      </div>
+    </div>
+  </section>
+
+  <!-- SECTION 04 · NLWeb -->
+  <section>
+    <span class="eyebrow">SECTION 04 · NLWeb</span>
+    <h2>自然语言网页：让网站"自己会说话"</h2>
+
+    <p>NLWeb 的真正价值不是"AI 能拿网页信息"（爬虫早就能做了），而是让网站将自己的内容向量化、支持语义搜索，并且<strong>网站本身作为一个 MCP Server</strong>，可以被其他 AI Agent 直接调用。</p>
+
+    <h3>五大组件</h3>
+    <div class="grid-2">
+      <div class="card border-blue">
+        <h4>NLWeb 应用</h4>
+        <p>处理自然语言问题的核心服务引擎，连接平台各部分生成响应。</p>
+      </div>
+      <div class="card border-green">
+        <h4>NLWeb 协议</h4>
+        <p>网站自然语言交互的基本规则集，响应以 JSON 格式返回（常用 Schema.org）。</p>
+      </div>
+      <div class="card border-gold">
+        <h4>MCP 端点</h4>
+        <p>每个 NLWeb 配置同时也是一个 MCP Server，提供 <code>ask</code> 方法供外部 Agent 调用。</p>
+      </div>
+      <div class="card border-purple">
+        <h4>嵌入模型 + 向量数据库</h4>
+        <p>将网站内容转为向量，存储于 Qdrant / Milvus / Elasticsearch 等向量数据库，支持语义搜索。</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- SECTION 05 · 学习亮点 -->
+  <section>
+    <span class="eyebrow">SECTION 05 · 学习亮点</span>
+    <h2>今天的核心收获</h2>
+
+    <div class="card border-gold">
+      <h4>⭐ 钥匙级洞察：MCP vs A2A 的分界判据</h4>
+      <p>学习者在没看任何资料的情况下，用直觉推出了 MCP 的三层架构和 A2A 的三大需求（能力发现、信息汇总、结果整合）。在追问中提炼出核心分界判据——<strong>"这个任务需要有自己的大脑（自主推理能力）吗？"</strong>——不需要就用 MCP Tool，需要就用 A2A Agent。这个判据比"Tool vs Agent"更底层、更准确。</p>
+    </div>
+
+    <div class="card border-blue">
+      <h4>🔗 设计模式连接：MCP = Adapter + Service Discovery</h4>
+      <p>学习者主动将 MCP 与适配器设计模式建立连接。更进一步指出核心差异：传统 Adapter 是编译时写死，MCP 是运行时动态发现——"API 变了代码也要跟着改"在 MCP 下不再成立。</p>
+    </div>
+
+    <div class="card border-green">
+      <h4>📖 历史视角：理解协议为什么被发明</h4>
+      <p>通过对比 MCP/A2A 出现前的旧方案（Function Calling 供应商锁定、LangChain 框架锁定、点对点集成的 O(n²) 灾难），学习者理解了这些协议不只是"新技术"，而是对真实痛点的标准化回应。</p>
+    </div>
+  </section>
+
+  <!-- SECTION 06 · 需要加强 -->
+  <section>
+    <span class="eyebrow">SECTION 06 · 需要加强</span>
+    <h2>盲点与待巩固</h2>
+
+    <div class="card border-red">
+      <h4>⚠️ Tool 与 Resource 的区分需要更精准</h4>
+      <p>首答时混淆了"Tool 操作 Resource"的关系。正确理解：Tool 和 Resource 是 MCP Server 暴露的两种<strong>并列</strong>能力入口，不是"用 Tool 去查 Resource"。判据：看一眼就好 → Resource；需要动手执行 → Tool。</p>
+    </div>
+
+    <div class="card border-red">
+      <h4>⚠️ MCP Prompts 的定位</h4>
+      <p>首答将 Prompts 描述为"提示 Agent 理解工具怎么使用"——这是说明书思维。实际上 Prompts 是<strong>预定义的对话模板</strong>（半成品 prompt），客户端拿模板填参数直接用。</p>
+    </div>
+
+    <div class="card border-red">
+      <h4>⚠️ NLWeb 的独特价值</h4>
+      <p>首答将 NLWeb 简化为"AI 拿网页信息"。实际上它的独特价值在于：① 网站内容向量化 + 语义搜索 ② 网站本身作为 MCP Server 被其他 Agent 调用。区别于传统爬虫。</p>
+    </div>
+  </section>
+
+  <!-- SECTION 07 · 报告 -->
+  <section>
+    <span class="eyebrow">SECTION 07 · 学习报告</span>
+    <h2>📊 本单元学习报告</h2>
+
+    <div class="card border-green">
+      <h4>A 层 · 必须深入理解</h4>
+      <ul>
+        <li>MCP 客户端-服务器架构（Host → Client → Server）</li>
+        <li>MCP 三大能力：Tools（动作）/ Resources（只读）/ Prompts（模板）</li>
+        <li>MCP vs 传统 API 三大优势（动态发现 / 跨 LLM 互操作 / 标准化安全）</li>
+        <li>A2A 四大组件：Agent Card / Executor / Artifact / Event Queue</li>
+        <li>A2A vs MCP 核心分界线（需要自己的大脑吗？）</li>
+        <li>MCP = Adapter Pattern + Service Discovery</li>
+        <li>A2A Agent Card = 动态能力发现（非编译时写死）</li>
+      </ul>
+    </div>
+
+    <div class="card border-blue">
+      <h4>B 层 · 理解思路即可</h4>
+      <ul>
+        <li>MCP 完整工作流程（连接→发现→调用→执行→响应）</li>
+        <li>A2A 完整协作流程（请求→协调→委派→汇总）</li>
+        <li>NLWeb 五大组件与工作流程</li>
+        <li>三协议互补关系（手 / 嘴 / 眼）</li>
+      </ul>
+    </div>
+
+    <div class="card border-purple">
+      <h4>C 层 · 用时查阅</h4>
+      <ul>
+        <li>NLWeb 与各向量数据库（Qdrant / Milvus / Elasticsearch）的集成细节</li>
+        <li>NLWeb 嵌入模型选型</li>
+        <li>MCP / A2A 具体认证机制实现</li>
+      </ul>
+    </div>
+
+    <div class="card border-red" style="margin-top:1.5rem;">
+      <h4>需要加强</h4>
+      <ul>
+        <li>Tool vs Resource 的并列关系（非 Tool 操作 Resource）</li>
+        <li>MCP Prompts = 对话模板，非"说明书"</li>
+        <li>NLWeb 的独特价值（非传统爬虫替代）</li>
+        <li>A2A Event Queue 的具体机制（异步可靠性）</li>
+      </ul>
+    </div>
+
+    <div class="card border-gold" style="margin-top:1.5rem;">
+      <h4>下次复习时间</h4>
+      <ul>
+        <li><strong>D2</strong>：2026-08-05 · 3 题闭卷（MCP 架构 + A2A 组件 + 分界线判据）</li>
+        <li><strong>D7</strong>：2026-08-10 · 5 题跨章节（含与多代理设计模式 / 可信赖 Agent 的连接）</li>
+        <li><strong>D30</strong>：2026-09-02 · 综合应用（设计一个完整的 MCP + A2A 实际场景）</li>
+      </ul>
+    </div>
+  </section>
+
+  <hr class="divider" />
+
+  <footer>
+    <p>📚 教程来源：Microsoft AI Agents for Beginners · Lesson 11 · Agentic Protocols</p>
+    <p>🔗 <a href="https://github.com/microsoft/ai-agents-for-beginners/blob/main/translations/zh-CN/11-agentic-protocols/README.md" style="color: var(--accent-blue);">原始教程链接</a></p>
+    <p style="margin-top:1rem;">Generated by Claude Code · Learning Coach · 2026-08-03</p>
+  </footer>
+
+</div>
+</body>
+</html>

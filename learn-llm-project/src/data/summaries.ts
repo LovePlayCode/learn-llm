@@ -1915,6 +1915,527 @@ TCC Transparent 分层：
       ],
     },
   },
+  {
+    id: "2026-07-27-yuan-ren-zhi-d30",
+    date: "2026-07-27",
+    time: "复习 D30",
+    title: "元认知 Metacognition D30 综合应用",
+    subtitle: "五题闭卷通过 · 协调层元认知层级焊死 · 跨章节缝合",
+    sourceFile: "复习/2026-07-27-元认知D30.html",
+    summary:
+      "距 D7(7/01) 26 天后五题闭卷全过。协调层元认知从「纠错家族/质检」混淆修正回「元认知家族」，上下兄弟分层焊死；无状态三缺失+双层级路由独立设计出元认知模块；压轴把元认知×可信赖Agent×错误累积缝成网（主动刹车 vs 安全网），进入长期记忆区。",
+    detail: {
+      lead: "本次 D30 五题闭卷全过。最大价值不是具体知识点，而是三件事真正用出来了：协调层元认知的上下兄弟从混淆到焊死、无状态三缺失+双层级路由能独立设计、压轴三章缝合。元认知正式进入长期记忆区。",
+      stats: [
+        { value: "5", label: "闭卷题" },
+        { value: "5", label: "通过" },
+        { value: "2", label: "元层级焊死" },
+        { value: "1", label: "跨章节缝合" },
+      ],
+      keyPoints: [
+        {
+          label: "题 1 / 通过",
+          title: "改策略 vs 改答案",
+          body: "用做题类比：元认知调思路（方法/标准层），普通纠错只改答案（结果层）。边界题验证同方法重算只改数字=普通纠错。钥匙：方法没变只改结果=普通纠错；方法/标准变了=元认知。",
+        },
+        {
+          label: "题 2 / 焊死",
+          title: "协调层元认知 ≠ 质检",
+          body: "上下兄弟分层归位：上=元认知家族（非纠错家族）；兄=质检（同住协调层，质检查产物、它查策略）；下=修改协作策略/换更强模型。从「纠错家族」修正回「元认知家族」是本次最关键元层级修复。",
+        },
+        {
+          label: "题 3 / 通过",
+          title: "Over-Reflection 判断",
+          body: "三场景：熟悉任务偶尔错→不反思；新领域首跑不通→反思（7/01 曾栽的坑，今天主动判对）；用户连说三次不对→反思。反向追问过度反思代价（成本/速度/循环/根因）答出预期外。",
+        },
+        {
+          label: "题 4 / 通过",
+          title: "无状态三缺失 + 双层级路由",
+          body: "补齐 LLM 无状态三缺失：决策历史存储=Reasoning Chain、评估机制=Evaluator、策略切换逻辑=注入执行节点。Evaluator 双层级需分流：答案层→纠错，策略层→self-Reflection/重规划。",
+        },
+        {
+          label: "题 5 / 缝合",
+          title: "元认知 × 可信赖 Agent × 错误累积",
+          body: "敌人=1−p^N；checkpoint=安全网（固定位置切段）；元认知=主动刹车（动态觉察挡越权/过度代理，常导向人类审批档=HITL checkpoint）。三者合作把 N 压到最小。",
+        },
+      ],
+      map: `协调层元认知 · 上下兄弟
+第 3 层（家族）  元认知 = 改策略不只改答案
+                    │
+第 2 层（兄弟）  ├── 协调层元认知 → 审视「协作策略对不对」
+               └── 质检 → 审视「产物对不对」（兄弟，非它自己）
+
+三者配合（题 5）：
+敌人 1−p^N → checkpoint 安全网（位置驱动）+ 元认知 主动刹车（信号驱动）
+配合：主动早刹 + 固定兜底，把 N 压最小`,
+      sections: [
+        {
+          title: "题 2 层级修正链",
+          body: "首轮答「协调层元认知=检查输出对不对」→ 那是质检。用上下兄弟问三句：上答「纠错家族」❌ → 修正「元认知家族」✅；兄点出「质检」✅；下答「修改协作策略/换模型」✅。经历从混淆到焊死。",
+        },
+        {
+          title: "题 4 双层级路由",
+          body: "五评估维度拆两家：准确性/事实性/格式约束属答案层（纠错/重试）；目标完成度/系统健康度属策略层（self-Reflection/重规划）。同一 Evaluator 可看两层，但下游必须分流，否则 Over-Reflection 循环复燃。",
+        },
+        {
+          title: "题 5 跨章节缝合",
+          body: "用「主动刹车 vs 安全网」骨架展开：元认知动态觉察（信号驱动，比固定 checkpoint 早），checkpoint 固定关口（位置驱动）。元认知挡越权/过度代理、常导向人类审批档（本质 HITL checkpoint）。",
+        },
+      ],
+      blindspots: [
+        {
+          title: "五类威胁/三档安全边界首轮提取慢",
+          body: "属可信赖 Agent 章内容，对元认知 D30 是借用上下文。今天先忘后捞（用输入/推理/输出 + 能不能反悔两锚点），提取通道偏慢，建议季度回访再验。",
+        },
+        {
+          title: "协调层元认知上/兄层级·本次新焊",
+          body: "从「纠错家族」修正回「元认知家族」才归位。已稳，但属本次新焊点，需巩固防复发为质检或纠错家族。",
+        },
+        {
+          title: "Evaluator 双层级路由·防退化",
+          body: "答案层→纠错/策略层→元认知的分流是本次厘清的，若日后偷懒把所有失败送进 self-Reflection，Over-Reflection 循环复燃。",
+        },
+      ],
+      highlights: [
+        {
+          title: "从混淆到焊死",
+          body: "协调层元认知的上下兄弟从「纠错家族/质检」混淆，用工具自行修正回「元认知家族」，分层意识能反向审查自己答案。",
+        },
+        {
+          title: "过度反思代价超出预期",
+          body: "反向追问不仅说出成本/速度，还点出「第一次方案已对却一直改」的循环陷阱，及「问题不清/无解时反思空转」的根因分析。",
+        },
+        {
+          title: "三章缝合自动展开",
+          body: "压轴题 5 在全新场景里自动用「主动刹车 vs 安全网」骨架，把元认知×可信赖Agent×错误累积织成网，无需提示。",
+        },
+      ],
+      report: [
+        {
+          title: "A 层 · 通过（进入长期记忆）",
+          items: [
+            "元认知 vs 纠错（改策略不只改答案）",
+            "协调层元认知上下兄弟分层（≠质检）",
+            "Over-Reflection 判断（熟悉小错/新领域/连否）",
+            "无状态三缺失 + 双层级路由设计",
+            "元认知×可信赖Agent×错误累积缝合",
+          ],
+        },
+        {
+          title: "需季度回访",
+          items: [
+            "五类威胁/三档安全边界首轮提取速度",
+            "协调层元认知上/兄层级巩固（防复发为质检）",
+            "Evaluator 双层级下游分流防退化",
+          ],
+          tone: "warn",
+        },
+        {
+          title: "横向连接",
+          items: [
+            "协调层元认知 × 质检（同住协调层·不同审视对象）",
+            "元认知 × 错误累积（主动刹车 vs checkpoint 安全网）",
+            "元认知 × 三档安全边界（反思常导向人类审批档）",
+            "过度反思 × 成本三策略（反思预算护栏）",
+          ],
+        },
+      ],
+      tags: [
+        "元认知",
+        "Metacognition",
+        "改策略不只改答案",
+        "协调层元认知",
+        "上下兄弟问三句",
+        "Over-Reflection",
+        "无状态三缺失",
+        "双层级路由",
+        "Reasoning Chain",
+        "可信赖 Agent",
+        "五类威胁",
+        "三档安全边界",
+        "错误累积 1−p^N",
+        "checkpoint 安全网",
+        "主动刹车",
+        "D30 综合",
+      ],
+    },
+  },
+  {
+    id: "2026-08-03-zhi-neng-ti-xie-yi",
+    date: "2026-08-03",
+    time: "学习记录",
+    title: "智能体协议 MCP、A2A 与 NLWeb",
+    subtitle: "AI Agent 的三把钥匙：手、嘴、眼",
+    sourceFile: "learn/2026-08-03-智能体协议MCP-A2A-NLWeb.html",
+    summary:
+      "学习 MCP（模型上下文协议）、A2A（代理间协议）、NLWeb（自然语言网页）三大 AI Agent 通信协议。核心收获：提炼出 MCP vs A2A 的分界判据——\"这个任务需要有自己的大脑吗？\"——以及 MCP = Adapter Pattern + Service Discovery 的设计模式连接。",
+    detail: {
+      lead: "本次学习从项目实际需求出发（让 Agent 调工具 + 多 Agent 协作），系统学习了三种 Agent 协议。最大亮点：学习者在输入前就用直觉猜中了 MCP 三层架构和 A2A 三大核心需求，并在追问中提炼出\"自主推理能力\"这一核心分界判据。",
+      stats: [
+        { value: "3", label: "核心协议" },
+        { value: "7", label: "A 层知识点" },
+        { value: "1", label: "钥匙级洞察" },
+        { value: "4", label: "追问通过" },
+      ],
+      keyPoints: [
+        {
+          label: "MCP / 架构",
+          title: "客户端-服务器架构：Host → Client → Server",
+          body: "Host 是 LLM 应用（如 VSCode），Client 维护一对一连接，Server 暴露 Tools/Resources/Prompts 三种能力。MCP 的本质是 Adapter Pattern + Service Discovery——把工具集成从框架层面提升到协议层面。",
+        },
+        {
+          label: "MCP / 三大能力",
+          title: "Tools（动作）· Resources（只读）· Prompts（模板）",
+          body: "Tools 是 Agent 可调用的离散动作，会改变状态；Resources 是只读数据项，看一眼就好；Prompts 是预定义对话模板，客户端填参数直接用。三者是并列的能力入口，不是 Tool 操作 Resource。",
+        },
+        {
+          label: "MCP / 三大优势",
+          title: "动态工具发现 · 跨 LLM 互操作 · 标准化安全",
+          body: "对比传统 API：传统需编译时写死，MCP 运行时发现；传统绑定供应商，MCP 跨 LLM 共用；传统每 API 一套密钥，MCP 统一认证。解决了学习者自己指出的\"兼容灾难\"。",
+        },
+        {
+          label: "A2A / 四大组件",
+          title: "Agent Card · Executor · Artifact · Event Queue",
+          body: "Agent Card 实现动态能力发现（运行时才知道远程 Agent 能做什么）；Executor 传递用户上下文；Artifact 返回工作成果；Event Queue 处理异步可靠性和推送通知。",
+        },
+        {
+          label: "A2A / 核心价值",
+          title: "从点对点定制到标准化名片交换",
+          body: "A2A 出现前：硬编码编排必须事先知道每个 Agent 能力、点对点集成导致 O(n²) 灾难、各厂商自定标准 Agent 无法对话。A2A 把这一切标准化。",
+        },
+        {
+          label: "⭐ 钥匙洞察",
+          title: "MCP vs A2A 分界判据：需要自己的大脑吗？",
+          body: "学习者在追问中独立提炼：不需要自主推理 → MCP Tool（被动执行）；需要自主推理 → A2A Agent（能质疑需求）。这个判据比\"Tool vs Agent\"更底层、更准确。",
+        },
+        {
+          label: "NLWeb / B 层",
+          title: "让网站自己会说话",
+          body: "NLWeb 不只是\"AI 拿网页信息\"（爬虫早就能做）。独特价值：① 网站内容向量化 + 语义搜索 ② 网站本身作为 MCP Server 被其他 Agent 调用（提供 ask 方法）。",
+        },
+      ],
+      map: `┌─────────────────────────────────────────────────────────────────┐
+│                    AI Agent 协议生态                              │
+│                                                                 │
+│    ┌──────────────┐    ┌──────────────┐    ┌──────────────┐    │
+│    │     MCP      │    │     A2A      │    │    NLWeb     │    │
+│    │ 模型上下文协议 │    │ 代理间协议    │    │ 自然语言网页  │    │
+│    └──────┬───────┘    └──────┬───────┘    └──────┬───────┘    │
+│           │                   │                   │            │
+│    解决什么问题？          解决什么问题？        解决什么问题？    │
+│   "LLM 怎么调用         "不同 Agent           "网站怎么被        │
+│    外部工具？"           怎么互相通信？"        AI 直接访问？"     │
+│           │                   │                   │            │
+│  ┌────────┴────────┐  ┌────────┴────────┐  ┌────────┴────────┐ │
+│  │ 三大能力        │  │ 四大组件        │  │ 五大组件        │ │
+│  │ • Tools  动作   │  │ • Agent Card    │  │ • NLWeb App    │ │
+│  │ • Resources 读  │  │ • Executor  执  │  │ • 协议规范     │ │
+│  │ • Prompts 模版  │  │ • Artifact  果  │  │ • MCP 端点     │ │
+│  │                │  │ • EventQueue 信  │  │ • 嵌入模型     │ │
+│  └────────┬───────┘  └────────┬───────┘  │ • 向量数据库   │ │
+│           │                   │           └────────┬───────┘ │
+│           │                   │                    │         │
+│    核心架构：              核心流程：           核心思路：      │
+│   客户端-服务器           代理卡发现             网站内容        │
+│   Host→Client→Server     →委托执行             →向量化        │
+│                          →工件返回             →语义搜索      │
+│                          →事件队列             →自然语言回答   │
+│           │                   │                    │         │
+│           └───────────────────┼────────────────────┘         │
+│                               │                              │
+│                    三者如何互补？                               │
+│              MCP 给了 Agent "手"（调工具）                     │
+│              A2A 给了 Agent "嘴"（协作通信）                    │
+│            NLWeb 给了 Agent "眼睛"（看懂网站）                   │
+└─────────────────────────────────────────────────────────────────┘
+
+⭐ 核心分界判据：
+  "这个任务需要有自己的大脑吗？"
+  不需要 → MCP Tool（被动执行，给参数返结果）
+  需要   → A2A Agent（自主决策，能质疑需求）`,
+      sections: [
+        {
+          title: "MCP 核心架构与能力",
+          body: "MCP 基于客户端-服务器架构：Host（LLM 应用）→ Client（连接维护）→ Server（轻量功能程序）。Server 暴露三种并列能力：Tools（离散动作，改变状态）、Resources（只读数据项）、Prompts（预定义对话模板，非说明书）。MCP 三大优势 vs 传统 API：动态工具发现（运行时 vs 编译时）、跨 LLM 互操作性（不绑定供应商）、标准化安全（统一认证 vs 每 API 一套密钥）。",
+        },
+        {
+          title: "A2A 四大组件与协作流程",
+          body: "Agent Card（名称/描述/技能列表/端点 URL/版本功能）实现运行时动态能力发现——Agent 不需要提前硬编码知道远程 Agent 能做什么。Executor 传递用户聊天上下文给远程 Agent。Artifact 包含任务结果、工作描述和文本上下文。Event Queue 处理异步可靠性：同步阻塞、连接断开恢复、推送通知、进度汇报——没有它长任务无法可靠执行。",
+        },
+        {
+          title: "MCP vs A2A 的历史视角",
+          body: "MCP 出现前：OpenAI Function Calling（供应商锁定）、LangChain Tools（框架锁定）、自研中间层（重复造轮子）。A2A 出现前：硬编码编排（必须事先知道能力）、点对点集成（O(n²) 灾难）、各厂商自定标准（无法互操作）。MCP 把工具集成从框架层面提升到协议层面；A2A 把 Agent 通信从点对点定制变成标准化名片交换。",
+        },
+        {
+          title: "NLWeb：让网站自己会说话",
+          body: "五大组件：NLWeb 应用（核心服务引擎）、NLWeb 协议（JSON/Schema.org 响应）、MCP 端点（网站本身就是 MCP Server，提供 ask 方法）、嵌入模型（内容转向量）、向量数据库（语义搜索）。区别于传统爬虫：NLWeb 支持语义搜索 + 可被外部 Agent 直接调用。",
+        },
+      ],
+      blindspots: [
+        {
+          title: "Tool 与 Resource 的并列关系混淆",
+          body: "首答说\"可以利用 TOOL 查询 resource\"——混淆为 Tool 操作 Resource 的关系。正确理解：Tool 和 Resource 是 MCP Server 暴露的两种并列能力入口。判据：看一眼就好 → Resource；需要动手执行 → Tool。",
+        },
+        {
+          title: "MCP Prompts = 说明书（误）→ 对话模板（正）",
+          body: "首答将 Prompts 描述为\"提示 Agent 理解工具怎么使用\"——说明书思维。实际上 Prompts 是预定义的半成品对话模板，客户端拿模板填参数直接用，解决\"常见复杂任务的快捷入口\"。",
+        },
+        {
+          title: "NLWeb 简化为\"AI 拿网页信息\"",
+          body: "首答未区分 NLWeb 与传统爬虫。NLWeb 的独特价值：① 网站内容向量化 + 语义搜索 ② 网站本身作为 MCP Server，可被外部 Agent 通过 ask 方法调用。",
+        },
+        {
+          title: "A2A Event Queue 的异步可靠性机制待巩固",
+          body: "知道\"容易超时\"但未深入异步可靠性的四个维度（同步阻塞/连接断开/推送通知/进度汇报）。D2 需重点回顾。",
+        },
+      ],
+      highlights: [
+        {
+          title: "⭐ 输入前直觉匹配教程核心结构",
+          body: "学习者在没看任何资料的情况下，猜中了 MCP 的三层架构（载体/客户端/服务器）和 A2A 的三大核心需求（能力发现/信息汇总/结果整合）。更精准地指出了\"兼容灾难\"——这个洞察与教程中 MCP 的\"跨 LLM 互操作性\"优势完全吻合。",
+        },
+        {
+          title: "🔗 设计模式连接：MCP = Adapter + Discovery",
+          body: "学习者主动将 MCP 与适配器设计模式建立连接，并进一步指出核心差异：传统 Adapter 编译时写死，MCP 运行时动态发现。这是从\"识别模式\"到\"理解差异\"的认知跃迁。",
+        },
+        {
+          title: "🎯 独立提炼核心分界判据",
+          body: "在追问\"MCP 和 A2A 的分界线在哪\"时，学习者独立说出：\"这个任务需要有自己的大脑吗？如果需要，使用 A2A；如果不需要，使用 MCP。\"——这个判据抓住了本质（自主推理能力），而非停留在表面（Tool vs Agent）。",
+        },
+        {
+          title: "📖 历史视角补全：理解'为什么被发明'",
+          body: "通过对比旧方案的致命缺陷（供应商锁定/框架锁定/O(n²) 集成灾难），学习者不仅知道了三个协议'是什么'，还理解了它们解决了什么真实痛点——这是从\"会用\"到\"会选\"的关键一步。",
+        },
+      ],
+      report: [
+        {
+          title: "A 层 · 必须深入理解（7 项）",
+          items: [
+            "MCP 客户端-服务器架构（Host → Client → Server）",
+            "MCP 三大能力：Tools（动作）/ Resources（只读）/ Prompts（模板）",
+            "MCP vs 传统 API 三大优势（动态发现 / 跨 LLM 互操作 / 标准化安全）",
+            "A2A 四大组件：Agent Card / Executor / Artifact / Event Queue",
+            "A2A vs MCP 核心分界线（需要自己的大脑吗？）",
+            "MCP = Adapter Pattern + Service Discovery",
+            "A2A Agent Card = 动态能力发现（非编译时写死）",
+          ],
+        },
+        {
+          title: "B 层 · 理解思路即可",
+          items: [
+            "MCP 完整工作流程（连接→发现→调用→执行→响应）",
+            "A2A 完整协作流程（请求→协调→委派→汇总）",
+            "NLWeb 五大组件与工作流程",
+            "三协议互补关系（手 / 嘴 / 眼）",
+          ],
+        },
+        {
+          title: "需要加强",
+          items: [
+            "Tool vs Resource 的并列关系（非 Tool 操作 Resource）",
+            "MCP Prompts = 对话模板，非\"说明书\"",
+            "NLWeb 的独特价值（非传统爬虫替代）",
+            "A2A Event Queue 的具体机制（异步可靠性四维度）",
+          ],
+          tone: "warn",
+        },
+        {
+          title: "横向连接",
+          items: [
+            "MCP × Adapter Pattern（设计模式连接）",
+            "A2A × 多代理设计模式（群聊/转接/协同过滤的协议层支撑）",
+            "MCP × 可信赖 Agent（标准化安全 vs 三档安全边界）",
+            "A2A Agent Card × 动态服务发现（微服务注册中心的 AI 版本）",
+          ],
+        },
+      ],
+      tags: [
+        "MCP",
+        "A2A",
+        "NLWeb",
+        "Agent Card",
+        "Executor",
+        "Artifact",
+        "Event Queue",
+        "Tools",
+        "Resources",
+        "Prompts",
+        "Adapter Pattern",
+        "动态发现",
+        "自主推理",
+        "跨 LLM 互操作",
+        "标准化安全",
+        "初学",
+      ],
+    },
+  },
+  {
+    id: "2026-08-06-shang-xia-wen-gong-cheng",
+    date: "2026-08-06",
+    time: "学习记录",
+    title: "上下文工程 Context Engineering",
+    subtitle: "五种类型 · 四种失败模式 · 六种管理策略",
+    sourceFile: "learn/2026-08-06-上下文工程ContextEngineering.html",
+    summary:
+      "从项目实际痛点出发（上下文过长 + Agent 行为不稳定），学习上下文工程的核心框架。掌握了提示工程（静态指令）vs 上下文工程（动态信息流）的本质区别，以及五种上下文类型 → 四种失败模式 → 六种管理策略的完整链条。最大亮点：跨章节连接自发引用 Lost in the Middle + MCP，'银弹'级别设计哲学洞察。",
+    detail: {
+      lead: "提示工程专注于静态指令构建，上下文工程管理动态信息流——在 Agent 执行的每一步裁剪、压缩、注入恰到好处的上下文。本次学习从诊断自己的项目痛点出发，把概念焊成了可操作的诊断工具。",
+      stats: [
+        { value: "5", label: "上下文类型" },
+        { value: "4", label: "失败模式" },
+        { value: "6", label: "管理策略" },
+        { value: "3", label: "追问通过" },
+        { value: "3", label: "纵向追问" },
+      ],
+      keyPoints: [
+        {
+          label: "核心区分 / A1",
+          title: "提示工程（静态）vs 上下文工程（动态）",
+          body: "提示工程管'写什么'——构建 system prompt、few-shot examples。上下文工程管'给什么、什么时候给、给多少'——管理整个执行过程中的动态信息流。",
+        },
+        {
+          label: "诊断工具 / A2",
+          title: "四种失败模式：中毒 / 分心 / 混淆 / 冲突",
+          body: "中毒最隐蔽（不报错、很自信、全盘错）；分心最常见（Lost in the Middle 稀释意图）；混淆是工具选择困难症；冲突是矛盾信息导致不一致推理。",
+        },
+        {
+          label: "修理箱 / A3",
+          title: "六种管理策略",
+          body: "上下文压缩 + 摘要、动态工具注入（按需加载）、上下文剪枝、多 Agent 委托、代理便签（一致性校验）、沙箱隔离。每条策略对应特定失败模式。",
+        },
+        {
+          label: "完整链条",
+          title: "类型 → 失败 → 策略",
+          body: "对话历史 → 分心 → 压缩+摘要。工具 → 混淆 → 动态注入。知识 → 分心/冲突 → 压缩/一致性校验。指令（few-shot） → 分心 → 剪枝。任意类型 → 中毒 → 沙箱+校验。",
+        },
+      ],
+      map: `                    上下文工程（Context Engineering）
+                         │
+          ┌──────────────┼──────────────┐
+          │              │              │
+    ① 是什么？       ② 为什么难？     ③ 怎么做？
+          │              │              │
+    ┌─────┴─────┐   ┌───┴───┐    ┌─────┴──────┐
+    │ vs 提示工程 │   │4种失败│    │ 管理策略    │
+    │ 静态 vs 动态│   │模式   │    │ 6种武器     │
+    └─────┬─────┘   │(A2)   │    └─────┬──────┘
+          │         └───┬───┘          │
+          │             │              │
+    ┌─────┴─────┐  ┌────┴────┐   ┌────┴──────────┐
+    │ 5种上下文  │  │中毒 分心│   │压缩 摘要 剪枝  │
+    │ 类型 (B1)  │  │混淆 冲突│   │沙箱 多Agent委托│
+    └───────────┘  └─────────┘   │代理便签 运行时状态│
+                                 └─────────────────┘`,
+      sections: [
+        {
+          title: "提示工程 vs 上下文工程：静态 vs 动态",
+          body: "提示工程专注于静态指令的构建（system prompt、few-shot examples、格式调整），对象是'一次性注入的文本'。上下文工程管理动态信息流——随着 Agent 执行每一步，不断裁剪、压缩、注入新上下文。对象是'整个执行过程中进入模型窗口的全部内容'。一句话区分：提示工程管'写什么'，上下文工程管'给什么、什么时候给、给多少'。",
+        },
+        {
+          title: "五种上下文类型",
+          body: "指令（规则、示例、工具描述）→ 分心风险中等；知识（事实、数据库、长期记忆）→ 分心+冲突风险；工具（外部函数、API、MCP）→ 混淆风险高；对话历史（多轮交互+Agent 自身输出）→ 分心风险极高（指数爆炸）；用户偏好（学习到的行为模式）→ 风险低，通常可控。",
+        },
+        {
+          title: "四种失败模式完整诊断表",
+          body: "中毒（Poisoning）：错误信息自循环，不报错、很自信——最隐蔽。分心（Distraction）：信息量太大 → Lost in the Middle 稀释原始意图。混淆（Confusion）：工具太多 → 不知道选哪个。冲突（Conflict）：矛盾信息 → 不一致推理。关键口诀：混淆='分不清该用哪个'(工具选择困难症)；分心='被别的东西吸引了'(注意力被劫持)。",
+        },
+        {
+          title: "完整关系链条（类型 → 失败 → 策略）",
+          body: "对话历史 → 分心 → 压缩+摘要；工具 → 混淆 → 动态注入；知识 → 分心(量大) → 压缩；知识 → 冲突(矛盾) → 代理便签+剪枝；指令(few-shot) → 分心 → 剪枝；任意类型 → 中毒 → 沙箱+校验。精确诊断 → 精确武器库，不用大炮打蚊子。",
+        },
+      ],
+      blindspots: [
+        {
+          title: "术语边界：few-shot = 指令，不是知识",
+          body: "初轮把 few-shot examples 归为'知识'→ 应是'指令（Instructions）'的子类。范例的目的是告诉模型'怎么答、用什么格式'，本质是下达指令而非传递事实。",
+        },
+        {
+          title: "失败模式辨识：分心 ≠ 混淆",
+          body: "'范例太多'会触发分心（Distraction），不是混淆（Confusion）。混淆=工具选择困难症（分不清该用哪个）；分心=注意力被别的东西吸引（忘了当前任务重点）。",
+        },
+        {
+          title: "架构思维：缺少'组合'视角",
+          body: "第三问'框架层 vs Agent 层管理上下文'的回答正确指出了各自利弊，但缺少业界实践的'组合'答案——框架提供原语（compress/summarize/pruneTools），Agent 自主配置何时调用哪些原语。",
+        },
+      ],
+      highlights: [
+        {
+          title: "'银弹'洞察",
+          body: "追问'为什么分四种失败模式'时，学习者独立说出'如果统称一个名字，解决方案就是统一的银弹方案——但很难出现统一的银弹'。精准命中分类的工程价值：精确诊断 → 精确武器库。",
+        },
+        {
+          title: "Lost in the Middle 自发引用",
+          body: "诊断'Agent 越聊越偏'时，学习者直接调用论文发现解释分心现象，展示跨章节知识迁移能力。这是之前'缓存+Claude Code 上下文管理'学到的概念在新场景中的自动激活。",
+        },
+        {
+          title: "中毒最阴险的判断",
+          body: "纵向追问'哪种失败最隐蔽'时，学习者指出中毒'会沿着中毒的链路一直走下去，最终导致任务质量不高'——抓住了中毒自循环+不报错的本质。",
+        },
+        {
+          title: "MCP 归类精准",
+          body: "独立判断 MCP 属于上下文工程五种类型中的'工具'，会引入上下文混淆风险，策略是按需注入（动态剪枝）。",
+        },
+      ],
+      report: [
+        {
+          title: "A 层 · 通过",
+          items: [
+            "上下文工程 vs 提示工程（静态 vs 动态）",
+            "五种上下文类型：指令/知识/工具/对话历史/用户偏好",
+            "四种失败模式：中毒/分心/混淆/冲突",
+            "六种管理策略及其对应关系",
+            "类型 → 失败 → 策略 完整链条",
+          ],
+        },
+        {
+          title: "B 层 · 方向正确",
+          items: [
+            "五种类型分类及各自爆炸风险",
+            "规划管线设计思路",
+            "架构分层（框架层 vs Agent 层）的利弊分析",
+          ],
+        },
+        {
+          title: "需要加强",
+          items: [
+            "Instructions vs Knowledge 边界（few-shot 归属）",
+            "混淆 vs 分心的精准区分（口诀：混淆=选工具，分心=忘任务）",
+            "框架层+Agent 层组合架构思维",
+          ],
+          tone: "warn",
+        },
+        {
+          title: "横向连接",
+          items: [
+            "RAG ⊂ 上下文工程工具箱（RAG是动态注入知识的一种实现）",
+            "Few-shot = 指令（Instructions），不是知识",
+            "MCP → 工具 → 上下文混淆 → 动态注入",
+            "上下文压缩 × 缓存三兄弟（省token vs 省计算）",
+            "Lost in the Middle × 对话历史 = 分心",
+          ],
+        },
+      ],
+      tags: [
+        "上下文工程",
+        "Context Engineering",
+        "提示工程",
+        "Prompt Engineering",
+        "中毒",
+        "分心",
+        "混淆",
+        "冲突",
+        "Lost in the Middle",
+        "上下文压缩",
+        "动态注入",
+        "剪枝",
+        "MCP",
+        "RAG",
+        "few-shot",
+        "缓存",
+        "初学",
+      ],
+    },
+  },
 ];
 
 export const reviewTasks: ReviewTask[] = [
@@ -2201,6 +2722,83 @@ export const reviewTasks: ReviewTask[] = [
     description:
       "验证 D30+ 术语追击（7/17）焊死的三个术语是否进入长期肌肉记忆：① 闭卷默写 1 − p^N + 心算 0.85^12 vs 0.9^10（底数<1 反向规律不复发）② 三术语一字不差：局部低阶N · 动别的（既没改N也没改P）· 可中断可恢复可指导 ③ 给全新场景用线性vs指数钥匙拆解 + 设计上下文 checkpoint（save→reset→continue 骨架不漏 save）。",
     relatedRecordIds: ["2026-07-17-cuowu-leiji-xianxing-zhishu-zhui-ji"],
+  },
+  {
+    id: "yuan-ren-zhi-quarterly",
+    dueDate: "2026-10-24",
+    title: "元认知 Metacognition · 季度回访验长期记忆",
+    stage: "季度回访",
+    type: "scheduled",
+    estimate: "20 min",
+    description:
+      "元认知 D30(7/27) 进入长期记忆区后首次季度回访。重点验三件新焊点是否退化：① 协调层元认知上下兄弟分层（防复发为质检/纠错家族）② 无状态三缺失+双层级路由的独立设计能力 ③ 五类威胁/三档安全边界首轮提取速度。给全新 Agent 场景设计元认知模块 + 跨章节缝合（元认知×可信赖Agent×错误累积）。",
+    relatedRecordIds: ["2026-07-27-yuan-ren-zhi-d30"],
+  },
+  {
+    id: "zhi-neng-ti-xie-yi-d2",
+    dueDate: "2026-08-05",
+    title: "智能体协议 MCP · A2A · NLWeb D2",
+    stage: "D2",
+    type: "due",
+    estimate: "10 min",
+    description:
+      '3 题闭卷：① MCP 三大能力（Tools/Resources/Prompts）及三者关系（并列能力入口，非 Tool 操作 Resource）② A2A 四大组件及完整协作流程（Agent Card→Executor→Artifact→Event Queue）③ MCP vs A2A 核心分界判据（需要自己的大脑吗？）并举例说明。',
+    relatedRecordIds: ["2026-08-03-zhi-neng-ti-xie-yi"],
+  },
+  {
+    id: "zhi-neng-ti-xie-yi-d7",
+    dueDate: "2026-08-10",
+    title: "智能体协议 MCP · A2A · NLWeb D7 跨章节综合",
+    stage: "D7",
+    type: "scheduled",
+    estimate: "15 min",
+    description:
+      '5 题跨章节关联：① MCP vs 传统 API 的完整对比（三大优势 + 历史视角旧方案缺陷）② A2A Event Queue 缺失的四个生产级灾难 ③ MCP × 可信赖 Agent：MCP 标准化安全 vs 三档安全边界的关系 ④ A2A × 多代理设计模式：群聊/转接/协同过滤在 A2A 协议层如何支撑 ⑤ MCP = Adapter + Discovery 设计模式深度解析。',
+    relatedRecordIds: ["2026-08-03-zhi-neng-ti-xie-yi"],
+  },
+  {
+    id: "zhi-neng-ti-xie-yi-d30",
+    dueDate: "2026-09-02",
+    title: "智能体协议 MCP · A2A · NLWeb D30 综合应用",
+    stage: "D30",
+    type: "scheduled",
+    estimate: "20 min",
+    description:
+      '综合压测：给你一个实际项目场景（如多 Agent 客服系统），设计完整的：① MCP Server 列表（每个 Server 暴露哪些 Tools/Resources/Prompts）② A2A Agent 协作拓扑（Agent Card 设计 + 委托流程 + Event Queue 策略）③ MCP/A2A 分界线判定（哪些用 Tool、哪些用 Agent、为什么）。跨章节缝合：与多代理设计模式、可信赖 Agent、Planning Design 的连接。',
+    relatedRecordIds: ["2026-08-03-zhi-neng-ti-xie-yi"],
+  },
+  {
+    id: "shang-xia-wen-gong-cheng-d2",
+    dueDate: "2026-08-08",
+    title: "上下文工程 Context Engineering D2",
+    stage: "D2",
+    type: "due",
+    estimate: "10 min",
+    description:
+      '3 题闭卷：① 上下文工程 vs 提示工程的核心区别（必须在回答中出现"静态"和"动态"这对反义词）② 四种失败模式一字不差默写 + 每种举一个你项目中的真实场景 ③ 给出对话历史爆炸、工具过多、知识矛盾三个场景，分别说出对应的失败模式和管理策略。注意：混淆 vs 分心的区分是本次 D2 重点验证项。',
+    relatedRecordIds: ["2026-08-06-shang-xia-wen-gong-cheng"],
+  },
+  {
+    id: "shang-xia-wen-gong-cheng-d7",
+    dueDate: "2026-08-13",
+    title: "上下文工程 Context Engineering D7 跨章节综合",
+    stage: "D7",
+    type: "scheduled",
+    estimate: "15 min",
+    description:
+      '5 题跨章节关联：① 在你的实际项目中设计上下文管理方案（哪些类型需要压缩？哪些需要动态注入？）② 上下文压缩 × 缓存三兄弟的互补关系 ③ MCP × 上下文混淆：连接 10 个 MCP Server 后如何管理工具上下文？④ 多代理 × 上下文隔离：多 Agent 系统如何利用上下文工程防止分心？⑤ 元认知 × 上下文工程：元认知如何帮助检测上下文中毒和冲突？',
+    relatedRecordIds: ["2026-08-06-shang-xia-wen-gong-cheng"],
+  },
+  {
+    id: "shang-xia-wen-gong-cheng-d30",
+    dueDate: "2026-09-05",
+    title: "上下文工程 Context Engineering D30 综合应用",
+    stage: "D30",
+    type: "scheduled",
+    estimate: "20 min",
+    description:
+      '综合压测：给你一个实际的多 Agent 项目场景，设计完整的上下文管理方案：① 识别所有五种上下文类型及其爆炸风险 ② 针对每种风险设计管理策略（压缩/剪枝/动态注入/沙箱/代理便签）③ 跨章节缝合：上下文工程 × 多代理设计模式 × 可信赖 Agent × 元认知——上下文管理如何提升整个 Agent 系统的可靠性和稳定性？④ 框架层 vs Agent 层：你的方案中哪些放在框架层（原语）、哪些由 Agent 自主配置？',
+    relatedRecordIds: ["2026-08-06-shang-xia-wen-gong-cheng"],
   },
 ];
 

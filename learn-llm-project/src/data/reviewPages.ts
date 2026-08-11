@@ -16,6 +16,9 @@ import Review20260702ShengChanHuanJingD7 from "../review-pages/Review20260702She
 import Review20260707PlanningTrustworthyDuoDaiLiD30 from "../review-pages/Review20260707PlanningTrustworthyDuoDaiLiD30";
 import Review20260709CuoWuLeiJiXianXingZhiShuD30 from "../review-pages/Review20260709CuoWuLeiJiXianXingZhiShuD30";
 import Review20260717CuoWuLeiJiXianXingZhiShuZhuiJi from "../review-pages/Review20260717CuoWuLeiJiXianXingZhiShuZhuiJi";
+import Review20260727YuanRenZhiD30 from "../review-pages/Review20260727YuanRenZhiD30";
+import Review20260803ZhiNengTiXieYi from "../review-pages/Review20260803ZhiNengTiXieYi";
+import Review20260806ShangXiaWenGongCheng from "../review-pages/Review20260806ShangXiaWenGongCheng";
 
 export interface ReviewPage {
   id: string;
@@ -164,6 +167,30 @@ export const reviewPages: ReviewPage[] = [
     shortTitle: "错误累积 + 线性vs指数 D30+ · 术语追击",
     sourceFile: "复习/2026-07-17-错误累积+线性vs指数D30+术语追击.html",
     Component: Review20260717CuoWuLeiJiXianXingZhiShuZhuiJi,
+  },
+  {
+    id: "review-2026-07-27-yuan-ren-zhi-d30",
+    date: "2026-07-27",
+    title: "2026-07-27 · 元认知 Metacognition D30 综合应用",
+    shortTitle: "元认知 D30 · 综合应用 + 跨章节缝合",
+    sourceFile: "复习/2026-07-27-元认知D30.html",
+    Component: Review20260727YuanRenZhiD30,
+  },
+  {
+    id: "review-2026-08-03-zhi-neng-ti-xie-yi",
+    date: "2026-08-03",
+    title: "2026-08-03 · 智能体协议 MCP、A2A 与 NLWeb 初学",
+    shortTitle: "智能体协议 MCP · A2A · NLWeb 初学",
+    sourceFile: "learn/2026-08-03-智能体协议MCP-A2A-NLWeb.html",
+    Component: Review20260803ZhiNengTiXieYi,
+  },
+  {
+    id: "review-2026-08-06-shang-xia-wen-gong-cheng",
+    date: "2026-08-06",
+    title: "2026-08-06 · 上下文工程 Context Engineering 初学",
+    shortTitle: "上下文工程 Context Engineering 初学",
+    sourceFile: "learn/2026-08-06-上下文工程ContextEngineering.html",
+    Component: Review20260806ShangXiaWenGongCheng,
   },
 ];
 
