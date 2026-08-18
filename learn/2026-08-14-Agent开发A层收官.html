@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>2026-08-13 ～ 08-14 · Agent 开发 A 层六单元收官</title>
+<style>
+  :root { color-scheme: dark; }
+  * { box-sizing: border-box; }
+  body { margin: 0; font-family: -apple-system, "SF Pro SC", "PingFang SC", "Microsoft YaHei", sans-serif; background: radial-gradient(1200px 700px at 20% -10%, #1a2230 0%, #0b0e13 55%); color: #d7dee9; line-height: 1.75; }
+  .wrap { max-width: 900px; margin: 0 auto; padding: 48px 22px 90px; }
+  .card { background: linear-gradient(165deg, rgba(255,255,255,.07), rgba(255,255,255,.02)); border: 1px solid rgba(255,255,255,.1); border-radius: 16px; backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px); padding: 24px 28px; margin: 18px 0; box-shadow: inset 0 1px 0 rgba(255,255,255,.09), 0 12px 32px rgba(0,0,0,.35); }
+  h1 { font-size: 28px; margin: 8px 0 4px; letter-spacing: .5px; }
+  h2 { font-size: 19px; margin: 0 0 12px; color: #9ec1ff; font-weight: 600; }
+  h3 { font-size: 16px; margin: 18px 0 6px; color: #ffd479; font-weight: 600; }
+  .badge { display: inline-block; font-size: 12px; padding: 3px 12px; border-radius: 999px; background: rgba(158,193,255,.12); border: 1px solid rgba(158,193,255,.35); color: #9ec1ff; margin-right: 6px; }
+  .badge.done { background: rgba(126,226,168,.12); border-color: rgba(126,226,168,.4); color: #7ee2a8; }
+  .layer { color: #8f9bb0; font-size: 13px; }
+  .tag { display: inline-block; font-size: 12px; padding: 2px 10px; margin: 3px 4px 0 0; border-radius: 8px; background: rgba(255,255,255,.06); border: 1px solid rgba(255,255,255,.12); color: #c3cede; }
+  .q { color: #ffd479; font-weight: 600; margin: 12px 0 3px; }
+  .a { margin: 0 0 4px; }
+  .ok { color: #7ee2a8; font-weight: 600; }
+  .fix { color: #ff9d9d; font-weight: 600; }
+  .blind { border-left: 3px solid #ff9d9d; background: rgba(255,157,157,.07); padding: 8px 14px; border-radius: 0 10px 10px 0; margin: 8px 0; font-size: 14px; }
+  .gold { border-left: 3px solid #ffd479; background: rgba(255,212,121,.07); padding: 10px 16px; border-radius: 0 10px 10px 0; margin: 10px 0; font-weight: 600; color: #ffe6b0; }
+  .hi { border-left: 3px solid #7ee2a8; background: rgba(126,226,168,.07); padding: 10px 16px; border-radius: 0 10px 10px 0; margin: 10px 0; font-size: 14px; }
+  code { background: rgba(255,255,255,.09); padding: 1px 7px; border-radius: 6px; font-size: 13px; color: #a8d8ff; }
+  ul { margin: 6px 0; padding-left: 22px; }
+  li { margin: 4px 0; }
+  table { border-collapse: collapse; width: 100%; margin-top: 8px; }
+  td, th { border: 1px solid rgba(255,255,255,.12); padding: 8px 13px; font-size: 13.5px; text-align: left; vertical-align: top; }
+  th { background: rgba(255,255,255,.05); color: #9ec1ff; }
+  .unit-head { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; }
+  .unit-head .date { color: #8f9bb0; font-size: 13px; }
+  .stat { display: inline-block; text-align: center; padding: 10px 26px; }
+  .stat b { display: block; font-size: 26px; color: #9ec1ff; }
+  .stat span { font-size: 12px; color: #8f9bb0; }
+  footer { text-align: center; color: #6b7686; font-size: 12px; margin-top: 36px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="card">
+    <span class="badge">学习周期 · 2026-08-13 ～ 08-14</span>
+    <span class="badge done">A 层 · 全部收官</span>
+    <h1>Agent 开发 · A 层六单元收官报告</h1>
+    <div class="layer">学习者背景：前端开发（TS/JS） · 教材：deer-flow 仓库 + learn/agent-techniques（TS 教学包） · 目标：转向 AI Agent 开发方向（面试标准：是什么 → 为什么 → 怎么用 → 不这样设计会怎样） · 方法：复述 → 追问 → 连接 → 实践 全闭环</div>
+    <div style="margin-top:14px; text-align:center">
+      <div class="stat"><b>6</b><span>A 层单元</span></div>
+      <div class="stat"><b>6</b><span>实践验证（全部跑通）</span></div>
+      <div class="stat"><b>14+</b><span>盲点修复</span></div>
+      <div class="stat"><b>6</b><span>自建/改造工程产物</span></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>课程主线（一条生命线）</h2>
+    <p>用户消息 → 工厂组装 Agent → <b>模型⇄工具循环</b>（中间件包裹每一步）→ 状态经 reducer 逐步合并 → 需要人就 interrupt → 重活派给子代理（限流截断）→ 上下文靠静态前缀 + 按需披露保护 → 全程可中断、可恢复、可观测。</p>
+  </div>
+
+  <!-- A1 -->
+  <div class="card">
+    <div class="unit-head"><h2>A1 · Agent Loop 与 Tool Calling</h2><span class="date">2026-08-13</span></div>
+    <div><span class="tag">Agent = LLM + Tool + Loop</span><span class="tag">tool_call = id+name+args</span><span class="tag">ToolMessage / tool_call_id</span><span class="tag">无状态模型</span><span class="tag">messages 工作记忆</span></div>
+    <h3>核心概念</h3>
+    <ul>
+      <li>模型<b>申请</b>工具（结构化 tool_call），宿主<b>执行</b>，结果以 ToolMessage 回写——发起权与执行权分离。</li>
+      <li>模型无状态：每轮重新看完整份消息列表；循环停止的机制层信号 = AIMessage 不再带 tool_calls。</li>
+      <li>记忆分两层：messages 列表（工作记忆 ≈ 内存数组）/ checkpointer（持久化 ≈ localStorage）。</li>
+    </ul>
+    <h3>打字默写检查（实录）</h3>
+    <p class="q">Q：Loop 什么时候停？</p>
+    <p class="a">初答混了层级——<span class="fix">语义层（任务完成）≠ 机制层（无 tool_calls）≠ 安全网（步数上限）</span>，分层后修正。</p>
+    <p class="q">Q：tool_call 数据结构？</p>
+    <p class="a">初答 <code>{name, args}</code> 且 args 写成数组——<span class="fix">漏了 id、args 应为对象</span>。并行调用时结果靠 id 对号入座。</p>
+    <p class="q">Q：加"查天气"能力要改模型吗？</p>
+    <p class="a"><span class="ok">一次答对</span>：不改模型，注册工具即可——能力是数据驱动。</p>
+    <h3>盲点自查</h3>
+    <div class="blind">消息类型曾漏掉 AIMessage（循环里"最忙"的消息）。</div>
+    <div class="blind">实践首版 createSerchWeb(result: []) 类型错误 + 运行时 TypeError——被护栏中间件接住，第一次亲手体验"错误恢复"。</div>
+    <h3>实践验证</h3>
+    <ul><li>新增 <code>search_web</code> 工具（三件套 + 注册 + demo 06 调用），模型零改动，两轮修复后全绿。</li></ul>
+    <div class="gold">金句：Agent 是由概率模型驱动的状态机——正因为调度不确定，护栏才必须存在。</div>
+  </div>
+
+  <!-- A2 -->
+  <div class="card">
+    <div class="unit-head"><h2>A2 · 中间件链</h2><span class="date">2026-08-13</span></div>
+    <div><span class="tag">六种钩子</span><span class="tag">wrap = 洋葱包裹</span><span class="tag">顺序即契约</span><span class="tag">横切关注点</span><span class="tag">GraphBubbleUp 放行</span></div>
+    <h3>核心概念</h3>
+    <ul>
+      <li>中间件统一处理横切逻辑（消毒/错误/限流/澄清），不侵入业务代码。</li>
+      <li>wrap\* 包裹调用的进与出（可改请求、处理响应、决定放行）；before\*/after\* 是单点打桩。</li>
+      <li>五层顺序：消毒（双 wrap）→ 错误恢复（wrapToolCall）→ 循环检测（afterModel）→ 子代理限流（afterModel）→ 澄清（wrapToolCall，必须最后）。</li>
+      <li>interrupt() 借异常通道传播控制流；错误恢复必须 isGraphBubbleUp 放行，否则 HITL 被吞。</li>
+    </ul>
+    <h3>打字默写检查（实录）</h3>
+    <p class="q">Q：澄清不排最后会怎样？</p>
+    <p class="a">初答"interrupt 会正常运行"——<span class="fix">错</span>；修正：澄清最内层，interrupt 须穿过外层 try/catch，吞掉即 HITL 失效。</p>
+    <p class="q">Q：新增"耗时统计"中间件怎么设计？</p>
+    <p class="a"><span class="ok">钩子与位置决策全对</span>：wrapToolCall；是否给失败调用计时决定相对错误恢复的内外。</p>
+    <h3>盲点自查</h3>
+    <div class="blind">曾把 wrap\* 理解成"调用前做逻辑"，漏了出侧。</div>
+    <div class="blind">曾复述教师原话代替自己的推理（流畅性错觉）；曾漏题（规则：每题必答，不会写"不会"）。</div>
+    <div class="hi">高光：主动反问"澄清排最外层没人能吞异常啊？"——逼出"守卫在外/业务在内、免决策契约、放行规则通用"三条更深理由。</div>
+    <h3>实践验证</h3>
+    <ul><li>自建 <code>tool-timing</code> 中间件（try/finally 覆盖失败调用），插入错误恢复之内并注释理由；demo 02 中 flaky 的失败耗时照样打出。</li></ul>
+    <div class="gold">金句：顺序契约的价值不在"这次跑通"，在于让错误的组合在结构上不可能出现。</div>
+  </div>
+
+  <!-- A3 -->
+  <div class="card">
+    <div class="unit-head"><h2>A3 · State 与 Reducer</h2><span class="date">2026-08-13</span></div>
+    <div><span class="tag">显式合并</span><span class="tag">Reducer&lt;T&gt;</span><span class="tag">按 key 分级</span><span class="tag">fail-closed</span><span class="tag">缺席 ≠ 清空</span><span class="tag">stateSchema 接线</span></div>
+    <h3>核心概念</h3>
+    <ul>
+      <li>同轮并发写同一 key，合并规则必须显式：<code>(existing, incoming) =&gt; merged</code>，缺席是合法输入。</li>
+      <li>策略分级：可合并 → 去重/后写覆盖；不可调和 → 抛错（fail-closed）。</li>
+      <li>协议：null/undefined = 没碰；<code>{}</code> = 显式清空。channel 声明的类型 = reducer 返回值契约。</li>
+      <li>孤儿 reducer：挂进 Annotation.Root 并传给 createAgent 的 stateSchema 才接通。</li>
+    </ul>
+    <h3>打字默写检查（实录）</h3>
+    <p class="q">Q：学前预测两场景策略？</p>
+    <p class="a"><span class="ok">未读先中</span>："覆盖 / 报错，分开讨论"——策略直觉满分。</p>
+    <p class="q">Q：reducer 签名？</p>
+    <p class="a">初版 <code>(old, action) =&gt; action()</code>——<span class="fix">action 不是函数、替换 ≠ 合并</span>；两轮修正后写出泛型 <code>Reducer&lt;T&gt;</code>。</p>
+    <h3>盲点自查</h3>
+    <div class="blind">mergeTodos 首版注释承诺 null 分支但代码没做——注释承诺必须代码兑现。</div>
+    <div class="blind">修复时误把返回值加宽为 null，违反 channel 契约（typecheck 红）——类型改动先看声明边界。</div>
+    <h3>实践验证</h3>
+    <ul><li>实现 <code>mergeTodos</code> + 挂入 demo 07 ThreadState + 场景 D（同 id 覆盖 / 新 id 追加 / null 缺席），三轮迭代全绿。</li></ul>
+    <div class="gold">金句：合并策略按业务语义分级；冲突时宁可报错也不猜。</div>
+  </div>
+
+  <!-- A4 -->
+  <div class="card">
+    <div class="unit-head"><h2>A4 · 上下文工程</h2><span class="date">2026-08-14</span></div>
+    <div><span class="tag">静态 prompt + 动态注入</span><span class="tag">prefix cache</span><span class="tag">三层渐进披露</span><span class="tag">lost in the middle</span><span class="tag">软引导 vs 硬强制</span></div>
+    <h3>核心概念</h3>
+    <ul>
+      <li>system prompt 全静态保 prefix cache（键 = 前缀的每个字节；TTL 分钟级；命中读取约 1 折）；日期/记忆由 DynamicContextMiddleware 注入第一条 HumanMessage。</li>
+      <li>"system prompt 的末尾" ≠ "前缀之外"——整个 system prompt 都在前缀里（如同 URL 末尾的查询参数照样改变缓存键）。</li>
+      <li>技能三层披露：skill_index（名字+一句话）→ describe_skill（元信息）→ read_skill（正文），每层成本递增。</li>
+      <li>软引导（prompt 设计）用于"失败只打折质量"的事；硬强制（代码）用于"失败即事故"的事——风险等级决定手段。</li>
+    </ul>
+    <h3>打字默写检查（实录）</h3>
+    <p class="q">Q：demo 05 里谁先谁后、谁规定的？</p>
+    <p class="a">初答"中间件控制"——<span class="fix">与"动态注入走中间件"装反了</span>；修正：披露顺序靠 prompt 软引导，动态注入才走中间件。</p>
+    <p class="q">Q：三天三请求的缓存命中几次？</p>
+    <p class="a"><span class="ok">主动构造场景反问后答对</span>：命中 2 次，第一天冷启动不算。</p>
+    <h3>盲点自查</h3>
+    <div class="blind">软引导 vs 硬强制曾装反——记住对照表：建议性 → prompt；结构性 → 代码。</div>
+    <div class="hi">高光：主动追问供应商缓存 TTL（OpenAI 30 分钟刷新 / Anthropic 5 分钟起）——开始用成本视角看架构。</div>
+    <h3>实践验证</h3>
+    <ul><li>新增 <code>weekly-report</code> 技能 + demo 05 验证 describe→read 顺序；skill_index 自动收录，prompt 结构零改动。</li></ul>
+    <div class="gold">金句：能力是数据，不是逻辑（A1 加工具不改模型，A4 加技能不改 prompt）。</div>
+  </div>
+
+  <!-- A5 -->
+  <div class="card">
+    <div class="unit-head"><h2>A5 · HITL 人机协同</h2><span class="date">2026-08-14</span></div>
+    <div><span class="tag">interrupt / resume</span><span class="tag">checkpointer + thread_id</span><span class="tag">Command(goto=END)</span><span class="tag">artifact.human_input</span><span class="tag">hide_from_ui</span></div>
+    <h3>核心概念</h3>
+    <ul>
+      <li>两种范式：demo 03 = interrupt() 冻结图中断、Command({resume}) 断点恢复；生产（08）= wrapToolCall 返回 Command(goto=END) 正常结束本轮，答案作为下一轮隐藏 HumanMessage。</li>
+      <li>中断 = 执行现场持久化（可恢复）；return = 现场销毁。恢复靠 thread_id 找会话。</li>
+      <li>结构化卡片：ToolMessage.artifact.human_input（request_id 配对、版本化、老前端降级纯文本）。</li>
+      <li>两个 id 分层：thread_id 管"哪次对话"，tool_call_id 管"哪次调用"。</li>
+      <li>工具是"框架可介入的协议点"——纯文本输出框架无从插手。</li>
+    </ul>
+    <h3>打字默写检查（实录）</h3>
+    <p class="q">Q：ask_clarification 的函数体为什么执行不到？</p>
+    <p class="a">初答钩子名错（wrapModelCall）——<span class="fix">应为 wrapToolCall</span>：拦的是工具执行，不是模型调用。</p>
+    <p class="q">Q：resume 的答案变成什么、挂哪个 id？</p>
+    <p class="a">初答"挂 thread_id"——<span class="fix">修正</span>：变成 ToolMessage，挂 tool_call_id（A1 单号配对闭环）。</p>
+    <h3>盲点自查</h3>
+    <div class="blind">钩子名精确度（wrapToolCall ≠ wrapModelCall）；两个 id 的层级曾混淆。</div>
+    <div class="hi">高光：自学自建 <code>08-hitl-end-turn.ts</code> 对照生产实现（artifact 协议 / hide_from_ui / returnDirect 的 JS-Python 差异），实践验证提前超额完成。</div>
+    <h3>实践验证</h3>
+    <ul><li>08 demo：run 1 停在结构化卡片 ToolMessage；run 2 隐藏 HumanMessage 带回答入线程，模型继续——typecheck 绿、运行全对。</li></ul>
+    <div class="gold">金句：中断借异常通道传播，但语义是"暂停信号"不是"错误"——错误处理必须放行控制流。</div>
+  </div>
+
+  <!-- A6 -->
+  <div class="card">
+    <div class="unit-head"><h2>A6 · 子代理与护栏</h2><span class="date">2026-08-14</span></div>
+    <div><span class="tag">task 工具 = 子代理入口</span><span class="tag">上下文隔离</span><span class="tag">prompt 自包含</span><span class="tag">afterModel 截断</span><span class="tag">可观测截断</span></div>
+    <h3>核心概念</h3>
+    <ul>
+      <li>子代理 = 又一整个 Agent 循环（模型+工具+loop），隔离上下文干活，只回传摘要——保护主对话上下文。</li>
+      <li>task 的 prompt 必须自包含：子代理看不到主对话历史（隔离的代价与收益）。</li>
+      <li>限流在 afterModel 改写消息（执行前让消息与计划一致）；执行中拦截会造成悬空 tool_call，下次模型调用被厂商 API 拒收。</li>
+      <li>截断必须可观测：notice 写进消息（[subagent_limit] Kept 1/3…），模型读到后重新规划。</li>
+      <li>子代理 checkpointer=False：一次性任务，失败重跑即可。</li>
+    </ul>
+    <h3>打字默写检查（实录）</h3>
+    <p class="q">Q：被截掉的 task 去哪了，模型知道吗？</p>
+    <p class="a">初答"模型不知道"——<span class="fix">错</span>；截断说明追加在消息里，模型可见并可重规划（护栏动作对模型可见）。</p>
+    <p class="q">Q：为什么 afterModel 截断而非执行中拦？</p>
+    <p class="a"><span class="ok">自己推出 dangling tool call 约束</span>——生产级直觉（真实 DeerFlow 有专门的 DanglingToolCallMiddleware）。</p>
+    <h3>盲点自查</h3>
+    <div class="blind">纵向题首答"职责分离"是 B 层答案；A 层答案要落到"消息改写 vs 执行拦截"的配对问题。</div>
+    <h3>实践验证</h3>
+    <ul><li>demo 04 改 maxConcurrent=1 + 补发 B/C 两轮：截断说明 → 模型补发 → 三个 task 全部完成，闭环验证通过。</li></ul>
+    <div class="gold">金句：护栏动手时必须留痕迹——静默截断会让模型在幻觉里继续编。</div>
+  </div>
+
+  <!-- 工程产物 -->
+  <div class="card">
+    <h2>学习期间自建/改造的工程产物</h2>
+    <table>
+      <tr><th>产物</th><th>单元</th><th>说明</th></tr>
+      <tr><td><code>tools.ts :: search_web</code></td><td>A1</td><td>新工具注册全流程（含两轮类型/运行时修复）</td></tr>
+      <tr><td><code>middleware/tool-timing.ts</code></td><td>A2</td><td>自建中间件：wrapToolCall 计时，try/finally 覆盖失败调用</td></tr>
+      <tr><td><code>state.ts :: mergeTodos</code> + demo 07 场景 D</td><td>A3</td><td>自定义 reducer + stateSchema 接线 + 三场景验证</td></tr>
+      <tr><td><code>skills.ts :: weekly-report</code> + demo 05</td><td>A4</td><td>渐进披露可扩展性验证</td></tr>
+      <tr><td><code>demos/08-hitl-end-turn.ts</code></td><td>A5</td><td>自学自建：生产式 HITL（Command(goto=END) + artifact 卡片 + 隐藏回复）</td></tr>
+      <tr><td><code>demos/04</code> 改造</td><td>A6</td><td>maxConcurrent=1 + 截断后补发闭环</td></tr>
+    </table>
+  </div>
+
+  <!-- 复习计划 -->
+  <div class="card">
+    <h2>间隔检索计划（D2 / D7 / D30）</h2>
+    <table>
+      <tr><th>节点</th><th>日期</th><th>内容</th></tr>
+      <tr><td><b>D2</b></td><td>2026-08-16</td><td>3 题闭卷：① 五层链条+各层钩子 ② reducer 签名+缺席语义 ③ 为什么日期不能进 system prompt（prefix cache）</td></tr>
+      <tr><td><b>D7</b></td><td>2026-08-21</td><td>5 题跨单元：① 软引导 vs 硬强制 × 风险分级 ② interrupt 穿透 × 中间件顺序 ③ fail-closed × 可信赖 Agent ④ 子代理上下文隔离 × 上下文工程 ⑤ tool_call 配对 × 消息协议</td></tr>
+      <tr><td><b>D30</b></td><td>2026-09-13</td><td>综合题：给真实场景设计完整 agent（工具裁剪 + 中间件链 + state reducer + HITL 点 + 子代理拆分 + 上下文预算），并标注每个决策是软引导还是硬强制</td></tr>
+    </table>
+    <p class="layer" style="margin-top:10px">复习日对教练说"帮我复习"即可：按日期出闭卷题，先作答再批改。</p>
+  </div>
+
+  <footer>DeerFlow Agent 开发课程 · A 层收官报告 · 学习教练落盘 · 2026-08-14</footer>
+</div>
+</body>
+</html>

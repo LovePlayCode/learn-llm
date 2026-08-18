@@ -19,6 +19,10 @@ import Review20260717CuoWuLeiJiXianXingZhiShuZhuiJi from "../review-pages/Review
 import Review20260727YuanRenZhiD30 from "../review-pages/Review20260727YuanRenZhiD30";
 import Review20260803ZhiNengTiXieYi from "../review-pages/Review20260803ZhiNengTiXieYi";
 import Review20260806ShangXiaWenGongCheng from "../review-pages/Review20260806ShangXiaWenGongCheng";
+import Review20260810AgentJiYiXiTong from "../review-pages/Review20260810AgentJiYiXiTong";
+import Review20260813AgentKaiFa from "../review-pages/Review20260813AgentKaiFa";
+import Review20260814AgentACeng from "../review-pages/Review20260814AgentACeng";
+import Review20260817AgentJiYiXiTongD7 from "../review-pages/Review20260817AgentJiYiXiTongD7";
 
 export interface ReviewPage {
   id: string;
@@ -191,6 +195,38 @@ export const reviewPages: ReviewPage[] = [
     shortTitle: "上下文工程 Context Engineering 初学",
     sourceFile: "learn/2026-08-06-上下文工程ContextEngineering.html",
     Component: Review20260806ShangXiaWenGongCheng,
+  },
+  {
+    id: "review-2026-08-10-agent-memory",
+    date: "2026-08-10",
+    title: "2026-08-10 · Agent 记忆系统 Agent Memory 初学",
+    shortTitle: "Agent 记忆系统 初学",
+    sourceFile: "learn/2026-08-10-Agent记忆系统.html",
+    Component: Review20260810AgentJiYiXiTong,
+  },
+  {
+    id: "review-2026-08-13-agent-kai-fa",
+    date: "2026-08-13",
+    title: "2026-08-13 · Agent 开发核心模式 · 从 deer-flow 教学包提炼",
+    shortTitle: "Agent 开发核心模式 · deer-flow",
+    sourceFile: "learn/2026-08-13-Agent开发核心模式.html",
+    Component: Review20260813AgentKaiFa,
+  },
+  {
+    id: "review-2026-08-14-agent-a-ceng",
+    date: "2026-08-14",
+    title: "2026-08-14 · Agent 开发 A 层六单元收官（复述-追问-实践闭环）",
+    shortTitle: "Agent 开发 A 层收官 · 六单元",
+    sourceFile: "learn/2026-08-14-Agent开发A层收官.html",
+    Component: Review20260814AgentACeng,
+  },
+  {
+    id: "review-2026-08-17-agent-memory-d7",
+    date: "2026-08-17",
+    title: "2026-08-17 · Agent 记忆系统 D7 跨章节综合（含 D2 补验）",
+    shortTitle: "Agent 记忆系统 D7",
+    sourceFile: "复习/2026-08-17-Agent记忆系统D7.html",
+    Component: Review20260817AgentJiYiXiTongD7,
   },
 ];
 

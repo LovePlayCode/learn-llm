@@ -2436,6 +2436,672 @@ TCC Transparent 分层：
       ],
     },
   },
+  {
+    id: "2026-08-10-agent-memory",
+    date: "2026-08-10",
+    time: "学习记录",
+    title: "Agent 记忆系统 Agent Memory",
+    subtitle: "六种记忆类型 · 知识Agent自改进循环 · 五条跨章节缝合",
+    sourceFile: "learn/2026-08-10-Agent记忆系统.html",
+    summary:
+      "学习如何在无状态的 LLM 之上构建有状态的记忆层。掌握六种记忆类型的层级关系、知识 Agent 自改进循环（存档员 + 情报员）、以及 Mem0 两阶段流水线。最大亮点：跨章节连接自发缝合元认知、上下文工程、多代理、RAG 与缓存三兄弟。",
+    detail: {
+      lead: "本次学习从系统性理解 AI Agent 架构的目的出发。学习者课前热身即猜中记忆分类框架和核心挑战（存什么/怎么取），核心收获是将碎片化认知拼成完整的三层结构，并通过上下兄弟问三句修正初始层级混乱。",
+      stats: [
+        { value: "6", label: "记忆类型" },
+        { value: "2", label: "实现工具" },
+        { value: "4", label: "追问通过" },
+        { value: "5", label: "跨章连接" },
+        { value: "1", label: "层级修正" },
+      ],
+      keyPoints: [
+        {
+          label: "核心定义 / 01",
+          title: "LLM 无状态 → 需要记忆层",
+          body: "LLM 本质上是无状态的函数，Agent 记忆机制在无状态基底之上人造一层'有状态'感。核心挑战：存什么（相关性过滤）、怎么取（高效检索）、时效性（过时覆盖/删除）。",
+        },
+        {
+          label: "三层结构 / 02",
+          title: "六种记忆类型的上下兄弟层级",
+          body: "第 3 层概念总称 Agent Memory；第 2 层时效维度（工作/短期/长期）+ 内容维度（角色/情节/实体，属长期记忆子类）；第 1 层底层工具（Mem0/Cognee）。RAG 是设计模式思想，高于工具层。",
+        },
+        {
+          label: "核心模式 / 03",
+          title: "知识 Agent 自改进循环：存档员 + 情报员",
+          body: "存档员（对话后）：发现→提取→加工→存入记忆库。情报员（任务前）：检索→注入任务 Agent 上下文。独立运行的理由：专业化（一个技能栈）、上下文隔离（防分心）、异步不阻塞。",
+        },
+        {
+          label: "实现工具 / 04",
+          title: "Mem0 两阶段流水线",
+          body: "阶段 1 提取：LLM 总结对话历史提取新记忆。阶段 2 更新决策：LLM 判断添加/修改/删除（遗忘能力！）。存储：向量（语义搜索）+ 图（实体关系）+ KV（精确匹配）三种混合。",
+        },
+      ],
+      map: `第 3 层（概念总称）    Agent Memory（记忆系统）
+                            │
+        ┌───────────────────┼───────────────────┐
+        │                   │                   │
+┌───────▼───────┐   ┌───────▼───────┐   ┌───────▼───────┐
+│   工作记忆     │   │   短期记忆     │   │   长期记忆     │ ← 时效维度
+│  （当前任务）   │   │  （会话内）    │   │  （跨会话）    │
+└───────────────┘   └───────────────┘   └───────┬───────┘
+                                                │
+                        ┌───────────────────────┼───────────────────────┐
+                        │                       │                       │
+                ┌───────▼───────┐       ┌───────▼───────┐       ┌───────▼───────┐
+                │   角色记忆     │       │   情节记忆     │       │   实体记忆     │ ← 内容维度
+                │  （我是谁）    │       │  （经历了什么）  │       │  （用户是谁）  │
+                └───────────────┘       └───────────────┘       └───────────────┘
+                        │                       │                       │
+                        └───────────────────────┼───────────────────────┘
+                                                │
+                                        ┌───────▼───────────────┐
+                                        │  Mem0 / Cognee        │ ← 底层工具
+                                        │  向量 + 图 + KV 混合   │
+                                        │  RAG = 设计模式思想    │
+                                        └───────────────────────┘`,
+      sections: [
+        {
+          title: "知识 Agent 双角色模型",
+          body: "🅰️ 存档员：对话结束后从对话历史中发现有价值信息 → 提取、加工 → 存入记忆库。🅱️ 情报员：新任务开始前从记忆库中检索相关信息 → 注入任务 Agent 上下文。学习者初答只描述了情报员的工作，经提示补全存档员角色。",
+        },
+        {
+          title: "Mem0 两阶段流水线",
+          body: "阶段 1 提取：利用 LLM 总结对话历史，提取新记忆片段。阶段 2 更新决策：基于 LLM 判断添加新记忆 / 修改已有记忆 / 删除过时记忆。学习者在追问中独立说出增/改/删三个操作，未遗漏'遗忘'维度。",
+        },
+        {
+          title: "跨章节缝合（5 条）",
+          body: "① Memory × 元认知：两者都是元层级审视循环，但观察对象不同（推理过程 vs 对话历史）。② Memory × 上下文工程：知识 Agent ⊆ 上下文工程，检索注入是上下文工程六策略之一。③ Memory × 多代理：专业化原则（一个技能栈/权限面/失败域）解释知识 Agent 为何独立。④ Memory × RAG：同一检索增强模式，数据源不同。⑤ Memory × 缓存三兄弟：两道生死题可直接套用到记忆缓存策略。",
+        },
+      ],
+      blindspots: [
+        {
+          title: "首轮层级混乱：6 种类型+工具全部堆在同一层",
+          body: "用'上下兄弟问三句'修正为三层结构：概念总称 → 时效/内容维度 → 底层工具。RAG 提升到设计模式层。这是今天最重要的元层级修正。",
+        },
+        {
+          title: "知识 Agent 自改进循环初答只描述情报员",
+          body: "只描述了'检索→注入'方向，遗漏'提取→存储'方向。补齐双角色模型后完整。",
+        },
+        {
+          title: "记忆分类原因停在工程优化层",
+          body: "初答'减少数据量/加快检索'是工程好处而非设计根因。升级到'不同类型需要不同存取方式，混一起必然触发分心+混淆+冲突'——连接上下文工程四种失败模式。",
+        },
+        {
+          title: "RAG 被放在工具层与 Mem0 并列",
+          body: "RAG 是设计模式（检索→增强→生成），高于具体工具。Memory 检索是 RAG 思想在对话历史上的应用，非并列关系。",
+        },
+      ],
+      highlights: [
+        {
+          title: "课前猜中记忆分类框架 + 核心挑战",
+          body: "学习者在没看任何资料的情况下，独立说出'短期/长期/内部记忆'和'事实/经历/身份'分类，并点出'相关性过滤'和'高效搜索'两大工程挑战——与教程核心结构高度吻合。",
+        },
+        {
+          title: "六种记忆类型全中 + 正确分为三层",
+          body: "在关门复述中独立回忆出全部六种记忆类型，并在追问中成功修正层级关系——工作/短期/长期在上层，角色/情节/实体是长期记忆的子分类，Mem0/Cognee 是底层工具。",
+        },
+        {
+          title: "Mem0 增/改/删三操作独立说出",
+          body: "在追问中不仅说出'提取'和'更新'两个阶段，还独立补充了'添加、修改、删除'三种更新决策——未遗漏'遗忘'维度，这是大多数人忽略的细节。",
+        },
+        {
+          title: "跨章节连接自发激活",
+          body: "横向连接环节中，学习者自主将 Memory 与元认知（两种元层级审视）、上下文工程（⊂ 关系）、多代理（专业化原则）、RAG（同一模式）、缓存三兄弟（两道生死题套用）进行了缝合——五条连接都是主动说出的，非被动接受。",
+        },
+      ],
+      report: [
+        {
+          title: "A 层 · 必须深入理解（4 项）",
+          items: [
+            "六种记忆类型的层级关系（上下兄弟三层结构）",
+            "知识 Agent 自改进循环（存档员 + 情报员双角色）",
+            "记忆系统在 Agent 架构中的位置与角色",
+            "Mem0 两阶段流水线（提取 → 更新决策）",
+          ],
+        },
+        {
+          title: "B 层 · 理解思路即可（3 项）",
+          items: [
+            "Mem0 三种存储混合的设计思路",
+            "Cognee 知识图谱 + 向量混合检索",
+            "延迟优化策略（先快速判断、再深度提取）",
+          ],
+        },
+        {
+          title: "需要加强",
+          items: [
+            "工作记忆 vs 短期记忆的精确边界（材料未严格区分）",
+            "Event Queue 异步可靠性四维度（本次未深入）",
+            "Mem0/Cognee 具体代码级细节（C 层，用时查阅）",
+          ],
+          tone: "warn",
+        },
+        {
+          title: "横向连接",
+          items: [
+            "Memory × 元认知（两种元层级审视循环）",
+            "Memory × 上下文工程（知识 Agent ⊆ 上下文工程）",
+            "Memory × 多代理（专业化原则解释独立设计）",
+            "Memory × RAG（同一检索增强模式）",
+            "Memory × 缓存三兄弟（两道生死题套用到记忆类型）",
+          ],
+        },
+      ],
+      tags: [
+        "Agent Memory",
+        "记忆系统",
+        "工作记忆",
+        "短期记忆",
+        "长期记忆",
+        "情节记忆",
+        "实体记忆",
+        "角色记忆",
+        "知识 Agent",
+        "Mem0",
+        "Cognee",
+        "两阶段流水线",
+        "RAG",
+        "元认知",
+        "上下文工程",
+        "多代理",
+        "缓存三兄弟",
+        "上下兄弟问三句",
+        "初学",
+      ],
+    },
+  },
+  {
+    id: "2026-08-13-agent-kai-fa",
+    date: "2026-08-13",
+    time: "晚间学习",
+    title: "Agent 开发核心模式",
+    subtitle: "从 deer-flow 教学包提炼 · 验证性阅读觉醒",
+    sourceFile: "learn/2026-08-13-Agent开发核心模式.html",
+    summary:
+      "以应用派姿态进入（实时聊天读文件+联网+生成新文件），从 deer-flow 自带的 learn/agent-techniques 教学包切入，把 Agent 六个核心零件（Factory/Middleware/State/HITL/Tools/Sandbox）逐一拆开跑通复述。最大亮点：学习者主动质疑 mergeSandbox 是孤儿 reducer，逼出 demo 07，并命名“验证性阅读”元技能。",
+    detail: {
+      lead:
+        "这一轮不是“学概念”，是“在成熟项目上拆骨架”。学习者带着真实场景（读文件+联网+生成新文件）进入 deer-flow，从教学包 7 个 demo 切入，把 Agent 的六个核心零件拆开、跑通、复述。最珍贵的是“验证性阅读”的觉醒——不是读到什么信什么，而是追问“这行代码真的被调用了吗”。",
+      stats: [
+        { value: "6", label: "A 层知识点" },
+        { value: "7", label: "demo 跑通" },
+        { value: "4", label: "追问通过" },
+        { value: "3", label: "层级修正" },
+        { value: "1", label: "元技能觉醒" },
+      ],
+      keyPoints: [
+        {
+          label: "A1 / Factory",
+          title: "Agent 由五样东西装配",
+          body: "model(大脑,决定调哪个工具) + systemPrompt(人设) + tools(双手) + middleware(反射) + checkpointer(记忆本)。Runtime 优先级 request>agentConfig>default，用 key in object 保证 false 被尊重。",
+        },
+        {
+          label: "A2 / Middleware",
+          title: "Clarification 必须最后 · 位置≠时机",
+          body: "interrupt() 是 GraphBubbleUp 信号，放前面会被 ToolErrorHandling 的 try/catch 当异常抓住，HITL 失效。但排最后≠最后执行——interrupt 按需触发，仍可是 agent 第一个动作。",
+        },
+        {
+          label: "A4 / HITL",
+          title: "中断/恢复三层链条",
+          body: "LLM决定要问 → 调 ask_clarification(工具层) → 触发 interrupt()(机制层) → HITL暂停存checkpointer(效果层) → Command({resume})唤醒同thread_id → Sandbox写文件。三层不可压成一步。",
+        },
+        {
+          label: "A3 / State",
+          title: "reducer 是并发写状态的合并规则",
+          body: "一轮多工具并发写同字段时，LangGraph 需要你给合并规则。mergeSandbox 冲突 throw(fail-closed,安全维度) vs mergeArtifacts 后写覆盖(正确性维度,可重跑)。严重性分两个兄弟维度，不是单一量。",
+        },
+        {
+          label: "A6 / demo07",
+          title: "孤儿 reducer 觉醒 + Command 机制",
+          body: "mergeSandbox 在教学包只被单测调用、agent 路径不触发——是孤儿。工具只返回字符串不会自动更新 state，必须 return Command({update:{artifacts}}) 显式写回。LLM是指挥官→工具是士兵→reducer合并。",
+        },
+        {
+          label: "元技能",
+          title: "验证性阅读三问",
+          body: "读任何函数固定问：①谁调用它(grep import) ②它真的在执行路径上吗 ③它的副作用去哪了(return被谁接收)。本次用它发现教学包的孤儿 reducer，并自建 demo 07 接通。",
+        },
+      ],
+      map: "Agent(总称) → Factory/Middleware/State(零件) → Tools/Sandbox(工具动作)。\nMiddleware 链：消毒→错误恢复→循环检测→限流→澄清(最后)。\nHITL 三层：ask_clarification(工具)→interrupt()(机制)→HITL暂停(效果)。\nLLM/工具/reducer 三层：LLM输出tool_call→工具执行+return Command→reducer合并进state。",
+      sections: [
+        {
+          title: "Subagent 限流 · 防失控而非防慢",
+          body: "agent 一次发3个task，middleware在afterModel直接砍超额的。限流防的不是“慢”（并发本来更快），而是失控——成本/资源/上下文爆炸。学习者初答方向反了，修正为“限流是安全阀”。",
+        },
+        {
+          title: "Skills 渐进披露 · context engineering 落地",
+          body: "system prompt只放skill名字+描述→describe_skill拿metadata→read_skill加载全文。两个理由：①上下文珍贵 ②保护prefix cache——只放名字=前缀稳定=缓存命中=省钱省延迟。",
+        },
+        {
+          title: "fail-closed vs 覆盖 · 严重性的两个维度",
+          body: "沙箱id错是安全问题(不可恢复,fail-closed宁可停)；文件覆盖是正确性问题(重跑可恢复,允许覆盖)。学习者初答把“严重性”当单一量比较，经“上下兄弟”修正为“安全 vs 正确性”两个兄弟维度。",
+        },
+      ],
+      blindspots: [
+        {
+          title: "把 Agent 当执行步骤",
+          body: "复述写“Agent 执行任务”，把“决定调哪个工具”安到抽象 Agent 身上。修正：Agent 是“装好的那一整个”，决定权在 model。",
+        },
+        {
+          title: "ask_clarification/interrupt()/HITL 压成一步",
+          body: "把工具层、机制层、效果层三层混为一谈。修正：三层分开——工具(我要问)→机制(摁停)→效果(暂停等人类)。",
+        },
+        {
+          title: "限流防“慢”",
+          body: "直觉以为并发多→慢→要限流，方向反了。修正：并发本来更快，限流防的是失控(成本/资源/上下文)。",
+        },
+        {
+          title: "fail-closed vs 覆盖用单一严重性比较",
+          body: "把安全和正确性混为一个量。修正：分安全维度和正确性维度两个兄弟，前者不可恢复后者可重跑。",
+        },
+        {
+          title: "漏掉工具是落盘执行者",
+          body: "把落盘安到“LLM 输出之后”模糊地带。修正：LLM 输出 tool_call(指令)→工具执行落盘+return Command→reducer 合并。",
+        },
+      ],
+      highlights: [
+        {
+          title: "验证性阅读觉醒",
+          body: "主动质疑“mergeSandbox没真正和agent联动”，grep证实是孤儿reducer，并自建demo07让它活过来。命名了“验证性阅读三问”元技能——读代码固定追问谁调用/在不在路径/副作用去哪。",
+        },
+        {
+          title: "三轮复述可见认知跃迁",
+          body: "第一轮只记得名词→第二轮能填完整链条→第三轮名词精准对得上代码。从“大概”到“对得上代码”的跃迁。",
+        },
+        {
+          title: "interrupt vs throw 跨章节连接",
+          body: "自主发现 interrupt() 和 mergeSandbox throw 是同一家族（异常冒泡），但一个是信号该放行、一个是真错误该抓。把 A2 和 A6 两个知识点连起来了。",
+        },
+      ],
+      report: [
+        {
+          title: "掌握情况",
+          items: [
+            "A1 Factory 装配：建立闭环，model 上岗焊死",
+            "A2 Middleware 顺序：不变量理解到位，位置≠时机",
+            "A4 HITL：6环链条闭环，三层分层建立",
+            "A3 State：reducer 机制懂，fail-closed vs 覆盖维度修正",
+            "A6 Sandbox：孤儿 reducer 觉醒，Command 机制懂",
+            "A5 Tools 裁剪：实时 vs 非实时理解到位",
+          ],
+        },
+        {
+          title: "需加强",
+          items: [
+            "A6 真实 write_file 源码还没深挖（教学包砍了 sandbox 工具）",
+            "Command 机制的真实写法没亲手写过（demo07 只演示了原理）",
+            "Sandbox 隔离边界细节（虚拟路径/权限）还没碰",
+          ],
+          tone: "warn",
+        },
+        {
+          title: "下一步",
+          items: [
+            "深挖真实 backend/packages/harness/deerflow/sandbox/tools.py 的 write_file",
+            "看 write_file 如何 return Command 显式更新 artifacts/sandbox state",
+            "把 demo07 升级：用真实 Command 机制让 artifacts 不再 undefined",
+          ],
+        },
+      ],
+      tags: [
+        "Agent 开发",
+        "deer-flow",
+        "Factory 装配",
+        "Middleware 顺序",
+        "HITL",
+        "State reducer",
+        "Sandbox",
+        "渐进披露",
+        "验证性阅读",
+        "上下兄弟问三句",
+        "Command 机制",
+        "interrupt",
+        "fail-closed",
+        "上下文工程",
+        "Agent 记忆系统",
+        "初学",
+      ],
+    },
+  },
+  {
+    id: "2026-08-14-agent-a-ceng",
+    date: "2026-08-14",
+    time: "两天集训（8/13–8/14）",
+    title: "Agent 开发 A 层六单元收官",
+    subtitle: "复述 → 追问 → 连接 → 实践 全闭环",
+    sourceFile: "learn/2026-08-14-Agent开发A层收官.html",
+    summary:
+      "承接 08-13 初学，以面试标准把 Agent Loop / 中间件链 / State 与 Reducer / 上下文工程 / HITL / 子代理与护栏六个 A 层单元逐一打穿，六个工程产物全部 typecheck 绿 + demo 跑通。",
+    detail: {
+      lead: "这一次真正留下来的不是六个名词，而是四条焊死的原则：护栏建在代码里、顺序是不变量、合并必须显式且 fail-closed、能力是数据不是逻辑。",
+      stats: [
+        { value: "6", label: "A 层单元收官" },
+        { value: "6", label: "实践验证全绿" },
+        { value: "14+", label: "盲点修复" },
+        { value: "6", label: "自建工程产物" },
+      ],
+      keyPoints: [
+        {
+          label: "A1",
+          title: "Agent Loop 与 Tool Calling",
+          body: "模型申请（tool_call = id+name+args）、宿主执行、ToolMessage 按 tool_call_id 回写配对；模型无状态，messages 是工作记忆，checkpointer 是持久化；循环停止的机制层信号 = 无 tool_calls。",
+        },
+        {
+          label: "A2",
+          title: "中间件链：顺序即契约",
+          body: "wrap* 包裹进出两侧，before/after* 单点打桩；五层顺序：消毒→错误恢复→循环检测→子代理限流→澄清（必须最后）；interrupt 借异常通道传播，错误处理必须 isGraphBubbleUp 放行。",
+        },
+        {
+          label: "A3",
+          title: "State 与 Reducer：显式合并",
+          body: "Reducer<T> = (existing, incoming) => merged，缺席是合法输入；策略按 key 分级（去重覆盖 vs fail-closed 抛错）；缺席=没碰、{}=显式清空；channel 声明的类型 = reducer 返回值契约；reducer 挂进 stateSchema 才接通。",
+        },
+        {
+          label: "A4",
+          title: "上下文工程：静态前缀与按需披露",
+          body: "system prompt 全静态保 prefix cache（键=前缀每个字节，TTL 分钟级，命中约 1 折）；日期/记忆由中间件注入第一条 HumanMessage；技能三层披露 name→describe→read；软引导 vs 硬强制，风险等级决定手段。",
+        },
+        {
+          label: "A5",
+          title: "HITL：中断与恢复",
+          body: "双范式：interrupt()+Command({resume}) 冻结恢复 vs Command(goto=END) 结束本轮+隐藏 HumanMessage（生产）；结构化卡片走 ToolMessage.artifact.human_input；thread_id 管对话、tool_call_id 管调用。",
+        },
+        {
+          label: "A6",
+          title: "子代理与护栏：隔离与限流",
+          body: "子代理=又一整个 Agent 循环，隔离上下文只回摘要；task prompt 必须自包含；限流在 afterModel 改写消息（执行中拦会留悬空 tool_call 被厂商 API 拒收）；截断必须可观测（notice 写进消息）。",
+        },
+      ],
+      map: `第 3 层（原则）     护栏在代码里 · 顺序是不变量 · 显式合并 fail-closed · 能力是数据
+                        │
+第 2 层（单元）     A1 Agent Loop ─ A2 中间件链 ─ A3 State/Reducer
+                        │              │              │
+                   A4 上下文工程 ─ A5 HITL ─ A6 子代理与护栏
+                        │
+第 1 层（机制）     tool_call/ToolMessage · wrap/after 钩子 · reducer · prefix cache · interrupt/Command · task 截断
+
+生命线：用户消息 → 工厂组装 → 模型⇄工具循环（中间件包裹）→ reducer 合并状态
+       → 需要人就 interrupt → 重活派子代理（限流）→ 静态前缀+按需披露保上下文`,
+      sections: [
+        {
+          title: "软引导 vs 硬强制（A2 × A4 合流）",
+          body: "技能披露顺序靠 prompt 软引导（失败只打折质量）；限流/消毒/澄清靠中间件硬强制（失败即事故）。手段的硬度必须匹配失败的代价。",
+        },
+        {
+          title: "异常通道的两种乘客（A2 × A5 合流）",
+          body: "interrupt 是控制流信号（必须放行），工具异常是错误（转成 error ToolMessage）。同一个 try/catch 区别对待——isGraphBubbleUp 存在的理由。",
+        },
+        {
+          title: "fail-closed 出现两次（A3 × 框架层）",
+          body: "框架层：没挂 reducer 的 key 同轮双写直接 InvalidUpdateError；业务层：sandboxId 冲突 throw。同一原则不同层级各落一次地。",
+        },
+        {
+          title: "能力是数据，不是逻辑（A1 × A4 合流）",
+          body: "加工具不改模型、加技能不改 prompt——可扩展性来自注册而非修改。",
+        },
+      ],
+      blindspots: [
+        {
+          title: "层级混淆三连",
+          body: "停止条件的语义/机制层混答；thread_id 与 tool_call_id 混层；软引导与硬强制装反。全部被'上下兄弟问三句'拆开焊死。",
+        },
+        {
+          title: "注释承诺 ≠ 代码兑现",
+          body: "mergeTodos 注释写了 null 分支但代码没做。规则：注释承诺必须代码兑现，审查时对照检查。",
+        },
+        {
+          title: "类型加宽不看契约边界",
+          body: "修 null 分支时把返回值加宽为 null，违反 channel 声明（typecheck 红）。规则：先查契约再改类型。",
+        },
+        {
+          title: "流畅性错觉",
+          body: "复述教师原话代替自己的推理；漏题不答。规则：每题必答或写'不会'，全部用自己的话。",
+        },
+        {
+          title: "钩子名精确度",
+          body: "wrapToolCall 说成 wrapModelCall——拦的是工具执行不是模型调用，一字之差两层楼。",
+        },
+      ],
+      highlights: [
+        {
+          title: "自建 08-hitl-end-turn.ts 对照生产实现",
+          body: "自学摸到 artifact.human_input 结构化卡片协议、hide_from_ui、returnDirect 的 JS-Python 差异——A5 实践提前超额完成。",
+        },
+        {
+          title: "澄清排最外层的反问",
+          body: "'排最外层没人能吞异常啊？'——自己发现机械层面的洞，逼出分层语义/免决策契约/放行通用性三条更深理由。",
+        },
+        {
+          title: "三天三请求缓存场景反问",
+          body: "主动构造场景验证 prefix cache 模型（命中 2 次、冷启动不算），并追问供应商 TTL——开始用成本视角看架构。",
+        },
+        {
+          title: "自己推出 dangling tool call 约束",
+          body: "追问中独立推出'执行中拦截会导致调用与结果配对错乱、被厂商 API 拒收'——真实 DeerFlow 恰好有 DanglingToolCallMiddleware。",
+        },
+      ],
+      report: [
+        {
+          title: "掌握",
+          items: [
+            "六个 A 层单元全部通过复述+追问+连接+实践四轮验证",
+            "六个工程产物全部 typecheck 绿 + demo 跑通",
+            "能主动构造场景反问验证模型（三天缓存）、能质疑设计（澄清位置）",
+          ],
+        },
+        {
+          title: "需加强",
+          items: [
+            "层级精确度：语义/机制、id 分层、软/硬强制——已修但需 D2 复验",
+            "答题完整性：漏题三次后建立'每题必答或写不会'规则",
+            "类型纪律：先 typecheck 再交卷；改类型前先查契约边界",
+          ],
+          tone: "warn",
+        },
+        {
+          title: "下一步",
+          items: [
+            "B 层：前端 Agent UX（frontend/src/core 流式合并/消息分组/HITL 卡片/子任务面板）",
+            "回读真实代码：lead_agent/agent.py 的 35 个中间件全链",
+            "D2（8/16）→ D7（8/21）→ D30（9/13）间隔检索",
+          ],
+        },
+      ],
+      tags: [
+        "Agent 开发",
+        "deer-flow",
+        "Agent Loop",
+        "Tool Calling",
+        "Middleware",
+        "State reducer",
+        "上下文工程",
+        "prefix cache",
+        "HITL",
+        "Subagent",
+        "fail-closed",
+        "软引导硬强制",
+        "上下兄弟问三句",
+        "A层收官",
+      ],
+    },
+  },
+  {
+    id: "2026-08-17-agent-memory-d7",
+    date: "2026-08-17",
+    time: "复习 D7（含 D2 补验）",
+    title: "Agent 记忆系统 D7 跨章节综合",
+    subtitle: "9 问闭卷 · 两颗锈钉重焊 · ⊆ 关系自发迁移",
+    sourceFile: "复习/2026-08-17-Agent记忆系统D7.html",
+    summary:
+      "距学习日（8/10）7 天，D2 逾期 5 天折叠补验。三层家族树两颗钉子锈掉（类型压平 + RAG 降级）现场重焊；双角色/Mem0 流水线/⊆ 关系/独立三理由全部收口；缓存处方从「单轴误判」修为「语义✗提示词✓ + TTL」。最大亮点：自发推导「提示工程 ⊆ 上下文工程」。",
+    detail: {
+      lead: "整体画像是典型的 7 天衰减曲线：骨架在、细节漏。三层树、双角色、流水线、⊆、独立三理由都还在；术语精度、记忆边界、缓存双轴需要补针。9 问全部收口，两颗层级锈钉重焊立稳，D30 首验防复发。",
+      stats: [
+        { value: "9", label: "闭卷小问" },
+        { value: "2", label: "锈钉重焊" },
+        { value: "6", label: "补针修正" },
+        { value: "3", label: "自发洞察" },
+      ],
+      keyPoints: [
+        {
+          label: "A1 / 重焊",
+          title: "三层家族树（两颗锈钉）",
+          body: "首轮五种类型压平同层 + 工具层只剩向量数据库（盲点 1 复发）；二轮 RAG 仍与 Mem0 并列（盲点 4 复发）。三轮画正：时效三兄弟，长期下辖角色/情节/实体，工具层向量+图+KV，RAG 居设计模式层。附加题工作 vs 短期记忆边界弃权 → 讲授：任务级草稿纸 vs 会话级会议记录。",
+        },
+        {
+          label: "A2 / 补针",
+          title: "双角色 + 加工工序",
+          body: "方向时机全对，自发说出「判断是否需要」过滤器（亮点）。补：存档员/情报员工牌 + 写路径中间工序「加工」（去噪压缩结构化；不加工=记忆库变垃圾场=分心回归）。",
+        },
+        {
+          label: "A3 / 补针",
+          title: "上下兄弟（情节记忆）",
+          body: "上连爷爷都请出（长期记忆→Agent Memory）；兄把自己列进兄弟名单 → 修正「先把自己摘出去」；下补向量·语义相似搜索。",
+        },
+        {
+          label: "B1 / 补针",
+          title: "Mem0 两阶段 + 三存储",
+          body: "提取✓/更新决策✓，但「增删改查」串入查 → 读写路径分层（查=情报员读路径）。「删」（遗忘）7 天后仍留存。图=关系穿梭✓；精确匹配误答向量 → 修 KV。本质答对并自发补成本视角（向量最贵；精修：图也不便宜，KV 最便宜）。",
+        },
+        {
+          label: "B2 / 通过",
+          title: "Memory × 元认知",
+          body: "审视对象/目的/分工三问全对。收口：同一「审视→提取→应用」循环套不同对象。口诀：元认知改「怎么想」，知识 Agent 管「手里有什么」。",
+        },
+        {
+          label: "B3 / 术语陷阱",
+          title: "知识 Agent ⊆ 上下文工程",
+          body: "答成「提示词构建」→ 修正：检索→注入=动态注入策略（运行时），非静态提示工程。补讲五种上下文类型：指令/知识(长期记忆挂此)/工具/对话历史/用户偏好。",
+        },
+        {
+          label: "B4 / 通过",
+          title: "独立三理由",
+          body: "上下文隔离（自发缝入 Lost in the Middle，一答串三章）+ 权限面/失败域 + 异步不阻塞（场景引导后答出）。",
+        },
+        {
+          label: "B5 / 补针",
+          title: "缓存生死题 × 四种记忆",
+          body: "两道生死题报出名（实效性→时效性），但处方只用「用户关联」一个轴。修：实体=语义缓存✗/提示词缓存✓；情节=带 TTL 判断时效；角色✓可缓存；工作✗不缓存。情节 vs 实体补讲：档案卡(KV) vs 日记(向量)。",
+        },
+      ],
+      map: `第3层：Agent Memory（记忆系统）
+          │
+第2层·时效：工作记忆(任务级) │ 短期记忆(会话级) │ 长期记忆(跨会话)
+                                                      │
+                          第2层·内容：角色记忆 │ 情节记忆 │ 实体记忆
+                                                      │
+          ———— RAG（设计模式：检索→注入→生成，高于工具）————
+                                                      │
+第1层·工具：Mem0 / Cognee —— 向量 + 图 + KV 三种存储混合
+
+⊆ 家族：上下文工程 ⊇ { 提示工程(静态指令层) , 知识 Agent(记忆检索→注入) }
+缓存处方：角色✓ ｜ 实体 语义✗提示词✓ ｜ 情节 TTL ｜ 工作✗`,
+      sections: [
+        {
+          title: "读写路径分层（B1 收口）",
+          body: "写路径=两阶段流水线：提取（LLM 总结对话→记忆片段）→ 更新决策（加/改/删）。读路径=情报员检索→注入，不在流水线内。「查」不属于写流水线。",
+        },
+        {
+          title: "元认知 vs 知识 Agent（B2 收口）",
+          body: "同一循环骨架「审视→提取→应用」：元认知审视推理过程改策略；知识 Agent 审视对话历史提取记忆注入下次。改怎么想 vs 管手里有什么。",
+        },
+        {
+          title: "⊆ 关系双向迁移（B3 + 课间追问）",
+          body: "知识 Agent ⊆ 上下文工程（只管长期记忆一种来源，注入后属「知识」类型）。学习者当场反推：提示工程也 ⊆ 上下文工程（其产出=五种类型之「指令」）。对立是教学手法，包含才是事实结构。",
+        },
+        {
+          title: "缓存处方双轴（B5 收口）",
+          body: "两道生死题=时效性 × 用户关联度。角色(不变+无关)✓；实体(稳定+高度私人)语义✗/提示词✓；情节(私人+可能过时)TTL；工作(时效极短)✗。教训：报了题就要用题。",
+        },
+      ],
+      blindspots: [
+        {
+          title: "三层家族树锈钉两颗（类型压平 + RAG 降级）→ 已重焊",
+          body: "初学当天盲点 1、4 的原位复发，典型 7 天衰减。属本次新焊点，D30（9/09）首验防复发。",
+        },
+        {
+          title: "工作 vs 短期记忆边界：弃权 → 已讲授",
+          body: "寿命跟一个任务走（草稿纸）还是跟整段会话走（会议记录）。学习日标记的薄弱点正式厘清。",
+        },
+        {
+          title: "「增删改查」串入查 → 读写路径分层",
+          body: "查=情报员读路径，不在 Mem0 写流水线。流水线只做加/改/删。",
+        },
+        {
+          title: "「提示词构建」术语陷阱 → 动态注入",
+          body: "注入姓上下文工程（运行时）不姓提示工程（设计期）。附赠区分：提示词注入=安全攻击术语，与提示工程不同户口。",
+        },
+        {
+          title: "缓存处方单轴化 → 双轴齐用",
+          body: "两道生死题只用「用户关联」一道半。实体要分缓存类型，情节必须上 TTL。",
+        },
+        {
+          title: "兄弟名单含自己 → 已修正",
+          body: "问「兄」先把自己摘出去——站进家族看关系，不站外面背名单。",
+        },
+      ],
+      highlights: [
+        {
+          title: "自发推导「提示工程 ⊆ 上下文工程」⭐ 本场最佳",
+          body: "学完知识 Agent ⊆ 上下文工程当场迁移，还看穿「对立是教学手法、包含才是事实结构」。⊆ 模式完成自发迁移。",
+        },
+        {
+          title: "「判断是否需要」过滤器留存",
+          body: "A2 自发带出相关性过滤（不能什么都存）——核心挑战层面的理解，不是背流程。",
+        },
+        {
+          title: "「删」（遗忘能力）7 天后仍亮 + 成本视角新长",
+          body: "初学高光时刻存活；自发补充向量构建成本最高的工程视角，超出课本。",
+        },
+        {
+          title: "诚实换真讲解",
+          body: "边界题、五种类型、情节vs实体多处直接说「不会」——每次都换来针对性补讲，诚实比答对值钱。",
+        },
+      ],
+      report: [
+        {
+          title: "通过（收口）",
+          items: [
+            "三层家族树（重焊后立稳）",
+            "双角色 + 加工工序",
+            "Mem0 两阶段 + 三存储分工",
+            "知识 Agent ⊆ 上下文工程",
+            "独立三理由（隔离/权限/异步）",
+            "缓存处方表（双轴修正后）",
+          ],
+        },
+        {
+          title: "需关注",
+          items: [
+            "新焊家族树防复发（D30 9/09 首验）",
+            "缓存时效轴的运用习惯（报题要用题）",
+            "上下文工程五种类型已褪色 → 08-19 抢救",
+            "上下兄弟问三句：用到条件反射为止",
+          ],
+          tone: "warn",
+        },
+        {
+          title: "后续排期",
+          items: [
+            "08-18：开发核心模式 D2 + A 层六单元 D2（趁新鲜清账）",
+            "08-19：上下文工程 D2+D7 合并抢救",
+            "08-20：智能体协议 D2+D7 合并抢救",
+            "09-09：记忆系统 D30 综合压测",
+          ],
+        },
+      ],
+      tags: [
+        "Agent 记忆系统",
+        "D7",
+        "D2 补验",
+        "上下兄弟问三句",
+        "Mem0",
+        "缓存生死题",
+        "语义缓存 vs 提示词缓存",
+        "⊆ 关系迁移",
+        "锈钉重焊",
+      ],
+    },
+  },
 ];
 
 export const reviewTasks: ReviewTask[] = [
@@ -2736,7 +3402,7 @@ export const reviewTasks: ReviewTask[] = [
   },
   {
     id: "zhi-neng-ti-xie-yi-d2",
-    dueDate: "2026-08-05",
+    dueDate: "2026-08-20",
     title: "智能体协议 MCP · A2A · NLWeb D2",
     stage: "D2",
     type: "due",
@@ -2747,7 +3413,7 @@ export const reviewTasks: ReviewTask[] = [
   },
   {
     id: "zhi-neng-ti-xie-yi-d7",
-    dueDate: "2026-08-10",
+    dueDate: "2026-08-20",
     title: "智能体协议 MCP · A2A · NLWeb D7 跨章节综合",
     stage: "D7",
     type: "scheduled",
@@ -2769,7 +3435,7 @@ export const reviewTasks: ReviewTask[] = [
   },
   {
     id: "shang-xia-wen-gong-cheng-d2",
-    dueDate: "2026-08-08",
+    dueDate: "2026-08-19",
     title: "上下文工程 Context Engineering D2",
     stage: "D2",
     type: "due",
@@ -2780,7 +3446,7 @@ export const reviewTasks: ReviewTask[] = [
   },
   {
     id: "shang-xia-wen-gong-cheng-d7",
-    dueDate: "2026-08-13",
+    dueDate: "2026-08-19",
     title: "上下文工程 Context Engineering D7 跨章节综合",
     stage: "D7",
     type: "scheduled",
@@ -2799,6 +3465,105 @@ export const reviewTasks: ReviewTask[] = [
     description:
       '综合压测：给你一个实际的多 Agent 项目场景，设计完整的上下文管理方案：① 识别所有五种上下文类型及其爆炸风险 ② 针对每种风险设计管理策略（压缩/剪枝/动态注入/沙箱/代理便签）③ 跨章节缝合：上下文工程 × 多代理设计模式 × 可信赖 Agent × 元认知——上下文管理如何提升整个 Agent 系统的可靠性和稳定性？④ 框架层 vs Agent 层：你的方案中哪些放在框架层（原语）、哪些由 Agent 自主配置？',
     relatedRecordIds: ["2026-08-06-shang-xia-wen-gong-cheng"],
+  },
+  {
+    id: "agent-memory-d2",
+    dueDate: "2026-08-12",
+    title: "Agent 记忆系统 Agent Memory D2",
+    stage: "D2",
+    type: "due",
+    estimate: "10 min",
+    description:
+      '3 题闭卷：① 六种记忆类型层级图默画（必须用三层结构：概念总称 → 时效/内容维度 → 底层工具）② 知识 Agent 双角色（存档员+情报员）完整描述 ③ 用"上下兄弟问三句"给六种记忆类型分层。',
+    relatedRecordIds: ["2026-08-10-agent-memory"],
+  },
+  {
+    id: "agent-memory-d7",
+    dueDate: "2026-08-17",
+    title: "Agent 记忆系统 Agent Memory D7 跨章节综合",
+    stage: "D7",
+    type: "scheduled",
+    estimate: "15 min",
+    description:
+      '5 题跨章节关联：① Mem0 两阶段流水线 + 三种存储（向量/图/KV）各解决什么问题 ② Memory × 元认知对比（两种元层级审视的异同）③ Memory × 上下文工程 ⊂ 关系验证 ④ Memory × 多代理专业化原则（为什么知识 Agent 要独立？）⑤ 缓存两道生死题套用到四种记忆类型的缓存策略。',
+    relatedRecordIds: ["2026-08-10-agent-memory"],
+  },
+  {
+    id: "agent-memory-d30",
+    dueDate: "2026-09-09",
+    title: "Agent 记忆系统 Agent Memory D30 综合应用",
+    stage: "D30",
+    type: "scheduled",
+    estimate: "20 min",
+    description:
+      '综合压测：给你一个实际 Multi-Agent 项目场景，设计完整的记忆系统：① 知识 Agent 架构设计（存档员+情报员双角色）② 记忆类型选择（哪些类型需要、为什么）③ 存储方案（Mem0 风格三种存储混合的理由）④ 与现有 Agent 的集成方案。跨章节缝合：Memory × 元认知 × 上下文工程 × 可信赖 Agent —— 记忆系统如何提升 Agent 整体的可靠性和稳定性？',
+    relatedRecordIds: ["2026-08-10-agent-memory", "2026-08-17-agent-memory-d7"],
+  },
+  {
+    id: "agent-kai-fa-d2",
+    dueDate: "2026-08-18",
+    title: "Agent 开发核心模式 D2",
+    stage: "D2",
+    type: "due",
+    estimate: "10 min",
+    description:
+      "3 题闭卷：① Agent 由哪五样东西装配而成？model 负责什么？（必须点出 model 是大脑、决定调哪个工具）② Middleware 链里 Clarification 为什么必须放最后？（必须提到 interrupt() 被 try/catch 误抓）③ 用“整理周报但没传文件”场景默写 HITL 完整链条（必须分清 ask_clarification/interrupt()/HITL暂停 三层）。",
+    relatedRecordIds: ["2026-08-13-agent-kai-fa"],
+  },
+  {
+    id: "agent-kai-fa-d7",
+    dueDate: "2026-08-20",
+    title: "Agent 开发核心模式 D7 跨章节综合",
+    stage: "D7",
+    type: "scheduled",
+    estimate: "15 min",
+    description:
+      "5 题跨章节关联：① interrupt() vs mergeSandbox throw 机制区分（一个是信号该放行、一个是真错误该抓，同一个 try/catch 区别对待）② Skills 渐进披露 × 上下文工程（保护 prefix cache 的理由）③ checkpointer × Agent 记忆系统（短期记忆 vs 长期记忆）④ fail-closed × 可信赖 Agent 安全边界（安全维度 vs 正确性维度）⑤ Subagent 限流防的是失控而非慢。重点核查层级是否还清晰。",
+    relatedRecordIds: ["2026-08-13-agent-kai-fa"],
+  },
+  {
+    id: "agent-kai-fa-d30",
+    dueDate: "2026-09-12",
+    title: "Agent 开发核心模式 D30 综合应用",
+    stage: "D30",
+    type: "scheduled",
+    estimate: "20 min",
+    description:
+      "综合压测：给“读文件+联网搜索+生成新文件”的实时聊天场景，设计完整 agent：① Factory 装配（五零件各填什么）② Middleware 链顺序（说出每层为何这个位置）③ State reducer 设计（哪些字段需要 reducer、用 fail-closed 还是覆盖）④ Sandbox 写文件流程（LLM→工具→Command→reducer）⑤ HITL 何时触发。并指出：哪些是框架层原语（如 reducer、interrupt）、哪些由 Agent 自主配置（如工具裁剪、middleware 开关）。跨章节缝合：Agent 开发 × 上下文工程 × 记忆系统 × 可信赖 Agent。",
+    relatedRecordIds: ["2026-08-13-agent-kai-fa"],
+  },
+  {
+    id: "agent-a-ceng-d2",
+    dueDate: "2026-08-18",
+    title: "Agent 开发 A 层六单元 D2",
+    stage: "D2",
+    type: "due",
+    estimate: "12 min",
+    description:
+      "3 题闭卷：① 教学包五层中间件顺序+各层钩子（消毒双 wrap/错误恢复 wrapToolCall/循环检测 afterModel/限流 afterModel/澄清 wrapToolCall 最后）② reducer 签名默写 + 缺席 vs 清空的协议语义 ③ 为什么日期不能进 system prompt（prefix cache 的前缀机制 + DynamicContextMiddleware 注入消息流）。",
+    relatedRecordIds: ["2026-08-14-agent-a-ceng"],
+  },
+  {
+    id: "agent-a-ceng-d7",
+    dueDate: "2026-08-21",
+    title: "Agent 开发 A 层六单元 D7 跨单元综合",
+    stage: "D7",
+    type: "scheduled",
+    estimate: "18 min",
+    description:
+      "5 题跨单元：① 软引导 vs 硬强制 × 风险分级（各举两例）② interrupt 穿透 × 中间件顺序（为什么澄清最后 + 错误恢复放行）③ fail-closed × 可信赖 Agent 安全边界（框架层 InvalidUpdateError vs 业务层 sandbox 冲突）④ 子代理上下文隔离 × 上下文工程（自包含 prompt 的因果链）⑤ tool_call 配对 × 消息协议（dangling call 为什么被厂商拒收）。重点核查层级是否还清晰。",
+    relatedRecordIds: ["2026-08-14-agent-a-ceng"],
+  },
+  {
+    id: "agent-a-ceng-d30",
+    dueDate: "2026-09-13",
+    title: "Agent 开发 A 层 D30 综合应用",
+    stage: "D30",
+    type: "scheduled",
+    estimate: "25 min",
+    description:
+      "综合压测：给一个真实场景（如'读文件+联网搜索+生成周报'的实时聊天），设计完整 agent：① 工具集裁剪（哪些场景裁掉哪些工具）② 中间件链设计（每层位置的理由）③ state reducer 设计（哪些 key 需要 reducer、fail-closed 还是覆盖）④ HITL 确认点设置（软引导还是硬强制，为什么）⑤ 子代理拆分与限流（prompt 自包含检查清单）⑥ 上下文预算（静态前缀/动态注入/披露层级）。跨单元缝合：A1×A2×A3×A4×A5×A6 全部用上。",
+    relatedRecordIds: ["2026-08-14-agent-a-ceng"],
   },
 ];
 
