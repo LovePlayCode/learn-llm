@@ -1,0 +1,787 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>6/13 · 缓存 + Claude Code 上下文管理 · D30 综合压测</title>
+<style>
+:root {
+  --metal-100: #eef0f3;
+  --metal-200: #d8dde3;
+  --metal-300: #b6bec8;
+  --metal-400: #8a929e;
+  --metal-500: #5c6675;
+  --metal-600: #3f4754;
+  --metal-700: #2a313c;
+  --metal-800: #1a1f28;
+  --metal-900: #07090d;
+  --accent: #6b89a8;
+  --accent-dim: #4a6280;
+  --accent-glow: rgba(107, 137, 168, 0.15);
+  --warn: #a86b5c;
+  --warn-dim: #6b3f3a;
+  --good: #5a9a7a;
+  --gold: #c9b687;
+  --thin: 200;
+  --reg: 300;
+  --med: 400;
+  --mono: ui-monospace, SFMono-Regular, "JetBrains Mono", Menlo, Consolas, monospace;
+  --sans: -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", system-ui, sans-serif;
+  --mx: 50%;
+  --my: 30%;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+html, body {
+  background: linear-gradient(180deg, var(--metal-800) 0%, var(--metal-900) 100%);
+  color: var(--metal-200);
+  font-family: var(--sans);
+  font-weight: var(--thin);
+  line-height: 1.75;
+  letter-spacing: 0.02em;
+  overflow-x: hidden;
+  min-height: 100vh;
+}
+
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 1;
+  opacity: 0.4;
+  mix-blend-mode: overlay;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='200' height='200'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 0.5  0 0 0 0 0.55  0 0 0 0 0.6  0 0 0 0.4 0'/></filter><rect width='100%25' height='100%25' filter='url(%23n)'/></svg>");
+}
+
+body::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  background: radial-gradient(
+    600px circle at var(--mx) var(--my),
+    rgba(107, 137, 168, 0.10),
+    transparent 40%
+  );
+  transition: background 0.2s ease;
+}
+
+.container {
+  position: relative;
+  z-index: 2;
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 80px 32px 120px;
+}
+
+/* ─── HERO ─── */
+.hero {
+  border: 1px solid var(--metal-700);
+  background: linear-gradient(135deg, var(--metal-800), var(--metal-900) 60%);
+  padding: 64px 56px;
+  position: relative;
+  overflow: hidden;
+  border-radius: 6px;
+  margin-bottom: 64px;
+}
+.hero::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle at 80% 20%, rgba(107,137,168,0.07), transparent 50%);
+  pointer-events: none;
+}
+.hero .meta {
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.4em;
+  color: var(--metal-400);
+  text-transform: uppercase;
+  margin-bottom: 28px;
+}
+.hero h1 {
+  font-size: clamp(28px, 4vw, 44px);
+  font-weight: var(--thin);
+  letter-spacing: -0.01em;
+  color: var(--metal-100);
+  margin-bottom: 24px;
+  line-height: 1.2;
+}
+.hero .lead {
+  font-size: 15px;
+  color: var(--metal-300);
+  max-width: 800px;
+  line-height: 1.85;
+  border-left: 1px solid var(--accent-dim);
+  padding-left: 20px;
+  margin-top: 24px;
+  font-weight: var(--reg);
+}
+.hero .lead em { color: var(--accent); font-style: normal; }
+.hero .stats {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 0;
+  margin-top: 48px;
+  border-top: 1px solid var(--metal-700);
+  padding-top: 28px;
+}
+.hero .stats .stat {
+  border-right: 1px solid var(--metal-700);
+  padding: 0 24px;
+}
+.hero .stats .stat:last-child { border-right: none; }
+.hero .stats .stat:first-child { padding-left: 0; }
+.hero .stats .num {
+  font-family: var(--mono);
+  font-size: 32px;
+  font-weight: var(--thin);
+  color: var(--metal-100);
+  letter-spacing: -0.02em;
+}
+.hero .stats .lbl {
+  font-size: 10px;
+  letter-spacing: 0.3em;
+  color: var(--metal-400);
+  text-transform: uppercase;
+  margin-top: 8px;
+}
+
+@media (max-width: 768px) {
+  .hero .stats { grid-template-columns: repeat(2, 1fr); gap: 16px; }
+  .hero { padding: 40px 28px; }
+}
+
+/* ─── SECTION ─── */
+section {
+  margin-top: 72px;
+  opacity: 0;
+  transform: translateY(28px);
+  transition: opacity 0.9s ease, transform 0.9s ease;
+}
+section.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+section .sec-num {
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.4em;
+  color: var(--accent);
+  margin-bottom: 16px;
+}
+section h2 {
+  font-size: 26px;
+  font-weight: var(--thin);
+  color: var(--metal-100);
+  letter-spacing: -0.01em;
+  border-bottom: 1px solid var(--metal-700);
+  padding-bottom: 18px;
+  margin-bottom: 32px;
+}
+section h3 {
+  font-size: 17px;
+  font-weight: var(--reg);
+  color: var(--metal-100);
+  margin-bottom: 14px;
+  margin-top: 24px;
+}
+section p {
+  color: var(--metal-300);
+  margin-bottom: 14px;
+  font-size: 14px;
+  font-weight: var(--reg);
+}
+section p strong { color: var(--metal-100); font-weight: var(--med); }
+section em { color: var(--accent); font-style: normal; }
+
+/* ─── CARDS ─── */
+.compare {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+  margin: 28px 0;
+}
+.compare-3 {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 20px;
+  margin: 28px 0;
+}
+@media (max-width: 768px) {
+  .compare, .compare-3 { grid-template-columns: 1fr; }
+}
+.card {
+  background: var(--metal-800);
+  border: 1px solid var(--metal-700);
+  padding: 26px;
+  transition: all 0.3s ease;
+  border-radius: 6px;
+}
+.card:hover {
+  transform: translateY(-3px);
+  border-color: var(--accent-dim);
+  background: var(--metal-700);
+  box-shadow: 0 12px 36px rgba(0,0,0,0.4), inset 0 1px 0 rgba(107,137,168,0.12);
+}
+.card .tag {
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: 0.25em;
+  color: var(--metal-400);
+  text-transform: uppercase;
+  margin-bottom: 12px;
+}
+.card.good .tag { color: var(--good); }
+.card.warn .tag { color: var(--warn); }
+.card.gold .tag { color: var(--gold); }
+.card.accent .tag { color: var(--accent); }
+.card h4 {
+  font-size: 16px;
+  font-weight: var(--reg);
+  color: var(--metal-100);
+  margin-bottom: 12px;
+}
+.card p {
+  font-size: 13px;
+  color: var(--metal-300);
+  line-height: 1.75;
+  font-weight: var(--reg);
+}
+.card.warn { border-color: var(--warn-dim); }
+.card.good { border-color: rgba(90, 154, 122, 0.35); }
+
+/* ─── ASCII ─── */
+.ascii {
+  background: var(--metal-900);
+  border: 1px solid var(--metal-700);
+  padding: 26px 30px;
+  font-family: var(--mono);
+  font-size: 12px;
+  line-height: 1.7;
+  color: var(--metal-300);
+  white-space: pre;
+  overflow-x: auto;
+  margin: 28px 0;
+  box-shadow: inset 0 0 60px rgba(0,0,0,0.5);
+  border-radius: 6px;
+  position: relative;
+}
+.ascii::before {
+  content: "▎ ASCII";
+  position: absolute;
+  top: 12px;
+  right: 16px;
+  font-size: 9px;
+  letter-spacing: 0.3em;
+  color: var(--metal-500);
+}
+.ascii .hi { color: var(--accent); }
+.ascii .em { color: var(--metal-100); font-weight: var(--med); }
+.ascii .warn { color: var(--warn); }
+.ascii .good { color: var(--good); }
+.ascii .gold { color: var(--gold); }
+
+/* ─── TABLE ─── */
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 24px 0;
+  font-size: 13px;
+}
+th {
+  text-align: left;
+  padding: 12px 16px;
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: 0.2em;
+  color: var(--metal-400);
+  text-transform: uppercase;
+  font-weight: var(--reg);
+  border-bottom: 1px solid var(--metal-700);
+}
+td {
+  padding: 14px 16px;
+  border-bottom: 1px solid var(--metal-700);
+  color: var(--metal-300);
+  font-weight: var(--reg);
+}
+tr:hover td { background: rgba(107,137,168,0.04); }
+
+/* ─── CHECKLIST ─── */
+.checklist {
+  counter-reset: ck;
+  margin: 28px 0;
+}
+.checklist .item {
+  counter-increment: ck;
+  border-left: 2px solid var(--metal-700);
+  padding: 16px 22px;
+  margin-bottom: 8px;
+  background: var(--metal-800);
+  transition: all 0.25s ease;
+  display: flex;
+  align-items: flex-start;
+  gap: 20px;
+  border-radius: 0 6px 6px 0;
+}
+.checklist .item:hover {
+  border-left-color: var(--accent);
+  background: var(--metal-700);
+  transform: translateX(4px);
+}
+.checklist .item::before {
+  content: counter(ck, decimal-leading-zero);
+  font-family: var(--mono);
+  font-size: 20px;
+  font-weight: var(--thin);
+  color: var(--accent);
+  min-width: 32px;
+}
+.checklist .item .txt h4 {
+  font-size: 14px;
+  font-weight: var(--med);
+  color: var(--metal-100);
+  margin-bottom: 6px;
+}
+.checklist .item .txt p {
+  font-size: 12px;
+  color: var(--metal-400);
+  margin: 0;
+  line-height: 1.7;
+}
+.checklist .item.warn { border-left-color: var(--warn-dim); }
+.checklist .item.warn::before { color: var(--warn); }
+.checklist .item.good { border-left-color: rgba(90,154,122,0.4); }
+.checklist .item.good::before { color: var(--good); }
+
+/* ─── DETAILS ─── */
+details {
+  border: 1px solid var(--metal-700);
+  background: var(--metal-800);
+  margin: 12px 0;
+  border-radius: 6px;
+  transition: background 0.3s ease;
+}
+details[open] { background: var(--metal-700); border-color: var(--accent-dim); }
+summary {
+  cursor: pointer;
+  padding: 16px 22px;
+  list-style: none;
+  display: flex;
+  align-items: center;
+  color: var(--metal-200);
+  font-size: 14px;
+  font-weight: var(--reg);
+}
+summary::-webkit-details-marker { display: none; }
+summary::before {
+  content: "+";
+  margin-right: 14px;
+  color: var(--accent);
+  font-weight: var(--thin);
+  font-size: 18px;
+  transition: transform 0.3s ease;
+  display: inline-block;
+  width: 16px;
+  text-align: center;
+}
+details[open] summary::before { transform: rotate(45deg); }
+details .body {
+  padding: 0 22px 22px 52px;
+  color: var(--metal-300);
+  font-size: 13px;
+  line-height: 1.85;
+  font-weight: var(--reg);
+}
+
+/* ─── REPORT GRID ─── */
+.report-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 16px;
+  margin: 28px 0;
+}
+@media (max-width: 768px) { .report-grid { grid-template-columns: 1fr; } }
+.report-cell {
+  background: var(--metal-800);
+  border: 1px solid var(--metal-700);
+  padding: 22px;
+  border-radius: 6px;
+  transition: all 0.3s ease;
+}
+.report-cell:hover {
+  border-color: var(--accent-dim);
+  transform: translateY(-2px);
+}
+.report-cell .lvl {
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: 0.3em;
+  color: var(--accent);
+  text-transform: uppercase;
+  margin-bottom: 12px;
+}
+.report-cell h4 {
+  font-size: 14px;
+  color: var(--metal-100);
+  font-weight: var(--reg);
+  margin-bottom: 8px;
+}
+.report-cell p, .report-cell ul {
+  font-size: 12px;
+  color: var(--metal-400);
+  line-height: 1.7;
+  margin: 0;
+}
+.report-cell ul { padding-left: 16px; }
+.report-cell.warn { border-color: var(--warn-dim); }
+.report-cell.warn .lvl { color: var(--warn); }
+.report-cell.good { border-color: rgba(90,154,122,0.3); }
+.report-cell.good .lvl { color: var(--good); }
+
+/* ─── FOOTER ─── */
+.footer-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 32px;
+}
+.footer-tags span {
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: 0.1em;
+  padding: 4px 10px;
+  border-radius: 4px;
+  background: rgba(107,137,168,0.08);
+  color: var(--accent);
+  border: 1px solid rgba(107,137,168,0.2);
+}
+</style>
+</head>
+<body>
+<script>document.addEventListener('mousemove',e=>{document.body.style.setProperty('--mx',e.clientX/window.innerWidth*100+'%');document.body.style.setProperty('--my',e.clientY/window.innerHeight*100+'%')});</script>
+<div class="container">
+
+  <!-- ═════ HERO ═════ -->
+  <header class="hero">
+    <div class="meta">2026 · 06 · 13 · CACHE + CONTEXT D30 COMPREHENSIVE</div>
+    <h1>缓存 + Claude Code 上下文管理<br>D30 综合压测</h1>
+    <p class="lead">
+      5/21 双毕业项回访。核心框架 23 天后依然站得住——<em>缓存三兄弟命中机制分得清</em>，
+      <em>开工 4 问映射能力在</em>，<em>错误累积公式秒出</em>。
+      薄弱点暴露在<em>"两道生死题问法"退化</em>和<em>"checkpoint = Controllable"归类犹豫</em>。
+      整体通过，正式进入长期记忆区。
+    </p>
+    <div class="stats">
+      <div class="stat"><div class="num">2</div><div class="lbl">复习主题</div></div>
+      <div class="stat"><div class="num">3</div><div class="lbl">综合题</div></div>
+      <div class="stat"><div class="num">2</div><div class="lbl">退化点重焊</div></div>
+      <div class="stat"><div class="num">✓</div><div class="lbl">通过 · 进入长期记忆</div></div>
+    </div>
+  </header>
+
+  <!-- ═════ SECTION 1：缓存决策验证 ═════ -->
+  <section class="visible">
+    <div class="sec-num">SECTION 01 ─── 缓存 · 两道生死题重焊</div>
+    <h2>D30 验证：在线教育 AI 助手缓存设计</h2>
+
+    <p>
+      场景：三种学生提问——"什么是牛顿第三定律"/"帮我分析我的作文"/"怎么解这道二次函数题"。
+      用<strong>两道生死题</strong>作为判断框架，逐一过滤。
+    </p>
+
+    <h3>两道生死题（重新焊回）</h3>
+    <div class="compare">
+      <div class="card accent">
+        <div class="tag">生死题 ①</div>
+        <h4>输出会随时间变化吗？</h4>
+        <p>问时效性。如果今天和明天的答案不同，语义缓存就有过期风险。</p>
+      </div>
+      <div class="card accent">
+        <div class="tag">生死题 ②</div>
+        <h4>输出依赖私人上下文吗？</h4>
+        <p>问独特性。如果不同用户的相同问法需要不同答案，缓存命中 = 张冠李戴。</p>
+      </div>
+    </div>
+
+    <h3>三种提问的判断结果</h3>
+    <table>
+      <thead>
+        <tr>
+          <th>提问</th>
+          <th>① 时效性</th>
+          <th>② 私人依赖</th>
+          <th>结论</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>"什么是牛顿第三定律"</strong></td>
+          <td><span style="color:var(--good)">否</span></td>
+          <td><span style="color:var(--good)">否</span></td>
+          <td>✅ 两关都过 → <em>语义缓存</em></td>
+        </tr>
+        <tr>
+          <td><strong>"帮我分析我的作文"</strong></td>
+          <td><span style="color:var(--good)">否</span></td>
+          <td><span style="color:var(--warn)">是</span>（绑定具体作文）</td>
+          <td>❌ 第②关拦下 → 语义/精确不可，<em>提示词缓存</em>可用</td>
+        </tr>
+        <tr>
+          <td><strong>"怎么解这道二次函数题"</strong></td>
+          <td><span style="color:var(--good)">否</span></td>
+          <td><span style="color:var(--warn)">是</span>（"这道"绑定具体题目）</td>
+          <td>❌ 第②关拦下 → 不适合语义缓存</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <details>
+      <summary>"这道"的陷阱</summary>
+      <div class="body">
+        <p>初次回答时把"这道二次函数题"判为"有时效性"——其实数学公式不会随时间变。真正的关键是<strong>"这道"= 绑定了具体题目 = 私人上下文</strong>。时效性 vs 私人依赖的区别需要在提取时分清。</p>
+      </div>
+    </details>
+
+    <details>
+      <summary>作文题 → 提示词缓存的连接</summary>
+      <div class="body">
+        <p>虽然作文题不能用语义/精确缓存（私人数据），但在一次会话中，作文全文作为<strong>不变前缀</strong>，后续逐段批改只改后缀——这是提示词缓存的经典命中模式。跨兄弟调取能力 ✓。</p>
+      </div>
+    </details>
+  </section>
+
+  <!-- ═════ SECTION 2：Context 管理验证 ═════ -->
+  <section class="visible">
+    <div class="sec-num">SECTION 02 ─── CONTEXT · 开工 4 问实战</div>
+    <h2>D30 验证：作文批改场景的 Context 管理</h2>
+
+    <p>
+      场景：学生发 2000 字作文 → AI 逐段批改 → 最后整体评价。用"开工 4 问"逐一过一遍。
+    </p>
+
+    <div class="checklist">
+      <div class="item good">
+        <div class="txt">
+          <h4>① 当前任务和上一个任务相关吗？→ 相关，不 /clear</h4>
+          <p>整个会话围绕同一篇作文展开，context 中的信息有连续性。</p>
+        </div>
+      </div>
+      <div class="item good">
+        <div class="txt">
+          <h4>② 这个动作需要读很多文件吗？→ 否，不开 subagent</h4>
+          <p>单文件场景（一篇作文），不需要并行读取。但追问：如果要调取 10 篇历史作文做趋势分析 → 触发 subagent。</p>
+        </div>
+      </div>
+      <div class="item good">
+        <div class="txt">
+          <h4>③ 这次改动跨了几个文件？→ 不跨，不用 Plan Mode</h4>
+          <p>所有操作都在同一份文档上进行。</p>
+        </div>
+      </div>
+      <div class="item good">
+        <div class="txt">
+          <h4>④ 关键信息放在哪里？→ 作文放开头（Lost in the Middle）</h4>
+          <p>2000 字作文是所有后续问答的核心依赖，放在 context 前段避开 U 型注意力塌陷区。</p>
+        </div>
+      </div>
+    </div>
+
+    <details>
+      <summary>追问：subagent 的触发双条件</summary>
+      <div class="body">
+        <p>触发 subagent 的两个信号：<strong>① 任务独立</strong>（子任务可以在隔离的 context 里完成）+ <strong>② 需要读多个文件</strong>（主 context 装不下或不需要装）。两者同时满足时启动，主 agent 只收摘要。</p>
+      </div>
+    </details>
+  </section>
+
+  <!-- ═════ SECTION 3：错误累积跨章节 ═════ -->
+  <section class="visible">
+    <div class="sec-num">SECTION 03 ─── 跨章节 · 错误累积 × TCC</div>
+    <h2>D30 验证：解题链 + checkpoint + TCC 归类</h2>
+
+    <p>
+      场景：AI 助手分 4 步解题，每步正确率 95%。考察错误累积公式 + 降低方案 + TCC 归类。
+    </p>
+
+    <div class="compare">
+      <div class="card good">
+        <div class="tag">公式验证 · 通过</div>
+        <h4>1 - 0.95⁴ ≈ 18.55%</h4>
+        <p>错误累积公式 1 - p^N 秒出。4 步 95% 看似很高，但约五分之一的概率翻车。数学肌肉记忆稳。</p>
+      </div>
+      <div class="card good">
+        <div class="tag">方案设计 · 通过</div>
+        <h4>动 p + 动结构</h4>
+        <p>方案 A：换更强模型提高 p。方案 B：设检查点切分为局部低阶 N。且落地描述完整：验证器检查 → 错误回传 → 局部重试。</p>
+      </div>
+    </div>
+
+    <div class="ascii">
+<span class="hi">AI 解题 4 步链 · 错误累积分析</span>
+
+成功率：0.95⁴ ≈ 0.815
+<span class="warn">失败率：1 - 0.815 ≈ 18.55%</span>
+
+<span class="em">降低方案：</span>
+┌─ 方案 A：动 p ──── 换更强模型（95% → 99%）
+│                   1 - 0.99⁴ ≈ 3.9%（降低 14.6 个百分点）
+│
+└─ 方案 B：动结构 ── 每步后插 checkpoint
+                    <span class="good">验证器检查 → 不通过 → 错误信息回传 → 局部重试</span>
+                    本质：把 1 个 N=4 的连续赌注切成 4 个 N=1 + 验证
+
+<span class="gold">checkpoint 的工程落地三要素：</span>
+  ① 谁检查 → 验证器模型
+  ② 检查什么 → 当前步输出是否正确
+  ③ 不通过怎么办 → 带错误信息的局部重试（非盲重试）
+    </div>
+
+    <h3>TCC 归类 · 犹豫后重焊</h3>
+    <div class="compare">
+      <div class="card warn">
+        <div class="tag">暴露 · 归类犹豫</div>
+        <h4>T → C → Consistency 三选</h4>
+        <p>首先答 T+C 双维度（部分对），然后改口 Consistency（错）。暴露了 checkpoint = Controllable 这条链接的松动。</p>
+      </div>
+      <div class="card good">
+        <div class="tag">重焊 · 已修复</div>
+        <h4>checkpoint = Controllable 的儿子</h4>
+        <p>checkpoint 的全部动作（拦截、回退、重试、局部低阶 N）都是"管得住"的具体实现。已重新焊回。</p>
+      </div>
+    </div>
+
+    <div class="ascii">
+<span class="em">TCC 三兄弟各管什么（重焊版）</span>
+
+<span class="hi">T</span>ransparent  看得见 → 日志、过程可视化、决策链展示
+<span class="hi">C</span>ontrollable 管得住 → <span class="gold">checkpoint</span>、重试、打断、回滚、人类审批
+<span class="hi">C</span>onsistency  信得过 → 行为稳定、不矛盾、输出可预期
+
+<span class="gold">口诀：checkpoint = Controllable 的儿子</span>
+    </div>
+  </section>
+
+  <!-- ═════ SECTION 4：薄弱点总结 ═════ -->
+  <section class="visible">
+    <div class="sec-num">SECTION 04 ─── 薄弱点 · 退化分析</div>
+    <h2>D30 暴露的退化点</h2>
+
+    <div class="compare-3">
+      <div class="card warn">
+        <div class="tag">退化 · 已修复</div>
+        <h4>两道生死题问法</h4>
+        <p>只记得关键词（"私人依赖""时效性"），问句形式退化。重新接触后立刻恢复——提取通道生锈，知识未消失。</p>
+      </div>
+      <div class="card warn">
+        <div class="tag">退化 · 已修复</div>
+        <h4>checkpoint = Controllable</h4>
+        <p>D7 时焊死的归类，D30 出现 T/C/Consistency 三选犹豫。说明跨章节钩子需要更多实战激活。已重焊。</p>
+      </div>
+      <div class="card warn">
+        <div class="tag">轻度退化 · 可接受</div>
+        <h4>开工 4 问措辞抽象化</h4>
+        <p>从"具体可操作信号"退化为"抽象判断"（如"是否可拆分"vs"需要读很多文件吗"）。方向没偏，精度下降。</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═════ SECTION 5：掌握度报告 ═════ -->
+  <section class="visible">
+    <div class="sec-num">SECTION 05 ─── 学习报告</div>
+    <h2>D30 掌握度网格</h2>
+
+    <div class="report-grid">
+      <div class="report-cell good">
+        <div class="lvl">A 层 · 长期记忆 ✓</div>
+        <h4>缓存三兄弟命中机制</h4>
+        <ul>
+          <li>精确缓存：整段字符一致 → 复用 output</li>
+          <li>语义缓存：嵌入相似度 → 复用 output</li>
+          <li>提示词缓存：token 前缀一致 → 复用 KV Cache</li>
+        </ul>
+      </div>
+      <div class="report-cell good">
+        <div class="lvl">A 层 · 长期记忆 ✓</div>
+        <h4>开工 4 问 → 4 工具映射</h4>
+        <ul>
+          <li>任务相关？→ /clear</li>
+          <li>读很多文件？→ subagent</li>
+          <li>跨几个文件？→ Plan Mode</li>
+          <li>信息放哪？→ Lost in the Middle</li>
+        </ul>
+      </div>
+      <div class="report-cell good">
+        <div class="lvl">A 层 · 长期记忆 ✓</div>
+        <h4>错误累积 1 - p^N</h4>
+        <ul>
+          <li>公式秒出 + 数字计算无误</li>
+          <li>两种方案：动 p / 动结构</li>
+          <li>checkpoint 工程落地三要素完整</li>
+        </ul>
+      </div>
+      <div class="report-cell warn">
+        <div class="lvl">需监控 · 已重焊</div>
+        <h4>退化点追踪</h4>
+        <ul>
+          <li>两道生死题问句形式（提取通道）</li>
+          <li>checkpoint = Controllable（跨章节钩子）</li>
+          <li>开工 4 问具体措辞（精度衰减）</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═════ SECTION 6：结论 ═════ -->
+  <section class="visible">
+    <div class="sec-num">SECTION 06 ─── 结论</div>
+    <h2>D30 判定：通过 · 进入长期记忆区</h2>
+
+    <p>
+      <strong>缓存</strong>和 <strong>Claude Code 上下文管理</strong>两个主题经过 D1 → D7 → D30 全程跟踪，
+      核心框架判断力和工程落地能力在 23 天无接触后依然站得住。退化点均为<em>提取通道生锈</em>（而非知识消失），
+      重新接触后快速恢复。正式进入长期记忆区，不再安排定期复习。
+    </p>
+
+    <p style="margin-top: 20px; color: var(--gold); font-style: italic;">
+      "D30 通过不是'你都会了'——D30 通过是'核心框架已经编进你的思维操作系统里了'。"
+    </p>
+  </section>
+
+  <!-- ═════ FOOTER ═════ -->
+  <footer style="margin-top: 80px; padding-top: 32px; border-top: 1px solid var(--metal-700);">
+    <p style="font-family: var(--mono); font-size: 11px; color: var(--metal-400); letter-spacing: 0.15em;">
+      2026 · 06 · 13 · 缓存 + Claude Code 上下文管理 · D30 综合压测 · 通过
+    </p>
+    <div class="footer-tags">
+      <span>缓存</span>
+      <span>两道生死题</span>
+      <span>三兄弟</span>
+      <span>提示词缓存</span>
+      <span>Claude Code</span>
+      <span>开工 4 问</span>
+      <span>Lost in the Middle</span>
+      <span>错误累积</span>
+      <span>checkpoint</span>
+      <span>Controllable</span>
+      <span>TCC</span>
+      <span>D30</span>
+      <span>长期记忆</span>
+    </div>
+  </footer>
+
+</div>
+
+<script>
+const sections = document.querySelectorAll('section');
+const obs = new IntersectionObserver(entries => {
+  entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('visible'); });
+}, { threshold: 0.15 });
+sections.forEach(s => obs.observe(s));
+</script>
+</body>
+</html>

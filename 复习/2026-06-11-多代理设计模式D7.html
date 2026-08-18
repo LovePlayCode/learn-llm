@@ -1,0 +1,524 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>2026-06-11 · 多代理设计模式 D7 · 跨章节综合压测</title>
+  <style>
+    :root {
+      --bg-deep: #07090d;
+      --bg-surface: #0f1319;
+      --bg-card: #151a22;
+      --bg-card-hover: #1a2030;
+      --text-primary: #eef0f3;
+      --text-secondary: #d8dde3;
+      --text-muted: #8a929e;
+      --text-dim: #5c6675;
+      --accent-blue: #6b89a8;
+      --accent-gold: #c9b687;
+      --accent-green: #5a9a7a;
+      --accent-red: #a86b5c;
+      --border: #1f2937;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Helvetica Neue', sans-serif;
+      background: var(--bg-deep);
+      color: var(--text-primary);
+      font-weight: 200;
+      line-height: 1.7;
+      padding: 3rem 2rem;
+    }
+
+    .container { max-width: 900px; margin: 0 auto; }
+
+    .hero {
+      text-align: center;
+      padding: 4rem 0 3rem;
+      border-bottom: 1px solid var(--border);
+      margin-bottom: 3rem;
+    }
+
+    .hero .eyebrow {
+      display: block;
+      font-family: 'SF Mono', 'Fira Code', monospace;
+      font-size: 0.7rem;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: var(--accent-blue);
+      margin-bottom: 1.5rem;
+    }
+
+    .hero h1 {
+      font-size: 2rem;
+      font-weight: 200;
+      letter-spacing: -0.02em;
+      margin-bottom: 1rem;
+    }
+
+    .hero h1 strong { font-weight: 400; color: var(--accent-gold); }
+
+    .hero p {
+      font-size: 0.95rem;
+      color: var(--text-secondary);
+      max-width: 700px;
+      margin: 0 auto;
+    }
+
+    .stats-row {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 1rem;
+      margin-top: 2.5rem;
+    }
+
+    .stat-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 1.2rem;
+      text-align: center;
+      transition: background 0.2s;
+    }
+
+    .stat-card:hover { background: var(--bg-card-hover); }
+
+    .stat-card strong {
+      display: block;
+      font-size: 1.8rem;
+      font-weight: 300;
+    }
+
+    .stat-card span {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+    }
+
+    .section {
+      margin-bottom: 3.5rem;
+    }
+
+    .section .eyebrow {
+      display: block;
+      font-family: 'SF Mono', 'Fira Code', monospace;
+      font-size: 0.65rem;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--accent-blue);
+      margin-bottom: 0.5rem;
+    }
+
+    .section h2 {
+      font-size: 1.35rem;
+      font-weight: 300;
+      margin-bottom: 1.5rem;
+      color: var(--text-primary);
+    }
+
+    .result-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 1.2rem 1.5rem;
+      margin-bottom: 0.75rem;
+      display: flex;
+      align-items: flex-start;
+      gap: 1rem;
+      transition: background 0.2s, border-color 0.2s;
+    }
+
+    .result-card:hover {
+      background: var(--bg-card-hover);
+      border-color: var(--accent-blue);
+    }
+
+    .result-card .icon {
+      font-family: monospace;
+      font-size: 0.75rem;
+      margin-top: 0.2rem;
+      flex-shrink: 0;
+    }
+
+    .result-card .icon.pass { color: var(--accent-green); }
+    .result-card .icon.warn { color: var(--accent-gold); }
+
+    .result-card .content strong {
+      font-size: 0.9rem;
+      font-weight: 400;
+      color: var(--text-primary);
+    }
+
+    .result-card .content .tag {
+      font-family: monospace;
+      font-size: 0.7rem;
+      color: var(--text-muted);
+      margin-left: 0.75rem;
+    }
+
+    .result-card .content p {
+      font-size: 0.8rem;
+      color: var(--text-secondary);
+      margin-top: 0.3rem;
+    }
+
+    pre.ascii-block {
+      background: var(--bg-surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 1.5rem 2rem;
+      font-family: 'SF Mono', 'Fira Code', monospace;
+      font-size: 0.75rem;
+      line-height: 1.8;
+      color: var(--text-secondary);
+      overflow-x: auto;
+      margin: 1.5rem 0;
+    }
+
+    .two-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1rem;
+      margin: 1.5rem 0;
+    }
+
+    .grid-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 1.5rem;
+      transition: background 0.2s;
+    }
+
+    .grid-card:hover { background: var(--bg-card-hover); }
+
+    .grid-card .label {
+      font-size: 0.65rem;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: var(--accent-blue);
+      margin-bottom: 0.5rem;
+    }
+
+    .grid-card h3 {
+      font-size: 1rem;
+      font-weight: 300;
+      margin-bottom: 0.75rem;
+      color: var(--text-primary);
+    }
+
+    .grid-card p {
+      font-size: 0.8rem;
+      color: var(--text-secondary);
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 1.5rem 0;
+      font-size: 0.8rem;
+    }
+
+    th, td {
+      padding: 0.75rem 1rem;
+      text-align: left;
+      border-bottom: 1px solid var(--border);
+    }
+
+    th {
+      font-weight: 400;
+      color: var(--text-muted);
+      font-size: 0.7rem;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+    }
+
+    td { color: var(--text-secondary); }
+
+    .checklist {
+      list-style: none;
+      padding: 0;
+    }
+
+    .checklist li {
+      padding: 0.6rem 0;
+      border-bottom: 1px solid var(--border);
+      font-size: 0.85rem;
+      color: var(--text-secondary);
+      display: flex;
+      align-items: flex-start;
+      gap: 0.75rem;
+    }
+
+    .checklist li::before {
+      content: '';
+      display: block;
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--accent-blue);
+      margin-top: 0.5rem;
+      flex-shrink: 0;
+    }
+
+    .checklist li strong { color: var(--text-primary); font-weight: 400; }
+
+    .tag-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+      margin-top: 1.5rem;
+    }
+
+    .tag-row span {
+      font-size: 0.65rem;
+      font-family: monospace;
+      padding: 0.25rem 0.6rem;
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      color: var(--text-muted);
+    }
+
+    footer {
+      margin-top: 4rem;
+      padding-top: 2rem;
+      border-top: 1px solid var(--border);
+      text-align: center;
+    }
+
+    footer .meta {
+      font-family: monospace;
+      font-size: 0.7rem;
+      color: var(--text-dim);
+    }
+
+    details {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 1.2rem 1.5rem;
+      margin: 1rem 0;
+    }
+
+    details summary {
+      cursor: pointer;
+      font-size: 0.85rem;
+      color: var(--text-primary);
+      font-weight: 300;
+    }
+
+    details[open] summary { margin-bottom: 1rem; }
+
+    details .body {
+      font-size: 0.8rem;
+      color: var(--text-secondary);
+    }
+
+    blockquote {
+      border-left: 3px solid var(--accent-blue);
+      padding: 1rem 1.5rem;
+      margin: 1.5rem 0;
+      background: rgba(107, 137, 168, 0.05);
+      border-radius: 0 8px 8px 0;
+      font-size: 0.85rem;
+      color: var(--text-secondary);
+    }
+
+    @media (max-width: 640px) {
+      .stats-row { grid-template-columns: repeat(2, 1fr); }
+      .two-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <!-- HERO -->
+    <section class="hero">
+      <span class="eyebrow">REVIEW · 2026 · 06 · 11 · 多代理设计模式 D7 跨章节综合压测</span>
+      <h1>多代理设计模式 <strong>D7 通过</strong></h1>
+      <p>
+        五题闭卷全通过。协同过滤 fan-out/fan-in 图信手拈来。三兄弟口诀从 D2 漏一个到今天全中。设计哲学从被动逃避升级到主动选择。误用坏后果补全。多代理 vs 微服务三维度方向全对。
+      </p>
+      <div class="stats-row">
+        <div class="stat-card">
+          <strong style="color: var(--accent-gold)">5</strong>
+          <span>总题量</span>
+        </div>
+        <div class="stat-card">
+          <strong style="color: var(--accent-green)">5</strong>
+          <span>通过</span>
+        </div>
+        <div class="stat-card">
+          <strong style="color: var(--accent-blue)">1</strong>
+          <span>D2 缺口焊死</span>
+        </div>
+        <div class="stat-card">
+          <strong style="color: var(--text-primary)">2</strong>
+          <span>精度需 D30 磨</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- SECTION 01 · 逐题结果 -->
+    <section class="section">
+      <span class="eyebrow">SECTION 01 · 五题逐一过堂</span>
+      <h2>D7 跨章节综合压测结果</h2>
+
+      <div class="result-card">
+        <span class="icon pass">✓</span>
+        <div class="content">
+          <strong>多代理 vs 微服务三大差异</strong><span class="tag">方向全对 / 精度待磨</span>
+          <p>三维度都摸到：通信（自然语言 vs API 契约）、调度（LLM动态 vs 代码写死）、错误（概率性 vs 确定性）。表达需更锋利。</p>
+        </div>
+      </div>
+
+      <div class="result-card">
+        <span class="icon pass">✓</span>
+        <div class="content">
+          <strong>LangGraph 协同过滤 fan-out/fan-in 实现</strong><span class="tag">图结构完整</span>
+          <p>正确画出 1 起始 + N 并行 Agent + 1 Aggregator 结构。标注"不同专长·不同视角"。State 用数组收集思路正确。</p>
+        </div>
+      </div>
+
+      <div class="result-card">
+        <span class="icon pass">✓</span>
+        <div class="content">
+          <strong>"主动选择"视角设计哲学</strong><span class="tag">D2 薄弱点修复</span>
+          <p>答出三维度正面理由：专业化（上下文隔离+工具按需注入）、模块化（独立开发测试迭代）、容错性（错误隔离+局部重试）。不再只是"逃避痛点"。</p>
+        </div>
+      </div>
+
+      <div class="result-card">
+        <span class="icon warn">~</span>
+        <div class="content">
+          <strong>误用多代理的坏后果</strong><span class="tag">3/4 自答 + 1 补全</span>
+          <p>自答：协调开销暴涨、效果不理想、调试难度上升。补全："错误源放大"——Agent 间自然语言传话把偏差扩散到下游。</p>
+        </div>
+      </div>
+
+      <div class="result-card">
+        <span class="icon pass">✓</span>
+        <div class="content">
+          <strong>上下文隔离三兄弟</strong><span class="tag">D2 缺口焊死</span>
+          <p>用自己的话答出：筛除无关上下文(隔信息) / 给予具体任务(分任务) / 限定工具(限工具)。D2 漏的"tool 子集划分"今天全中。</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- SECTION 02 · 精度打磨 -->
+    <section class="section">
+      <span class="eyebrow">SECTION 02 · 精度打磨 · D30 追击目标</span>
+      <h2>方向对了但表达不够锋利的地方</h2>
+
+      <table>
+        <thead>
+          <tr><th>维度</th><th>微服务</th><th>多代理</th><th>关键词</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>通信</td><td>API 契约（确定）</td><td>自然语言（模糊）</td><td>确定性 vs 模糊性</td></tr>
+          <tr><td>调度</td><td>代码写死（固定路径）</td><td>LLM 决定（动态）</td><td>静态 vs 动态</td></tr>
+          <tr><td>错误</td><td>确定性（重试）</td><td>概率性（需交叉验证）</td><td>重试 vs 裁判</td></tr>
+        </tbody>
+      </table>
+
+      <blockquote>
+        你今天"可预测性"的直觉其实对应的是<strong>调度</strong>维度。而"微服务出错只影响当前服务"的说法需要修正——微服务也会级联（有熔断器防），真正的区别在于错误的<strong>性质</strong>：确定性 vs 概率性。
+      </blockquote>
+
+      <pre class="ascii-block">误用多代理三大坏后果（标准版）：
+
+1. 协调开销暴涨 → 通信成本、等待时间、同步复杂度
+2. 错误源放大   → 自然语言传话让偏差扩散，级联风险
+3. 调试难度上升 → 多节点日志分散，复现路径不确定
+
+D30 口诀：开销·扩散·调试</pre>
+    </section>
+
+    <!-- SECTION 03 · 焊死确认 -->
+    <section class="section">
+      <span class="eyebrow">SECTION 03 · 焊死确认 · 从 D2 到 D7</span>
+      <h2>协同过滤 + 三兄弟：正式毕业</h2>
+
+      <div class="two-grid">
+        <div class="grid-card">
+          <div class="label">协同过滤进化链</div>
+          <h3>从"复制流水线"到"视角多样性"</h3>
+          <p>6/4 初学：画成 3 条独立流水线 (错误)</p>
+          <p>6/6 D2：答出"核心力量来自视角的不同"</p>
+          <p>6/11 D7：信手画出 fan-out/fan-in 图 + 标注不同专长</p>
+        </div>
+        <div class="grid-card">
+          <div class="label">三兄弟进化链</div>
+          <h3>从"漏一个"到"全中+换词"</h3>
+          <p>6/4 初学：上下文隔离分层归位</p>
+          <p>6/6 D2：隔信息 ✓ 分任务 ✓ 限工具 ✗</p>
+          <p>6/11 D7：三个全中，且用自己的话表达</p>
+        </div>
+      </div>
+
+      <pre class="ascii-block">上下文隔离的"上下兄弟"定位（最终稳定版）
+
+第 3 层（理念目标）   专业化 Specialization
+                     │
+第 2 层（工程手段）   上下文隔离 / 任务拆分 / tool 子集划分
+                     │             口诀：隔信息 / 分任务 / 限工具
+第 1 层（底层工具）   subgraph / 独立 state / message filter</pre>
+    </section>
+
+    <!-- SECTION 04 · 设计哲学升级 -->
+    <section class="section">
+      <span class="eyebrow">SECTION 04 · 设计哲学 · 主动选择视角</span>
+      <h2>不只是逃避痛点，而是主动追求好处</h2>
+
+      <div class="two-grid">
+        <div class="grid-card">
+          <div class="label" style="color: var(--accent-red);">旧视角 · 被动逃避</div>
+          <h3>"单代理做不到，所以用多代理"</h3>
+          <p>出发点是痛点：上下文太长、工具太多、一个 Agent 搞不定……</p>
+        </div>
+        <div class="grid-card">
+          <div class="label" style="color: var(--accent-green);">新视角 · 主动选择</div>
+          <h3>"即使单代理能做，我也主动选多代理"</h3>
+          <p>出发点是收益：专业化 + 模块化 + 容错性——工程上本身就是更好的架构。</p>
+        </div>
+      </div>
+
+      <ul class="checklist">
+        <li><strong>专业化</strong> — 上下文隔离让每个 Agent 专精自己领域，工具按需注入，信噪比极高</li>
+        <li><strong>模块化</strong> — 独立开发、独立测试、独立迭代，团队可并行，改 A 不需重测 B</li>
+        <li><strong>容错性</strong> — 错误隔离在单个 Agent，局部重试不牵连全局，损失可控</li>
+      </ul>
+    </section>
+
+    <!-- SECTION 05 · 复习计划 -->
+    <section class="section">
+      <span class="eyebrow">SECTION 05 · 复习路线图</span>
+      <h2>下一站</h2>
+
+      <ul class="checklist">
+        <li><strong>6/12</strong> — 缓存 + Claude Code 上下文管理 D30 回访</li>
+        <li><strong>7/4</strong> — 多代理设计模式 D30 综合应用（含 Planning Design / 可信赖 Agent 缝合）</li>
+        <li><strong>D30 追击点</strong> — 多代理 vs 微服务精准表达 + "错误源放大"肌肉记忆</li>
+      </ul>
+    </section>
+
+    <!-- FOOTER -->
+    <footer>
+      <div class="meta">2026 · 06 · 11 · 多代理设计模式 D7 · 5 题全通过 · 1 缺口焊死 · 2 精度待 D30</div>
+      <div class="tag-row" style="justify-content: center;">
+        <span>多代理</span>
+        <span>D7</span>
+        <span>协同过滤</span>
+        <span>fan-out/fan-in</span>
+        <span>上下文隔离</span>
+        <span>三兄弟口诀</span>
+        <span>vs 微服务</span>
+        <span>主动选择</span>
+        <span>误用坏后果</span>
+        <span>LangGraph</span>
+      </div>
+    </footer>
+  </div>
+</body>
+</html>

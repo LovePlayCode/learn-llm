@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>RLHF 偏向自信 D30 综合压测 · 2026-06-23</title>
+<style>
+  :root {
+    --bg: #0f1117;
+    --surface: #181c24;
+    --border: #1f2937;
+    --text: #eef0f3;
+    --text-dim: #8a929e;
+    --text-mid: #b6bec8;
+    --accent-blue: #6b89a8;
+    --accent-gold: #c9b687;
+    --accent-green: #5a9a7a;
+    --accent-red: #a86b5c;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Segoe UI', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.7;
+    padding: 3rem 1.5rem;
+    max-width: 960px;
+    margin: 0 auto;
+  }
+  .eyebrow {
+    font-size: 0.7rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--text-dim);
+    font-weight: 500;
+  }
+  h1 { font-size: 2rem; font-weight: 200; margin: 0.5rem 0 1rem; }
+  h1 strong { font-weight: 600; color: var(--accent-green); }
+  h2 { font-size: 1.3rem; font-weight: 300; margin: 0.4rem 0 1.2rem; color: var(--text); }
+  h3 { font-size: 1rem; font-weight: 400; color: var(--text); margin: 1.5rem 0 0.8rem; }
+  p { font-size: 0.9rem; color: var(--text-mid); margin-bottom: 0.8rem; }
+  section { margin-bottom: 3rem; }
+  .stats {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    gap: 1rem;
+    margin: 1.5rem 0;
+  }
+  .stat-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 1.2rem;
+    text-align: center;
+  }
+  .stat-card strong { font-size: 1.5rem; display: block; margin-bottom: 0.3rem; }
+  .stat-card span { font-size: 0.75rem; color: var(--text-dim); }
+  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin: 1rem 0; }
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 1.2rem;
+  }
+  .card .label { font-size: 0.7rem; color: var(--accent-blue); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 0.3rem; }
+  .card .title { font-size: 0.95rem; font-weight: 500; color: var(--text); margin-bottom: 0.5rem; }
+  .card .body { font-size: 0.8rem; color: var(--text-mid); line-height: 1.6; }
+  .card.pass .label { color: var(--accent-green); }
+  .card.warn .label { color: var(--accent-red); }
+  .card.gold .label { color: var(--accent-gold); }
+  pre {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 1.2rem;
+    font-size: 0.78rem;
+    line-height: 1.8;
+    overflow-x: auto;
+    color: var(--text-mid);
+    margin: 1rem 0;
+  }
+  blockquote {
+    border-left: 3px solid var(--accent-gold);
+    padding: 0.8rem 1.2rem;
+    background: rgba(201, 182, 135, 0.05);
+    border-radius: 0 8px 8px 0;
+    font-style: italic;
+    font-size: 0.88rem;
+    color: var(--accent-gold);
+    margin: 1.5rem 0;
+  }
+  .tag-row { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-top: 1rem; }
+  .tag-row span {
+    font-size: 0.68rem;
+    padding: 0.25rem 0.7rem;
+    border-radius: 999px;
+    border: 1px solid var(--border);
+    color: var(--text-dim);
+  }
+  footer { margin-top: 3rem; padding-top: 1.5rem; border-top: 1px solid var(--border); }
+  footer .meta { display: flex; justify-content: space-between; flex-wrap: wrap; gap: 1rem; font-size: 0.75rem; color: var(--text-dim); font-family: monospace; margin-bottom: 1rem; }
+  details { margin: 0.8rem 0; }
+  summary { cursor: pointer; font-size: 0.85rem; color: var(--accent-blue); font-weight: 500; padding: 0.5rem 0; }
+  details .details-body { padding: 0.5rem 0 0.5rem 1rem; font-size: 0.82rem; color: var(--text-mid); }
+  @media (max-width: 640px) { .grid-2 { grid-template-columns: 1fr; } }
+</style>
+</head>
+<body>
+
+<!-- HERO -->
+<section>
+  <span class="eyebrow">REVIEW · 2026 · 06 · 23 · RLHF 偏向自信 D30</span>
+  <h1>RLHF 偏向自信<strong> D30 通过</strong></h1>
+  <p>
+    D30 综合压测：因果链还原、工程缓解方案设计、跨章节关联（RLHF × 错误累积）。
+    因果链四环节完整复述通过，工程方案覆盖提示词/RAG/logprobs 三个层面，
+    跨章节在引导下推出"过度自信使刹车系统失明"的核心结论。整体通过。
+  </p>
+  <div class="stats">
+    <div class="stat-card"><strong style="color: var(--accent-blue)">3</strong><span>综合题</span></div>
+    <div class="stat-card"><strong style="color: var(--text)">4</strong><span>因果链环节</span></div>
+    <div class="stat-card"><strong style="color: var(--accent-gold)">3</strong><span>工程缓解方案</span></div>
+    <div class="stat-card"><strong style="color: var(--accent-green)">✓</strong><span>跨章节连接建立</span></div>
+  </div>
+</section>
+
+<!-- SECTION 01 · 因果链 -->
+<section>
+  <span class="eyebrow">SECTION 01 · 因果链还原</span>
+  <h2>RLHF 为什么训练出"过度自信"</h2>
+  <pre>
+RLHF 过度自信因果链（四环节）
+
+人类标注员有认知偏误（自信 = 专业 = 可靠）
+    │
+    ▼
+标注时不自觉把"斩钉截铁"的回答排在前面
+    │
+    ▼
+奖励模型（RM）从标注数据中学习，继承了这个偏好
+    │
+    ▼
+PPO 强化学习阶段，模型为了最大化 RM 给的分数
+    │
+    ▼
+学会了"哪怕不确定，也要用斩钉截铁的语气说话"
+    │
+    ▼
+结果：过度自信成为系统性倾向（被训练机制结构性焊入）
+
+关键洞察：第一因是人类偏误，不是奖励模型本身。
+RM 只是忠实地学会了人类的偏见。
+RLHF 的根本局限 = 人类偏好 ≠ 客观正确</pre>
+
+  <div class="grid-2">
+    <div class="card pass">
+      <div class="label">通过</div>
+      <div class="title">四环节完整复述</div>
+      <div class="body">补完后一次性复述通过：人类偏误 → RM 继承 → PPO 放大 → 系统性倾向。用了"系统性倾向"一词，说明理解了结构性问题。</div>
+    </div>
+    <div class="card warn">
+      <div class="label">首答暴露</div>
+      <div class="title">第一因定位偏移</div>
+      <div class="body">首次回答把奖励模型当成第一因，漏掉了"人类标注员的认知偏误"这个真正源头。经引导后修正。</div>
+    </div>
+  </div>
+</section>
+
+<!-- SECTION 02 · 工程方案 -->
+<section>
+  <span class="eyebrow">SECTION 02 · 工程缓解方案</span>
+  <h2>三层缓解：提示词 / RAG / logprobs</h2>
+  <div class="grid-2">
+    <div class="card pass">
+      <div class="label">方案 ① · 指令层</div>
+      <div class="title">提示词工程</div>
+      <div class="body">明确告诉模型允许说"不知道"，不能捏造事实。本质是推理阶段用指令覆盖训练阶段的偏好——效果有但有限，因为训练出的讨好倾向根深蒂固。</div>
+    </div>
+    <div class="card pass">
+      <div class="label">方案 ② · 架构层</div>
+      <div class="title">RAG 事实锚点</div>
+      <div class="body">提供可验证的事实依据，让模型的回答有据可查。检索不到相关文档时，可设计为输出"未找到相关依据"——间接帮助表达不确定性。</div>
+    </div>
+  </div>
+  <div class="card pass" style="margin-top: 1rem;">
+    <div class="label">方案 ③ · 输出层 · 引导后答出</div>
+    <div class="title">logprobs 置信度检测</div>
+    <div class="body">模型生成每个 token 时输出的对数概率天然反映信心程度。工程上：平均 logprobs 低于阈值时自动插入"此回答置信度较低"或触发人工审核。不需重新训练，直接从输出层检测"嘴硬但心虚"。</div>
+  </div>
+
+  <details>
+    <summary>三层方案的层级关系</summary>
+    <div class="details-body">
+      <p>① 提示词工程 —— 最轻量，推理时覆盖，效果有限<br>
+      ② RAG —— 架构层，提供事实锚点，解决"对不对"而非"自不自信"<br>
+      ③ logprobs —— 输出层，直接量化信心程度，可自动化检测</p>
+      <p>三者不是互斥的，实际部署中往往组合使用。</p>
+    </div>
+  </details>
+</section>
+
+<!-- SECTION 03 · 跨章节 -->
+<section>
+  <span class="eyebrow">SECTION 03 · 跨章节 · RLHF × 错误累积</span>
+  <h2>过度自信使"刹车系统"失明</h2>
+
+  <div class="grid-2">
+    <div class="card">
+      <div class="label">随机出错</div>
+      <div class="title">犹豫信号可被拦截</div>
+      <div class="body">模型不确定时表现出犹豫 → checkpoint / 人类审批 / 自我检查有机会拦截 → N 被切短 → 错误累积可控。</div>
+    </div>
+    <div class="card" style="border-color: var(--accent-red);">
+      <div class="label" style="color: var(--accent-red);">过度自信</div>
+      <div class="title">错误"隐身"绕过所有检查</div>
+      <div class="body">每一步都伪装成正确 → checkpoint / 审批机制查不出问题 → 等于整条链的刹车系统失明 → N 步带着隐藏错误一路狂奔到终点。</div>
+    </div>
+  </div>
+
+  <pre>
+对比：随机出错 vs 过度自信
+
+┌─────────────────────────────────────────────────────┐
+│  随机出错                                            │
+│  Step1(✓) → Step2(❌ 犹豫) → checkpoint 拦截!       │
+│                                → 回退重试 → 修正    │
+│  结果：N 被切短，错误累积可控                         │
+└─────────────────────────────────────────────────────┘
+
+┌─────────────────────────────────────────────────────┐
+│  过度自信                                            │
+│  Step1(✓) → Step2(❌ 斩钉截铁) → checkpoint 放行    │
+│            → Step3(基于错误继续) → ... → StepN       │
+│  结果：错误隐身，刹车失灵，全链走完才发现              │
+└─────────────────────────────────────────────────────┘
+
+核心结论：
+过度自信不是让 p 变大，
+而是让你的"刹车系统"失明——
+错误率没变，但你修复它的能力被废掉了。</pre>
+
+  <blockquote>
+    "过度自信不是让 p 变大，而是让你的刹车系统失明——错误率没变，但你修复它的能力被废掉了。"
+  </blockquote>
+</section>
+
+<!-- SECTION 04 · 薄弱点 -->
+<section>
+  <span class="eyebrow">SECTION 04 · 退化分析</span>
+  <h2>D30 暴露的退化点</h2>
+  <div class="grid-2">
+    <div class="card warn">
+      <div class="label">需关注</div>
+      <div class="title">因果链第一因定位</div>
+      <div class="body">首答把奖励模型当第一因，漏掉了"人类标注员认知偏误"。经引导后修正。提取通道略有生锈，知识未消失。</div>
+    </div>
+    <div class="card warn">
+      <div class="label">需关注</div>
+      <div class="title">跨章节主动联想不足</div>
+      <div class="body">第三题（RLHF × 错误累积）无法独立启动，需引导才能把两章知识碰撞。说明"主动联想"习惯尚未形成肌肉记忆。</div>
+    </div>
+  </div>
+  <div class="card pass" style="margin-top: 1rem;">
+    <div class="label">已确认</div>
+    <div class="title">PPO 拼写修正</div>
+    <div class="body">PP0（零）→ PPO（字母 O）。细节问题，不影响理解。</div>
+  </div>
+</section>
+
+<!-- SECTION 05 · 结论 -->
+<section>
+  <span class="eyebrow">SECTION 05 · 结论</span>
+  <h2>D30 判定：通过</h2>
+  <p>
+    RLHF 偏向自信的因果链在 D30 后依然可完整还原（经一轮引导修正第一因定位），
+    工程缓解方案能覆盖三个层面，跨章节连接在引导下成功建立。
+    退化点为"主动联想"习惯——知识都在，但需要外力触发碰撞。
+    建议在未来遇到多步 Agent 场景时，主动问自己："如果每一步都过度自信，我的刹车还能工作吗？"
+  </p>
+  <blockquote>
+    "D30 通过不代表永远不忘——它代表核心逻辑链已经编进你的思维操作系统，下次提取只需要一个正确的触发词。"
+  </blockquote>
+</section>
+
+<footer>
+  <div class="meta">
+    <span>2026 · 06 · 23 · RLHF 偏向自信 · D30 综合压测</span>
+    <span>3 题 · 通过 · 跨章节连接建立</span>
+  </div>
+  <div class="tag-row">
+    <span>RLHF</span>
+    <span>偏向自信</span>
+    <span>因果链</span>
+    <span>人类标注员</span>
+    <span>奖励模型</span>
+    <span>PPO</span>
+    <span>提示词工程</span>
+    <span>RAG</span>
+    <span>logprobs</span>
+    <span>错误累积</span>
+    <span>checkpoint</span>
+    <span>刹车系统失明</span>
+    <span>D30</span>
+  </div>
+</footer>
+
+</body>
+</html>

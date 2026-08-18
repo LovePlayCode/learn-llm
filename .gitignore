@@ -55,3 +55,7 @@ learn-llm-project/dist-ssr/
 
 # Large/binary learning materials
 book/
+
+# MemPalace per-project files (issue #185)
+mempalace.yaml
+entities.json

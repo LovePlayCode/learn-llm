@@ -1,0 +1,499 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>2026-07-27 · 元认知 Metacognition D30 综合应用</title>
+  <style>
+    :root {
+      --bg-primary: #0f1419;
+      --bg-secondary: #1a2332;
+      --bg-card: #1e2a3a;
+      --bg-card-hover: #243447;
+      --text-primary: #eef0f3;
+      --text-secondary: #8b99a8;
+      --text-muted: #5a6a7a;
+      --accent-blue: #6b89a8;
+      --accent-gold: #c9b687;
+      --accent-green: #5a9a7a;
+      --accent-red: #c97a6b;
+      --border-subtle: rgba(107, 137, 168, 0.15);
+      --border-glow: rgba(107, 137, 168, 0.3);
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Segoe UI', sans-serif;
+      background: var(--bg-primary);
+      color: var(--text-primary);
+      line-height: 1.7;
+      min-height: 100vh;
+    }
+
+    .container {
+      max-width: 860px;
+      margin: 0 auto;
+      padding: 3rem 2rem;
+    }
+
+    .hero {
+      text-align: center;
+      margin-bottom: 3rem;
+      padding: 2.5rem;
+      background: linear-gradient(135deg, var(--bg-secondary), var(--bg-card));
+      border-radius: 16px;
+      border: 1px solid var(--border-subtle);
+    }
+
+    .hero .eyebrow {
+      display: block;
+      font-size: 0.7rem;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--accent-blue);
+      margin-bottom: 1rem;
+    }
+
+    .hero h1 {
+      font-size: 1.8rem;
+      font-weight: 700;
+      margin-bottom: 1rem;
+      background: linear-gradient(135deg, var(--text-primary), var(--accent-blue));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .hero p {
+      color: var(--text-secondary);
+      font-size: 0.95rem;
+      max-width: 640px;
+      margin: 0 auto;
+    }
+
+    .stats-row {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 1rem;
+      margin-top: 2rem;
+    }
+
+    .stat-card {
+      background: var(--bg-primary);
+      border-radius: 10px;
+      padding: 1rem;
+      text-align: center;
+      border: 1px solid var(--border-subtle);
+    }
+
+    .stat-card strong {
+      display: block;
+      font-size: 1.4rem;
+      color: var(--accent-gold);
+    }
+
+    .stat-card span {
+      font-size: 0.72rem;
+      color: var(--text-muted);
+    }
+
+    section.content-section {
+      margin-bottom: 2.5rem;
+    }
+
+    .section-header {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      margin-bottom: 1.2rem;
+    }
+
+    .section-header .num {
+      font-size: 0.65rem;
+      color: var(--accent-blue);
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      white-space: nowrap;
+    }
+
+    .section-header h2 {
+      font-size: 1.15rem;
+      font-weight: 600;
+    }
+
+    .card {
+      background: var(--bg-card);
+      border-radius: 12px;
+      padding: 1.5rem;
+      margin-bottom: 1rem;
+      border: 1px solid var(--border-subtle);
+      transition: border-color 0.2s;
+    }
+
+    .card:hover {
+      border-color: var(--border-glow);
+    }
+
+    .card h3 {
+      font-size: 0.95rem;
+      color: var(--accent-gold);
+      margin-bottom: 0.5rem;
+    }
+
+    .card p {
+      font-size: 0.88rem;
+      color: var(--text-secondary);
+    }
+
+    pre.ascii-map {
+      background: var(--bg-primary);
+      border: 1px solid var(--border-subtle);
+      border-radius: 10px;
+      padding: 1.5rem;
+      font-family: 'SF Mono', 'Fira Code', monospace;
+      font-size: 0.78rem;
+      color: var(--accent-blue);
+      overflow-x: auto;
+      line-height: 1.6;
+      margin-bottom: 1rem;
+    }
+
+    .grid-2 {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 1rem;
+    }
+
+    .grid-3 {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 1rem;
+    }
+
+    @media (max-width: 640px) {
+      .grid-2 { grid-template-columns: 1fr; }
+      .grid-3 { grid-template-columns: 1fr; }
+      .stats-row { grid-template-columns: repeat(2, 1fr); }
+    }
+
+    .tag-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+      margin-top: 1.5rem;
+    }
+
+    .tag {
+      font-size: 0.7rem;
+      padding: 0.25rem 0.6rem;
+      border-radius: 999px;
+      background: rgba(107, 137, 168, 0.1);
+      color: var(--accent-blue);
+      border: 1px solid rgba(107, 137, 168, 0.2);
+    }
+
+    .blindspot {
+      border-left: 3px solid var(--accent-red);
+      padding-left: 1rem;
+      margin-bottom: 1rem;
+    }
+
+    .blindspot h4 {
+      font-size: 0.85rem;
+      color: var(--accent-red);
+      margin-bottom: 0.3rem;
+    }
+
+    .blindspot p {
+      font-size: 0.82rem;
+      color: var(--text-secondary);
+    }
+
+    .highlight {
+      border-left: 3px solid var(--accent-green);
+      padding-left: 1rem;
+      margin-bottom: 1rem;
+    }
+
+    .highlight h4 {
+      font-size: 0.85rem;
+      color: var(--accent-green);
+      margin-bottom: 0.3rem;
+    }
+
+    .highlight p {
+      font-size: 0.82rem;
+      color: var(--text-secondary);
+    }
+
+    .report-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 1rem;
+    }
+
+    .report-table th {
+      text-align: left;
+      font-size: 0.75rem;
+      color: var(--accent-blue);
+      padding: 0.5rem;
+      border-bottom: 1px solid var(--border-subtle);
+    }
+
+    .report-table td {
+      font-size: 0.82rem;
+      color: var(--text-secondary);
+      padding: 0.5rem;
+      border-bottom: 1px solid rgba(107, 137, 168, 0.08);
+    }
+
+    .warn {
+      color: var(--accent-red);
+    }
+
+    .quote {
+      border-left: 3px solid var(--accent-gold);
+      padding: 0.75rem 1rem;
+      margin-top: 1rem;
+      background: rgba(201, 182, 135, 0.06);
+      font-size: 0.85rem;
+      color: var(--text-secondary);
+      font-style: italic;
+      border-radius: 0 8px 8px 0;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <!-- HERO -->
+    <div class="hero">
+      <span class="eyebrow">REVIEW &middot; D30 &middot; 2026 &middot; 07 &middot; 27 &middot; 元认知 Metacognition 综合应用</span>
+      <h1>元认知 D30 综合应用 · 五题闭卷 + 跨章节缝合</h1>
+      <p>
+        距上次接触（2026-07-01 D7）已 26 天。以五道闭卷题验证元认知是否进入"能当工具使出来"的长期记忆区。
+        最大亮点：协调层元认知的"上下兄弟"层级从混淆到焊死，双层级路由设计完整；压轴题 5 把
+        元认知 × 可信赖 Agent × 错误累积 三章缝成一张网。
+      </p>
+      <div class="stats-row">
+        <div class="stat-card">
+          <strong style="color: var(--accent-blue);">5</strong>
+          <span>闭卷题</span>
+        </div>
+        <div class="stat-card">
+          <strong style="color: var(--text-primary);">5</strong>
+          <span>通过</span>
+        </div>
+        <div class="stat-card">
+          <strong style="color: var(--accent-green);">2</strong>
+          <span>元层级焊死</span>
+        </div>
+        <div class="stat-card">
+          <strong style="color: var(--accent-gold);">1</strong>
+          <span>跨章节缝合</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- SECTION 01 · 概念辨析闭卷 -->
+    <section class="content-section">
+      <div class="section-header">
+        <span class="num">SECTION 01 &middot; 概念辨析闭卷</span>
+        <h2>题 1 + 题 2 · 改策略vs改答案 · 协调层元认知vs质检</h2>
+      </div>
+
+      <div class="grid-2">
+        <div class="card">
+          <h3>题 1 · 元认知 vs 普通纠错（通过）</h3>
+          <p>用"做题"类比：元认知调的是解题思路（方法/标准层），普通纠错只改最终那个答案（结果层）。边界题验证：用同样方法 A 重算、只把 37 改成 39 = 普通纠错；"怀疑算错"只是监控苗头，没升级成换方法就不算元认知。钥匙焊死：<b>方法没变只改结果 = 普通纠错；方法/标准变了 = 元认知</b>。</p>
+        </div>
+        <div class="card">
+          <h3>题 2 · 协调层元认知 vs 质检（从混淆到焊死）</h3>
+          <p>首轮把"协调层元认知"答成"检查输出对不对"——那是质检。经"上下兄弟问三句"修正后归位：<b>上 = 元认知家族</b>（不是纠错家族）；<b>兄 = 质检</b>（同住协调层，但质检查产物、它查策略）；<b>下 = 修改协作策略 / 换更强的模型</b>。这是本次最关键的元层级修复。</p>
+        </div>
+      </div>
+
+      <pre class="ascii-map">协调层元认知 · 上下兄弟分层（题 2 收口版）
+
+第 3 层（家族 / 理念）      元认知 Metacognition
+                            = "改策略，不只改答案"（战略级）
+                                  │
+第 2 层（具体方法 / 兄弟）    ├── 协调层元认知  → 审视「协作策略对不对」
+                            │       （分配 / 模式 / Agent 选择）
+                            │
+                            └── 质检 Quality Check → 审视「产物对不对」
+                                    （验收标准 / 边界 / 合规）  ← 兄弟，非它自己
+
+🔑 质检问"东西做对没"，协调层元认知问"我这样安排对没对"。</pre>
+    </section>
+
+    <!-- SECTION 02 · Over-Reflection -->
+    <section class="content-section">
+      <div class="section-header">
+        <span class="num">SECTION 02 &middot; 应用 · Over-Reflection</span>
+        <h2>题 3 · 三个场景判断 + 过度反思代价</h2>
+      </div>
+
+      <div class="grid-3">
+        <div class="card">
+          <h3>(a) 酒店偶尔选错 → 不反思</h3>
+          <p>熟悉任务的常规小错，错的只是输出层，策略没毛病。泛泛的"模型有偏差"可优化为"熟悉任务常规小错，做法本身没问题"。</p>
+        </div>
+        <div class="card">
+          <h3>(b) 新领域首跑不通 → 该反思</h3>
+          <p>执行路径可能全错，需回溯决策、重新生成决策。这是 7/01 曾栽过的坑（当时判成不需反思），今天主动判对。</p>
+        </div>
+        <div class="card">
+          <h3>(c) 用户连说三次不对 → 该反思</h3>
+          <p>连续不满意说明初始决策就偏了，属于策略层问题，需反思。</p>
+        </div>
+      </div>
+
+      <div class="card">
+        <h3>过度反思 Over-Reflection 的代价（反向追问，答得超出预期）</h3>
+        <p>若错误地对 (a) 也反思：① <b>成本</b>（反复调模型烧 token）；② <b>速度</b>（延迟飙升）；③ <b>循环</b>——"一直在思考改，但第一次方案已经是对的"，把本来对的东西改坏；④ <b>根因</b>——问题本身不清晰、或根本无解时，再反思也是空转。导出工程护栏：给反思设预算（最多 N 轮）+ 用"错的是答案还是策略"尺子分流。</p>
+      </div>
+    </section>
+
+    <!-- SECTION 03 · 设计元认知模块 -->
+    <section class="content-section">
+      <div class="section-header">
+        <span class="num">SECTION 03 &middot; 应用 · 设计元认知模块</span>
+        <h2>题 4 · 无状态三缺失 + 双层级路由</h2>
+      </div>
+
+      <div class="card">
+        <h3>电商客服 Agent 的元认知模块设计（通过）</h3>
+        <p>
+          加 Evaluator + self-Reflection 两个节点：Evaluator 在每个最小任务后评估，self-Reflection 反思后把结果注入执行节点影响决策。
+          补齐 LLM 无状态三缺失：<b>① 决策历史存储 = Reasoning Chain</b>（存做了啥+为啥）；<b>② 评估机制 = Evaluator</b>；<b>③ 策略切换逻辑 = 注入执行节点</b>。
+        </p>
+      </div>
+
+      <pre class="ascii-map">元认知模块 · 双层级路由（题 4 收口版）
+
+        ┌──────── 决策历史存储 (Reasoning Chain：做了啥 + 为啥)
+        │
+执行节点 ──完成最小任务──▶ Evaluator（双层级判断）
+                              │
+              ┌───────────────┴───────────────┐
+         答案层坏                              策略层坏
+   （准确性 / 事实性 / 格式 / 约束）      （目标完成度 / 系统健康度）
+              │                                 │
+         纠错 / 重试                        self-Reflection / 重规划
+              │                                 │
+              └────────▶ 注入执行节点，影响下一轮决策 ◀──┘
+
+🔑 同一 Evaluator 可看两层，但下游必须分流：答案层 → 纠错，策略层 → 元认知。</pre>
+
+      <div class="card">
+        <h3>关键修正：双层级必须分流</h3>
+        <p>五个评估维度不是一家人：准确性/事实性/格式约束属<b>答案层</b>（触发纠错/重试）；目标完成度/系统健康度属<b>策略层</b>（触发 self-Reflection/重规划）。若答案小错也触发反思，则 7/01 戒掉的 Over-Reflection 循环复燃。Evaluator 判完要"路由"，不能"判完就反思"。</p>
+      </div>
+    </section>
+
+    <!-- SECTION 04 · 跨章节缝合 -->
+    <section class="content-section">
+      <div class="section-header">
+        <span class="num">SECTION 04 &middot; 综合 · 跨章节缝合 ⭐</span>
+        <h2>题 5 · 元认知 × 可信赖 Agent × 错误累积</h2>
+      </div>
+
+      <div class="card">
+        <h3>缝合结论（通过）</h3>
+        <p>
+          <b>敌人</b> = 错误累积 <code>1 − p^N</code>（每步错 p，连走 N 步翻车）。
+          <b>checkpoint = 安全网</b>：固定位置插暂停点、局部重试、把 N 切成小段。
+          <b>元认知 = 主动刹车</b>：动态觉察，早发现早止损，比安全网更靠前；它挡住<b>越权 / 过度代理</b>两类输出侧威胁（在坏事发生前拦），并常导向<b>人类审批</b>档（本质即 HITL 版 checkpoint）。
+          三者合作把 N 压到最小。
+        </p>
+      </div>
+
+      <pre class="ascii-map">元认知 × checkpoint × 错误累积 三者配合
+
+敌人：错误累积 1 − p^N（每步错 p，连走 N 步翻车）
+  │
+  ├── checkpoint = 安全网（位置驱动）
+  │     在预设固定关口插暂停（如"调外部工具前""支付前"）
+  │     到这个点就查，不管当时有没有问题 → 局部重试，把 N 切小段
+  │
+  └── 元认知 = 主动刹车（信号驱动）
+        动态觉察，持续监控策略 / 威胁苗头
+        一旦发现越权 / 过度代理征兆就立刻刹
+        → 常常比任何固定 checkpoint 都早
+        → 常导向「人类审批」档（HITL 版 checkpoint）
+
+配合：元认知能早刹就早刹（主动刹车），
+      刹不住或到固定关口还有 checkpoint 兜底（安全网）。
+      一个靠前主动，一个固定兜底，合起来把 1−p^N 的 N 压到最小。</pre>
+
+      <div class="card">
+        <h3>前置缺口补救：五类威胁 + 三档安全边界（先忘后捞，锚点生效）</h3>
+        <p>
+          题 5 前发现五类威胁、三档安全边界已遗忘。用"输入/推理/输出"与"能不能反悔"两个锚点成功捞回：
+          <b>五类威胁</b> = 提示词注入 · 知识库投毒（输入侧）· 幻觉（推理侧）· 越权 · 过度代理（输出侧）；
+          <b>三档安全边界</b> = 自动执行 · 人类审批 · 绝对禁止。
+          注意"过度代理 = 擅自替用户做太多自主决策"已能说清动作，比 7/07 光说"权限太大"更锋利。
+        </p>
+      </div>
+    </section>
+
+    <!-- SECTION 05 · 盲点与追击 -->
+    <section class="content-section">
+      <div class="section-header">
+        <span class="num">SECTION 05 &middot; 盲点与追击</span>
+        <h2>需关注的退化风险</h2>
+      </div>
+
+      <div class="blindspot">
+        <h4>① 五类威胁 / 三档安全边界 · 首轮提取慢</h4>
+        <p>今天是"先忘后捞"——靠锚点捞回，不是一直在。属可信赖 Agent 章（其 D30 为 7/07）的内容，对元认知 D30 是借用上下文，提取通道偏慢，建议季度回访再验。</p>
+      </div>
+      <div class="blindspot">
+        <h4>② 协调层元认知"上/兄"层级 · 本次新焊</h4>
+        <p>经历了"纠错家族 → 元认知家族"的层级修正才归位。已稳，但属本次新焊点，需巩固以防复发为"质检"或"纠错家族"。</p>
+      </div>
+      <div class="blindspot">
+        <h4>③ Evaluator 双层级路由 · 需防退化</h4>
+        <p>"答案层→纠错 / 策略层→元认知"的下游分流是本次厘清的，若日后偷懒把所有失败都送进 self-Reflection，Over-Reflection 循环复燃。</p>
+      </div>
+    </section>
+
+    <!-- SECTION 06 · 结论 -->
+    <section class="content-section">
+      <div class="section-header">
+        <span class="num">SECTION 06 &middot; 结论</span>
+        <h2>五题全过 · 进入长期记忆区</h2>
+      </div>
+
+      <p style="color: var(--text-secondary); font-size: 0.92rem; margin-bottom: 1rem;">
+        本次 D30 五题闭卷全过。最大价值不是具体知识点，而是三件事真正"用出来了"：① 协调层元认知的"上下兄弟"从混淆到焊死；
+        ② 无状态三缺失 + 双层级路由，能独立设计一个可运行的元认知模块；③ 压轴把元认知 × 可信赖 Agent × 错误累积缝成网——
+        "主动刹车 vs 安全网"的骨架在全新场景里自动展开。元认知正式进入长期记忆区。
+      </p>
+
+      <div class="quote">
+        "今天最漂亮的一刻：题 2 从'纠错家族'改回'元认知家族'——之前三次碰协调层元认知都栽在'质检'坑里，这次自己用上下兄弟捋出来了。分层意识不是背定义，是能反向审查自己的答案。"
+      </div>
+
+      <div class="tag-row">
+        <span class="tag">元认知</span>
+        <span class="tag">Metacognition</span>
+        <span class="tag">改策略不只改答案</span>
+        <span class="tag">协调层元认知</span>
+        <span class="tag">上下兄弟问三句</span>
+        <span class="tag">Over-Reflection</span>
+        <span class="tag">无状态三缺失</span>
+        <span class="tag">双层级路由</span>
+        <span class="tag">Reasoning Chain</span>
+        <span class="tag">可信赖 Agent</span>
+        <span class="tag">五类威胁</span>
+        <span class="tag">三档安全边界</span>
+        <span class="tag">错误累积 1−p^N</span>
+        <span class="tag">checkpoint 安全网</span>
+        <span class="tag">主动刹车</span>
+        <span class="tag">D30 综合</span>
+      </div>
+    </section>
+  </div>
+</body>
+</html>

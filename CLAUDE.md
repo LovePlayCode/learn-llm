@@ -124,14 +124,19 @@
 ---
 
 ### 【阶段六：总结】
-当学习者完成某个核心原理的学习或者复习后，你必须作为 Agent 自动执行以下文件写入和代码更新，直接将本次成果接入项目（最新版本已不再生成静态 HTML 文件，直接全部生成为 React 组件）：
+当学习者完成某个核心原理的学习或者复习后，你必须作为 Agent 自动执行以下文件写入和代码更新，直接将本次成果接入项目。**目前为过渡阶段，你需要同时输出静态 HTML 文件（用于交叉验证）与 React 组件**：
 
-1. **直接生成并写入 React TSX 组件**：
-   - 写入路径：`learn-llm-project/src/review-pages/Review[YYYYMMDD][PinYinTheme].tsx` (文件名统一使用 `Review...` 前缀，只需在 `sourceFile` 属性上做好区分即可)。
-   - 必须使用 React JSX 结构，导入 `@heroui/react` 提供的 `Card`，并使用通用的 `<ReviewSection>` 组件。
-   - 所有版式和视觉层级直接调用 `App.css` 中已定义好的 `react-review-` 样式类（详见下方设计系统规范）。
+1. **生成并写入静态 HTML 报告文件**：
+   - **写入路径**：
+     - 若是学习完成后的首轮记录，写入至外层项目目录：`learn/[YYYY-MM-DD]-[ThemeName].html`。
+     - 若是复习完成后的阶段总结（如 D2/D7/D30 等），写入至外层项目目录：`复习/[YYYY-MM-DD]-[ThemeName].html`。
+   - **格式要求**：生成一份结构优美、包含深色主题样式（雾化金属表面）、使用标准 HTML 标签的报告。包含打字默写检查、盲点自查、详细细节，并在头部清晰标注学习/复习日期。
 
-2. **自动修改路由注册 (`reviewPages.ts`)**：
+2. **直接生成并写入 React TSX 组件**：
+   - **写入路径**：`learn-llm-project/src/review-pages/Review[YYYYMMDD][PinYinTheme].tsx` (文件名统一使用 `Review...` 前缀，只需在组件内部及配置中做好映射)。
+   - **格式要求**：根据已写入的html，将html转换为React组件即可。尽量保持两者样式一致。
+
+3. **自动修改路由注册 (`reviewPages.ts`)**：
    - 修改 `learn-llm-project/src/data/reviewPages.ts`。在文件顶部导入刚刚生成的组件，并在 `reviewPages` 数组中追加这一项：
      ```typescript
      {
@@ -139,45 +144,17 @@
        date: 'YYYY-MM-DD',
        title: 'YYYY-MM-DD · 标题',
        shortTitle: '标题',
-       sourceFile: '复习/YYYY-MM-DD-主题.html', // 保持原格式，代表该页面的归属标识，系统以此判断是学习还是复习
+       sourceFile: '复习/YYYY-MM-DD-主题.html' 或 'learn/YYYY-MM-DD-主题.html', // 填入上述第 1 步生成的静态 HTML 相对路径，作为归属与映射依据
        Component: [ComponentName],
      }
      ```
 
-3. **自动写入学习汇总与计划 (`summaries.ts`)**：
+4. **自动写入学习汇总与计划 (`summaries.ts`) 且必须建立依据关联**：
    - 修改 `learn-llm-project/src/data/summaries.ts`：
-     - 在 `reviewRecords` 数组中追加本次的学习快照（包含 detail 中的 stats, keyPoints, map, sections, blindspots, highlights, report 等详细卡片数据）。
-     - 根据报告中的复习计划，在 `reviewTasks` 数组中追加未来的复习任务，自动规划并填入 `dueDate`、`stage`（如 D7/D30）、`type`（due/scheduled/rest）、`estimate` 和 `description`，关联 `relatedRecordId` 为本记录的 ID。
+     - 在 `reviewRecords` 数组中追加本次的学习快照（包含 detail 中的 stats, keyPoints, map, sections, blindspots, highlights, report 等详细卡片数据）。**注意，记录的 `id` 应该与对应 React 页面在 `reviewPages.ts` 中的注册 ID 保持关联（例如遵循 `YYYY-MM-DD-pinyin-theme` 的格式）。**
+     - 根据报告中的复习计划，在 `reviewTasks` 数组中追加未来的复习任务，自动规划并填入 `dueDate`、`stage`（如 D7/D30）、`type`（due/scheduled/rest）、`estimate` 和 `description`。
+     - **【强关联要求 · 必须添加复习依据】**：无论是当前周期产生的任务，还是为未来制定的复习任务（如 D2, D7, D30 等），**都必须显式包含 `relatedRecordId` 属性**，其值直接指向**学习文档的 `ReviewRecord`  ID**。这样，当复习页面渲染任务卡片时，学习教练和看板系统能提供“复习依据”按钮，让学习者一键点击直达对应的 React 文档组件。任何没有关联依据的任务都是不合格的。举个例子，当我今天复习Agent时，我应该依据的是上周学习agent的文档。
 
-#### TSX 视觉与设计系统规范
-
-为了与工作台的高级暗色系视觉风格完美融合，你生成的 TSX 组件必须严格遵守以下设计系统规范，但在具体的排版和布局上，你可以**自由、富有创意地发挥**，以最适合展现当前知识结构的方式进行排版：
-
-**1. 视觉风格与调色板（雾化金属表面 - Misted Metal Surface）**
-- **背景与底色**：整体为高贵的深色调。背景色深邃接近黑色（如 `#07090d` / `#0f1319`）。
-- **前景色与文字**：主文字使用极轻的银灰/冷白（如 `#eef0f3` / `#d8dde3`），辅助文字使用钢灰/钢蓝（如 `#8a929e` / `#5c6675`）。字体使用极细字重（200–300）。
-- **强调色与点缀**：仅以**微弱的青蓝**（如 `#6b89a8`）或**暗金**（如 `#c9b687`）作为点缀，绝不使用高饱和色彩。整体应呈现科技冷单色、高质感技术铭牌的工艺感。
-
-**2. 布局自由度（不设死结构限制）**
-- **自由排版**：你不必拘泥于固定的 HTML 标签。请根据今日学习/复习的主题，自如地运用 **Tailwind CSS v4** 类来设计响应式网格（`grid`）、对比双栏、流程链路图、层级递进块或详细的交互式卡片。
-- **推荐基础构架**：
-  - **包络层**：组件最外层必须用 `<article className="react-review-page">` 包裹，以正确继承基础版式。
-  - **Hero 头部**：展示日期、主题、关键数据快照。
-  - **知识版块**：使用 `<ReviewSection eyebrow="章节代号" title="版块标题">...</ReviewSection>` 进行划分。
-  - **常用样式类**：在需要时，可以直接调用 `App.css` 里预置的 `.react-review-stats`、`.react-review-card`、`.react-review-ascii`、`.react-review-timeline`、`.react-review-checklist` 等基础样式，或直接用 Tailwind 辅助编写。
-
-**3. 交互体验**
-- 卡片悬停时应有微弱的浮起、背景加深或边框变亮动画。
-- 合理使用 HTML5 `<details>` 和 `<summary>` 标签（自带旋转动画），收纳横向连接或深入参考等次要信息。
-
-**4. 禁止事项**
-- ❌ **禁止使用浅色背景/白底**（保持全站一致 of 暗色工业美学）。
-- ❌ **禁止使用高亮彩虹色或暖色调作为主色**（仅在“风险/警告”时使用适量琥珀/赭红）。
-- ❌ **禁止使用花哨、幼稚的 emoji 作为主要装饰元素**。
-- ❌ **禁止写出无法通过 TypeScript 编译的组件代码**（必须保证所有的导入和类型定义在编译时 100% 通过）。
-
-
----
 
 ## 通用教学工具：概念分层意识（"上下兄弟问三句"）
 

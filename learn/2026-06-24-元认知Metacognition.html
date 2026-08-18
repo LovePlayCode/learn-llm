@@ -1,0 +1,423 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>2026-06-24 · 元认知 Metacognition 初学</title>
+  <style>
+    :root {
+      --bg-primary: #0f1318;
+      --bg-card: #1a2028;
+      --bg-card-hover: #212a34;
+      --border-subtle: #2a3540;
+      --text-primary: #e8ecf0;
+      --text-secondary: #9aa5b4;
+      --text-muted: #6b7a8a;
+      --accent-gold: #c9b687;
+      --accent-blue: #6b89a8;
+      --accent-green: #5a9a7a;
+      --accent-red: #a86b5c;
+      --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      --font-mono: 'JetBrains Mono', 'Fira Code', monospace;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      background: var(--bg-primary);
+      color: var(--text-primary);
+      font-family: var(--font-sans);
+      line-height: 1.7;
+      padding: 3rem 1.5rem;
+    }
+
+    .container {
+      max-width: 860px;
+      margin: 0 auto;
+    }
+
+    .hero {
+      text-align: center;
+      margin-bottom: 4rem;
+      padding: 3rem 0;
+      border-bottom: 1px solid var(--border-subtle);
+    }
+
+    .hero .eyebrow {
+      font-family: var(--font-mono);
+      font-size: 0.75rem;
+      color: var(--accent-gold);
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      margin-bottom: 1rem;
+      display: block;
+    }
+
+    .hero h1 {
+      font-size: 2.2rem;
+      font-weight: 700;
+      margin-bottom: 1.2rem;
+      background: linear-gradient(135deg, var(--text-primary), var(--accent-blue));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .hero p {
+      font-size: 1rem;
+      color: var(--text-secondary);
+      max-width: 640px;
+      margin: 0 auto;
+    }
+
+    .stats-row {
+      display: flex;
+      justify-content: center;
+      gap: 2rem;
+      margin-top: 2rem;
+      flex-wrap: wrap;
+    }
+
+    .stat-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-subtle);
+      border-radius: 12px;
+      padding: 1rem 1.5rem;
+      text-align: center;
+      min-width: 100px;
+    }
+
+    .stat-card strong {
+      display: block;
+      font-size: 1.5rem;
+      color: var(--accent-blue);
+    }
+
+    .stat-card span {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+    }
+
+    section {
+      margin-bottom: 3.5rem;
+    }
+
+    section .eyebrow {
+      font-family: var(--font-mono);
+      font-size: 0.7rem;
+      color: var(--accent-gold);
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      display: block;
+      margin-bottom: 0.5rem;
+    }
+
+    section h2 {
+      font-size: 1.5rem;
+      font-weight: 600;
+      margin-bottom: 1.2rem;
+      color: var(--text-primary);
+    }
+
+    .card-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 1rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-subtle);
+      border-radius: 12px;
+      padding: 1.25rem;
+      transition: background 0.2s;
+    }
+
+    .card:hover { background: var(--bg-card-hover); }
+
+    .card h3 {
+      font-size: 0.95rem;
+      font-weight: 600;
+      margin-bottom: 0.5rem;
+      color: var(--text-primary);
+    }
+
+    .card p {
+      font-size: 0.82rem;
+      color: var(--text-secondary);
+      line-height: 1.6;
+    }
+
+    .card .tag {
+      font-size: 0.65rem;
+      color: var(--accent-green);
+      font-family: var(--font-mono);
+      margin-bottom: 0.4rem;
+      display: block;
+    }
+
+    .card.warn { border-color: rgba(168, 107, 92, 0.4); }
+    .card.pass { border-color: rgba(90, 154, 122, 0.3); }
+
+    pre.ascii {
+      background: var(--bg-card);
+      border: 1px solid var(--border-subtle);
+      border-radius: 12px;
+      padding: 1.5rem;
+      font-family: var(--font-mono);
+      font-size: 0.78rem;
+      line-height: 1.8;
+      overflow-x: auto;
+      color: var(--text-secondary);
+      margin-bottom: 1.5rem;
+    }
+
+    blockquote {
+      border-left: 3px solid var(--accent-gold);
+      padding: 1rem 1.5rem;
+      background: rgba(201, 182, 135, 0.05);
+      border-radius: 0 12px 12px 0;
+      font-style: italic;
+      font-size: 0.9rem;
+      color: var(--accent-gold);
+      margin: 1.5rem 0;
+    }
+
+    .tag-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+      margin-top: 1rem;
+    }
+
+    .tag-row span {
+      background: var(--bg-card);
+      border: 1px solid var(--border-subtle);
+      border-radius: 999px;
+      padding: 0.25rem 0.75rem;
+      font-size: 0.7rem;
+      font-family: var(--font-mono);
+      color: var(--text-muted);
+    }
+
+    footer {
+      border-top: 1px solid var(--border-subtle);
+      padding-top: 2rem;
+      margin-top: 3rem;
+      text-align: center;
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      font-family: var(--font-mono);
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+
+    <!-- HERO -->
+    <div class="hero">
+      <span class="eyebrow">LEARN &middot; 2026 &middot; 06 &middot; 24 &middot; 元认知 Metacognition</span>
+      <h1>AI 智能体中的元认知</h1>
+      <p>
+        元认知 = 对自身推理过程的审视与调控。它让 Agent 不仅能"改答案"，
+        更能"改产生答案的策略"。本次学习建立了元认知与规划/纠正型RAG/代码生成的层级关系，
+        并找到在 ReAct Agent 中注入元认知能力的最佳切入点。
+      </p>
+      <div class="stats-row">
+        <div class="stat-card"><strong>3</strong><span>A层知识点</span></div>
+        <div class="stat-card"><strong>3</strong><span>追问通过</span></div>
+        <div class="stat-card"><strong>1</strong><span>工程切入点</span></div>
+        <div class="stat-card"><strong>✓</strong><span>层级关系焊死</span></div>
+      </div>
+    </div>
+
+    <!-- SECTION 01 -->
+    <section>
+      <span class="eyebrow">SECTION 01 &middot; 核心定义</span>
+      <h2>元认知：改策略，不只是改答案</h2>
+      <div class="card-grid">
+        <div class="card pass">
+          <span class="tag">A层 · 焊死</span>
+          <h3>元认知 vs 普通纠错</h3>
+          <p>普通纠错："推荐错了，换一个。" 元认知："我为什么总是按热门度排序？这个选取方式本身有问题吗？" 前者改答案，后者改产生答案的思维模式。</p>
+        </div>
+        <div class="card pass">
+          <span class="tag">A层 · 焊死</span>
+          <h3>没有元认知的 Agent</h3>
+          <p>会发现问题、给出正确答案，但下次相同任务可能还会犯错——因为从不审视自己的决策策略本身。逐次修补，不改根源模式。</p>
+        </div>
+      </div>
+
+      <pre class="ascii">元认知的四大能力：
+┌─────────────┬──────────────┬──────────────┬──────────────┐
+│  自我反思    │  策略调整     │  错误检测     │  资源管理     │
+│  Reflect    │  Adjust      │  Detect      │  Manage      │
+│             │              │              │              │
+│ 评估自身表现  │ 基于反思切换   │ 自主检测并    │ 优化时间与    │
+│ 识别改进空间  │ 决策规则      │ 修正错误      │ 计算资源      │
+└─────────────┴──────────────┴──────────────┴──────────────┘
+
+关键区分：
+  纠错 = 行为层面（发现问题 → 修正结果）
+  元认知 = 认知层面（审视推理过程 → 调整策略 → 持续进化）</pre>
+    </section>
+
+    <!-- SECTION 02 -->
+    <section>
+      <span class="eyebrow">SECTION 02 &middot; 层级关系</span>
+      <h2>上下兄弟：元认知的家族结构</h2>
+
+      <pre class="ascii">第3层（上层理念）：   元认知
+                  "对自身推理过程的审视与调控"
+                         │
+         ┌───────────────┼───────────────┐
+         │               │               │
+第2层：  规划          纠正型RAG       代码生成Agent
+      (Planning)    (Corrective RAG)   (Code Gen)
+         │               │               │
+         │        ┌──────┼──────┐        │
+第1层：  │        │      │      │        │
+      步骤拆解  检索   评估/过滤  重排序  exec执行
+
+关键洞察：
+  不是"元认知包含它们"
+  而是"元认知的思维方式可以注入到这些场景中，让它们变得更智能"</pre>
+
+      <div class="card-grid">
+        <div class="card">
+          <span class="tag">兄弟 A</span>
+          <h3>规划 Planning</h3>
+          <p>明确目标 → 拆解步骤 → 迭代优化。迭代不是 for 循环（机械重复），而是每一轮之间有认知状态的变化。</p>
+        </div>
+        <div class="card">
+          <span class="tag">兄弟 B</span>
+          <h3>纠正型 RAG</h3>
+          <p>任务进行中触发。发现信息不足或质量不够时，重新检索 → 评估相关性 → 过滤/重排序 → 改进输出。</p>
+        </div>
+        <div class="card">
+          <span class="tag">兄弟 C</span>
+          <h3>代码生成 Agent</h3>
+          <p>用 AI 模型编写和执行代码解决问题。结合反馈调整生成策略，SQL-as-RAG 是典型应用。</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- SECTION 03 -->
+    <section>
+      <span class="eyebrow">SECTION 03 &middot; 对比辨析</span>
+      <h2>纠正型 RAG vs 先发式上下文加载</h2>
+
+      <div class="card-grid">
+        <div class="card">
+          <span class="tag">纠正型 RAG</span>
+          <h3>运行时触发</h3>
+          <p>启动时机：任务进行中，发现当前输出不够好或信息不足时触发。核心动作：重新检索 + 评估 + 过滤。类比：做题时发现不会了再翻书。</p>
+        </div>
+        <div class="card">
+          <span class="tag">先发式上下文加载</span>
+          <h3>任务前预加载</h3>
+          <p>启动时机：任务开始前，预判需要什么背景信息。核心动作：将相关上下文预先装入模型。类比：考试前把公式表放桌上。</p>
+        </div>
+      </div>
+
+      <blockquote>
+        "纠正型 RAG 不一定要'错'才触发——信息不足或质量不够也是触发条件。"
+      </blockquote>
+    </section>
+
+    <!-- SECTION 04 -->
+    <section>
+      <span class="eyebrow">SECTION 04 &middot; 工程连接</span>
+      <h2>在 ReAct Agent 中注入元认知</h2>
+
+      <div class="card-grid">
+        <div class="card pass">
+          <span class="tag">工程切入点 · 确认</span>
+          <h3>工具调用后加 Reflection 层</h3>
+          <p>ReAct 的 Observation 之后，加一个策略级反思："我用的这种调用工具的方式本身合理吗？结果和目标的差距是信息不足还是策略错误？"</p>
+        </div>
+        <div class="card">
+          <span class="tag">注意事项</span>
+          <h3>避免 Over-Reflection</h3>
+          <p>元认知不是每一步都反思。简单任务直接执行才是最优。好的架构需要判断什么时候该反思、什么时候该直接干。</p>
+        </div>
+      </div>
+
+      <pre class="ascii">ReAct 的认知层级进化：
+
+普通 ReAct：
+  Reasoning → Action → Observation → Reasoning → ...
+  （战术级：看到结果，决定下一步做什么）
+
+加入元认知的 ReAct：
+  Reasoning → Action → Observation → Reflection → Reasoning → ...
+  （战略级：审视"我一直用这种方式调用工具，这种方式本身合理吗？"）
+
+差异：
+  ReAct = 逐步纠正（每轮改答案）
+  +元认知 = 策略级反思（改产生答案的方式）</pre>
+    </section>
+
+    <!-- SECTION 05 -->
+    <section>
+      <span class="eyebrow">SECTION 05 &middot; 深层理解</span>
+      <h2>为什么元认知必须在架构层实现</h2>
+
+      <div class="card-grid">
+        <div class="card warn">
+          <span class="tag">关键洞察 · 需加强</span>
+          <h3>LLM 单次推理是无状态的</h3>
+          <p>LLM 没有"上一次我用了什么策略、效果如何"的跨轮次记忆。元认知需要：① 跨多轮的决策历史 ② 对历史的评估机制 ③ 基于评估的策略切换逻辑。这些必须在 Agent 框架里搭。</p>
+        </div>
+        <div class="card">
+          <span class="tag">角色分工</span>
+          <h3>LLM = 思考引擎，Agent = 元认知骨架</h3>
+          <p>LLM 提供推理能力（单次智能），但外部状态管理、反馈循环、策略存储是架构层的责任。</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- SECTION 06 · 酒店例子 -->
+    <section>
+      <span class="eyebrow">SECTION 06 &middot; 经典案例</span>
+      <h2>酒店推荐 Agent 的元认知过程</h2>
+
+      <pre class="ascii">酒店推荐 Agent 元认知示例：
+
+第1步 · 初始决策：
+  策略 = "选最便宜的" → 推荐 Budget Inn（$80, 质量6）
+
+第2步 · 反思与评估：
+  用户反馈 = "bad"（太便宜 / 质量低）
+  Agent 不是简单换个酒店，而是审视策略本身：
+  "我一直选最便宜的，这个策略是不是有问题？"
+
+第3步 · 策略切换：
+  从 'cheapest' 切换到 'highest_quality'
+  → 推荐 Luxury Stay（$200, 质量9）
+
+关键：改的是决策规则本身，不只是换了个推荐结果。</pre>
+    </section>
+
+    <!-- FOOTER -->
+    <footer>
+      <p>2026 &middot; 06 &middot; 24 &middot; 元认知 Metacognition &middot; 初学记录</p>
+      <div class="tag-row" style="justify-content: center; margin-top: 1rem;">
+        <span>元认知</span>
+        <span>Metacognition</span>
+        <span>ReAct</span>
+        <span>Reflection</span>
+        <span>纠正型RAG</span>
+        <span>先发式加载</span>
+        <span>规划</span>
+        <span>代码生成</span>
+        <span>策略切换</span>
+        <span>Over-Reflection</span>
+        <span>无状态LLM</span>
+        <span>初学</span>
+      </div>
+    </footer>
+
+  </div>
+</body>
+</html>

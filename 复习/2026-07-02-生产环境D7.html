@@ -1,0 +1,520 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>2026-07-02 · 生产环境可观测性与评估 D7 跨章节综合</title>
+  <style>
+    :root {
+      --bg-primary: #0f1419;
+      --bg-secondary: #1a2332;
+      --bg-card: #1e2a3a;
+      --bg-card-hover: #243447;
+      --text-primary: #eef0f3;
+      --text-secondary: #8b99a8;
+      --text-muted: #5a6a7a;
+      --accent-blue: #6b89a8;
+      --accent-gold: #c9b687;
+      --accent-green: #5a9a7a;
+      --accent-red: #c97a6b;
+      --border-subtle: rgba(107, 137, 168, 0.15);
+      --border-glow: rgba(107, 137, 168, 0.3);
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Segoe UI', sans-serif;
+      background: var(--bg-primary);
+      color: var(--text-primary);
+      line-height: 1.7;
+      min-height: 100vh;
+    }
+
+    .container {
+      max-width: 860px;
+      margin: 0 auto;
+      padding: 3rem 2rem;
+    }
+
+    .hero {
+      text-align: center;
+      margin-bottom: 3rem;
+      padding: 2.5rem;
+      background: linear-gradient(135deg, var(--bg-secondary), var(--bg-card));
+      border-radius: 16px;
+      border: 1px solid var(--border-subtle);
+    }
+
+    .hero .eyebrow {
+      display: block;
+      font-size: 0.7rem;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--accent-blue);
+      margin-bottom: 1rem;
+    }
+
+    .hero h1 {
+      font-size: 1.8rem;
+      font-weight: 700;
+      margin-bottom: 1rem;
+      background: linear-gradient(135deg, var(--text-primary), var(--accent-blue));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .hero p {
+      color: var(--text-secondary);
+      font-size: 0.95rem;
+      max-width: 640px;
+      margin: 0 auto;
+    }
+
+    .stats-row {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 1rem;
+      margin-top: 2rem;
+    }
+
+    .stat-card {
+      background: var(--bg-primary);
+      border-radius: 10px;
+      padding: 1rem;
+      text-align: center;
+      border: 1px solid var(--border-subtle);
+    }
+
+    .stat-card strong {
+      display: block;
+      font-size: 1.4rem;
+      color: var(--accent-gold);
+    }
+
+    .stat-card span {
+      font-size: 0.72rem;
+      color: var(--text-muted);
+    }
+
+    section.content-section {
+      margin-bottom: 2.5rem;
+    }
+
+    .section-header {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      margin-bottom: 1.2rem;
+    }
+
+    .section-header .num {
+      font-size: 0.65rem;
+      color: var(--accent-blue);
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      white-space: nowrap;
+    }
+
+    .section-header h2 {
+      font-size: 1.15rem;
+      font-weight: 600;
+    }
+
+    .card {
+      background: var(--bg-card);
+      border-radius: 12px;
+      padding: 1.5rem;
+      margin-bottom: 1rem;
+      border: 1px solid var(--border-subtle);
+      transition: border-color 0.2s;
+    }
+
+    .card:hover {
+      border-color: var(--border-glow);
+    }
+
+    .card h3 {
+      font-size: 0.95rem;
+      color: var(--accent-gold);
+      margin-bottom: 0.5rem;
+    }
+
+    .card p {
+      font-size: 0.88rem;
+      color: var(--text-secondary);
+    }
+
+    pre.ascii-map {
+      background: var(--bg-primary);
+      border: 1px solid var(--border-subtle);
+      border-radius: 10px;
+      padding: 1.5rem;
+      font-family: 'SF Mono', 'Fira Code', monospace;
+      font-size: 0.78rem;
+      color: var(--accent-blue);
+      overflow-x: auto;
+      line-height: 1.6;
+      margin-bottom: 1rem;
+    }
+
+    .grid-2 {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 1rem;
+    }
+
+    @media (max-width: 640px) {
+      .grid-2 { grid-template-columns: 1fr; }
+      .stats-row { grid-template-columns: repeat(2, 1fr); }
+    }
+
+    .tag-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+      margin-top: 1.5rem;
+    }
+
+    .tag {
+      font-size: 0.7rem;
+      padding: 0.25rem 0.6rem;
+      border-radius: 999px;
+      background: rgba(107, 137, 168, 0.1);
+      color: var(--accent-blue);
+      border: 1px solid rgba(107, 137, 168, 0.2);
+    }
+
+    .blindspot {
+      border-left: 3px solid var(--accent-red);
+      padding-left: 1rem;
+      margin-bottom: 1rem;
+    }
+
+    .blindspot h4 {
+      font-size: 0.85rem;
+      color: var(--accent-red);
+      margin-bottom: 0.3rem;
+    }
+
+    .blindspot p {
+      font-size: 0.82rem;
+      color: var(--text-secondary);
+    }
+
+    .highlight {
+      border-left: 3px solid var(--accent-green);
+      padding-left: 1rem;
+      margin-bottom: 1rem;
+    }
+
+    .highlight h4 {
+      font-size: 0.85rem;
+      color: var(--accent-green);
+      margin-bottom: 0.3rem;
+    }
+
+    .highlight p {
+      font-size: 0.82rem;
+      color: var(--text-secondary);
+    }
+
+    .report-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 1rem;
+    }
+
+    .report-table th {
+      text-align: left;
+      font-size: 0.75rem;
+      color: var(--accent-blue);
+      padding: 0.5rem;
+      border-bottom: 1px solid var(--border-subtle);
+    }
+
+    .report-table td {
+      font-size: 0.82rem;
+      color: var(--text-secondary);
+      padding: 0.5rem;
+      border-bottom: 1px solid rgba(107, 137, 168, 0.08);
+    }
+
+    .warn {
+      color: var(--accent-red);
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <!-- HERO -->
+    <div class="hero">
+      <span class="eyebrow">REVIEW &middot; D7 &middot; 2026 &middot; 07 &middot; 02 &middot; 生产环境可观测性与评估</span>
+      <h1>生产环境 D7 通过 &middot; 跨章节综合</h1>
+      <p>
+        五题跨章节综合压测通过。可观测性四大价值引导后补全，多代理 Trace 变化方向对，
+        评估闭环 &times; 错误累积机制分清，缓存围栏 vs 三兄弟视角切换精彩，TCC Transparent 分层秒答。
+      </p>
+      <div class="stats-row">
+        <div class="stat-card">
+          <strong style="color: var(--accent-blue);">5</strong>
+          <span>总题量</span>
+        </div>
+        <div class="stat-card">
+          <strong style="color: var(--text-primary);">5</strong>
+          <span>通过</span>
+        </div>
+        <div class="stat-card">
+          <strong style="color: var(--accent-gold);">3</strong>
+          <span>跨章节关联题</span>
+        </div>
+        <div class="stat-card">
+          <strong style="color: var(--accent-green);">2</strong>
+          <span>自我修正</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- SECTION 01 -->
+    <section class="content-section">
+      <div class="section-header">
+        <span class="num">SECTION 01 &middot; 可观测性价值</span>
+        <h2>四大价值维度 &middot; 引导后补全</h2>
+      </div>
+
+      <div class="grid-2">
+        <div class="card">
+          <h3>排查定位 (Debug)</h3>
+          <p>精确到哪一步慢、哪一步贵、哪一步错。从黑盒变成玻璃盒。</p>
+        </div>
+        <div class="card">
+          <h3>成本管理</h3>
+          <p>查看每步花费，发现哪些步骤不经济。数据驱动的成本优化。</p>
+        </div>
+        <div class="card">
+          <h3>持续改进 / 迭代闭环</h3>
+          <p>采集真实 case 回流离线测试集，形成闭环迭代。</p>
+        </div>
+        <div class="card">
+          <h3>安全合规审计</h3>
+          <p>Trace 记录每步输入输出，合规团队可审计 Agent 是否越权/泄密/决策可解释。引导后补出。</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- SECTION 02 -->
+    <section class="content-section">
+      <div class="section-header">
+        <span class="num">SECTION 02 &middot; 多代理 &times; Trace</span>
+        <h2>树更深更宽 &middot; 但仍是一个 Trace</h2>
+      </div>
+
+      <pre class="ascii-map">单 Agent：
+Trace
+ └─ Span: Agent
+      └─ Span: Tool A
+      └─ Span: Tool B
+
+多代理（Controller + 专业 Agent）：
+Trace
+ └─ Span: Controller Agent
+      └─ Span: 专业 Agent A       ← 更宽（多个并行兄弟 Span）
+           └─ Span: 子步骤 A1     ← 更深（嵌套更多层）
+           └─ Span: 子步骤 A2
+      └─ Span: 专业 Agent B
+           └─ Span: 子步骤 B1
+      └─ Span: 专业 Agent C
+           └─ Span: 子步骤 C1
+           └─ Span: 子步骤 C2
+
+关键：一个用户任务 = 一个 Trace，无论多少 Agent 参与。</pre>
+
+      <div class="card">
+        <h3>答题表现</h3>
+        <p>方向全对："树形""一个根 Trace""Span 嵌套 Span""更深更宽"都答出。未画 ASCII 图，D30 追击。</p>
+      </div>
+    </section>
+
+    <!-- SECTION 03 -->
+    <section class="content-section">
+      <div class="section-header">
+        <span class="num">SECTION 03 &middot; 评估闭环 &times; 错误累积</span>
+        <h2>提高 p + 定位后切短 N</h2>
+      </div>
+
+      <pre class="ascii-map">评估闭环如何作用于 1 - p^N：
+
+路径 A：提高 p
+  发现失败 case → 回流离线 → 优化 Prompt/Tool → p 提高
+  （跨时间迭代，每轮让 Agent 更好）
+
+路径 B：切短 N
+  在线监控定位第 3 步总出错 → 加 checkpoint → N 从 8 切成 3+3+2
+  （可观测性是前提，不知道哪步出错就不知道在哪加 checkpoint）
+
+⚠️ 区分：
+  checkpoint = 运行时即时拦截（Controllable 的儿子）
+  评估闭环 = 跨时间迭代改进（持续优化循环）</pre>
+
+      <div class="card">
+        <h3>修正过程</h3>
+        <p>第一轮把 checkpoint 和评估闭环混为一谈（把"固定节点检查"说成评估闭环）。经引导后分清：一个是运行时即时拦截，一个是跨时间迭代。修正后两条路径都答对。</p>
+      </div>
+    </section>
+
+    <!-- SECTION 04 -->
+    <section class="content-section">
+      <div class="section-header">
+        <span class="num">SECTION 04 &middot; 缓存围栏 &times; 三兄弟</span>
+        <h2>同一事件的不同视角</h2>
+      </div>
+
+      <pre class="ascii-map">缓存三兄弟（回答"怎么命中"——机制分类）：
+  精确缓存 ─── 字符完全匹配
+  语义缓存 ─── 向量相似度匹配
+  提示词缓存 ── 前缀匹配，省 self-attention
+
+缓存做围栏（回答"放在哪/干什么"——架构角色）：
+  用户请求 → 缓存层先拦 → 命中？直接返回
+                            └─ 未命中 → 路由 → 大/小模型
+
+关系：同一件事（缓存），不同切面：
+  三兄弟 = 内部机制细节
+  做围栏 = 外部架构定位</pre>
+
+      <div class="card">
+        <h3>自我修正亮点</h3>
+        <p>第一反应说"上下层关系"，经引导后自主修正为"同一事件不同视角"。这个修正过程本身展示了好的元认知——能质疑自己第一版答案并重新定位。</p>
+      </div>
+    </section>
+
+    <!-- SECTION 05 -->
+    <section class="content-section">
+      <div class="section-header">
+        <span class="num">SECTION 05 &middot; 可观测性 &times; TCC Transparent</span>
+        <h2>Transparent 是理念，可观测性是工程手段</h2>
+      </div>
+
+      <pre class="ascii-map">第 3 层（理念目标）    TCC · Transparent（看得见）
+                       │
+第 2 层（工程手段）    可观测性 / 日志 / 状态面板
+                       │
+第 1 层（底层工具）    OpenTelemetry / Trace / Span / 监控仪表盘
+
+分层钥匙自动启动：秒答"Transparent 是上层，可观测性是下层工程手段"。</pre>
+
+      <div class="card">
+        <h3>另一个视角</h3>
+        <p>学习者还补充了用户侧 vs 运维侧的区分：Transparent 在用户面前体现为 UI 可见性，在运维面前体现为可观测性。视角有趣。</p>
+      </div>
+    </section>
+
+    <!-- SECTION 06 · 薄弱点与亮点 -->
+    <section class="content-section">
+      <div class="section-header">
+        <span class="num">SECTION 06 &middot; 复盘</span>
+        <h2>薄弱点 & 亮点</h2>
+      </div>
+
+      <div class="blindspot">
+        <h4>可观测性四大价值未首轮分格子</h4>
+        <p>"debug"和"及时发现问题"撞车，安全合规需引导。说明四个维度在脑中还没形成独立格子。D30 需首轮四个全出。</p>
+      </div>
+
+      <div class="blindspot">
+        <h4>Checkpoint vs 评估闭环首轮混淆</h4>
+        <p>把"固定节点检查+重试"说成评估闭环。核心区别：一个是运行时即时拦截，一个是跨时间迭代改进。引导后分清。</p>
+      </div>
+
+      <div class="blindspot">
+        <h4>多代理 Trace 未画 ASCII 图</h4>
+        <p>"更深更宽"答出但没画图。可视化表达能力 D30 追击。</p>
+      </div>
+
+      <div class="highlight">
+        <h4>缓存视角自我修正</h4>
+        <p>从"上下层"修正到"同一事件不同视角"——自主质疑并推翻第一版答案。</p>
+      </div>
+
+      <div class="highlight">
+        <h4>TCC 分层钥匙秒响</h4>
+        <p>零犹豫答出"Transparent 是理念目标，可观测性是工程手段"。上下兄弟工具已成肌肉记忆。</p>
+      </div>
+
+      <div class="highlight">
+        <h4>评估闭环双路径完整</h4>
+        <p>修正后同时答出"提高 p"和"定位后切短 N"两条路径，且点明可观测性是前提。</p>
+      </div>
+    </section>
+
+    <!-- SECTION 07 · 总结报告 -->
+    <section class="content-section">
+      <div class="section-header">
+        <span class="num">SECTION 07 &middot; 总结报告</span>
+        <h2>D7 成果与 D30 计划</h2>
+      </div>
+
+      <table class="report-table">
+        <tr>
+          <th>层级</th>
+          <th>内容</th>
+          <th>状态</th>
+        </tr>
+        <tr>
+          <td>A 层</td>
+          <td>可观测性四大价值（排查/成本/迭代/合规）</td>
+          <td style="color: var(--accent-green);">通过（引导后）</td>
+        </tr>
+        <tr>
+          <td>A 层</td>
+          <td>多代理 Trace 结构变化（更深更宽）</td>
+          <td style="color: var(--accent-green);">方向对</td>
+        </tr>
+        <tr>
+          <td>A 层</td>
+          <td>评估闭环 &times; 错误累积（提高 p + 切短 N）</td>
+          <td style="color: var(--accent-green);">通过（修正后）</td>
+        </tr>
+        <tr>
+          <td>A 层</td>
+          <td>缓存围栏 vs 三兄弟（同一事件不同视角）</td>
+          <td style="color: var(--accent-green);">通过（自我修正）</td>
+        </tr>
+        <tr>
+          <td>A 层</td>
+          <td>可观测性 &times; TCC Transparent（理念 vs 手段）</td>
+          <td style="color: var(--accent-green);">秒答</td>
+        </tr>
+        <tr>
+          <td class="warn">D30 追击</td>
+          <td>四大价值首轮分格子答出</td>
+          <td style="color: var(--accent-red);">需强化</td>
+        </tr>
+        <tr>
+          <td class="warn">D30 追击</td>
+          <td>Checkpoint vs 评估闭环不混淆</td>
+          <td style="color: var(--accent-red);">需强化</td>
+        </tr>
+        <tr>
+          <td class="warn">D30 追击</td>
+          <td>多代理 Trace 能画 ASCII 图</td>
+          <td style="color: var(--accent-red);">需强化</td>
+        </tr>
+      </table>
+
+      <div class="tag-row">
+        <span class="tag">生产环境</span>
+        <span class="tag">可观测性</span>
+        <span class="tag">Trace/Span</span>
+        <span class="tag">评估闭环</span>
+        <span class="tag">错误累积</span>
+        <span class="tag">缓存三兄弟</span>
+        <span class="tag">TCC Transparent</span>
+        <span class="tag">多代理</span>
+        <span class="tag">D7</span>
+        <span class="tag">跨章节</span>
+      </div>
+    </section>
+  </div>
+</body>
+</html>

@@ -1,0 +1,451 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>6/10 · Planning Design + 可信赖 Agent D7 · 推理时计算 D60</title>
+    <style>
+      :root {
+        --metal-100: #eef0f3;
+        --metal-200: #d8dde3;
+        --metal-300: #b6bec8;
+        --metal-400: #8993a3;
+        --metal-500: #5c6675;
+        --metal-600: #3f4754;
+        --metal-700: #2a313c;
+        --metal-800: #1a1f28;
+        --metal-900: #07090d;
+        --accent: #6b89a8;
+        --accent-dim: #4a6280;
+        --accent-glow: rgba(107, 137, 168, 0.15);
+        --warn: #a86b5c;
+        --warn-dim: #6b3f3a;
+        --good: #5a9a7a;
+        --gold: #a89270;
+        --thin: 200;
+        --reg: 300;
+        --med: 400;
+        --mono: ui-monospace, SFMono-Regular, "JetBrains Mono", Menlo, Consolas, monospace;
+        --sans: -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", system-ui, sans-serif;
+      }
+
+      * { box-sizing: border-box; margin: 0; padding: 0; }
+
+      html, body {
+        background: linear-gradient(180deg, var(--metal-800) 0%, var(--metal-900) 100%);
+        color: var(--metal-200);
+        font-family: var(--sans);
+        font-weight: var(--thin);
+        line-height: 1.75;
+        letter-spacing: 0.02em;
+        overflow-x: hidden;
+        min-height: 100vh;
+      }
+
+      body::before {
+        content: "";
+        position: fixed;
+        inset: 0;
+        pointer-events: none;
+        z-index: 1;
+        opacity: 0.4;
+        mix-blend-mode: overlay;
+        background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='200' height='200'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 0.5  0 0 0 0 0.55  0 0 0 0 0.6  0 0 0 0.4 0'/></filter><rect width='100%25' height='100%25' filter='url(%23n)'/></svg>");
+      }
+
+      .container {
+        position: relative;
+        z-index: 2;
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 80px 32px 120px;
+      }
+
+      /* HERO */
+      .hero {
+        border: 1px solid var(--metal-700);
+        background: linear-gradient(135deg, var(--metal-800), var(--metal-900) 60%);
+        padding: 64px 56px;
+        position: relative;
+        overflow: hidden;
+        border-radius: 4px;
+      }
+      .hero::before {
+        content: "";
+        position: absolute;
+        inset: 0;
+        background: radial-gradient(circle at 80% 20%, rgba(107,137,168,0.07), transparent 50%);
+        pointer-events: none;
+      }
+      .hero .meta {
+        font-family: var(--mono);
+        font-size: 11px;
+        color: var(--metal-400);
+        letter-spacing: 0.2em;
+        margin-bottom: 32px;
+        text-transform: uppercase;
+      }
+      .hero h1 {
+        font-size: 40px;
+        font-weight: var(--thin);
+        line-height: 1.25;
+        color: var(--metal-100);
+        margin-bottom: 28px;
+      }
+      .hero h1 em { font-style: normal; color: var(--accent); font-weight: var(--reg); }
+      .hero .lead {
+        font-size: 15px;
+        color: var(--metal-300);
+        max-width: 700px;
+        line-height: 1.85;
+      }
+      .hero .lead em { font-style: normal; color: var(--metal-100); border-bottom: 1px dashed var(--accent-dim); }
+
+      .stats {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 0;
+        margin-top: 48px;
+        border-top: 1px solid var(--metal-700);
+        padding-top: 32px;
+      }
+      .stat { padding: 0 20px; border-right: 1px solid var(--metal-700); }
+      .stat:last-child { border-right: none; }
+      .stat .num { font-family: var(--mono); font-size: 32px; color: var(--metal-100); font-weight: var(--reg); margin-bottom: 6px; }
+      .stat .num em { font-style: normal; color: var(--accent); }
+      .stat .lbl { font-family: var(--mono); font-size: 10px; text-transform: uppercase; color: var(--metal-400); letter-spacing: 0.2em; }
+
+      section { margin-top: 96px; }
+      .sec-num { font-family: var(--mono); font-size: 11px; color: var(--metal-400); letter-spacing: 0.3em; margin-bottom: 18px; text-transform: uppercase; }
+      h2 { font-size: 28px; font-weight: var(--thin); color: var(--metal-100); margin-bottom: 36px; }
+      h2 em { font-style: normal; color: var(--accent); font-weight: var(--reg); }
+      h3 { font-size: 18px; font-weight: var(--reg); color: var(--metal-100); margin-bottom: 16px; }
+      p { margin-bottom: 16px; color: var(--metal-300); font-size: 14.5px; }
+      p strong { color: var(--metal-100); font-weight: var(--med); }
+      p em { font-style: normal; color: var(--accent); }
+
+      .card {
+        border: 1px solid var(--metal-700);
+        background: linear-gradient(135deg, var(--metal-800) 0%, var(--metal-900) 100%);
+        padding: 28px 32px;
+        border-radius: 4px;
+        margin-bottom: 16px;
+        transition: transform 0.3s ease, border-color 0.3s ease;
+      }
+      .card:hover { transform: translateY(-3px); border-color: var(--accent-dim); }
+      .card .tag { font-family: var(--mono); font-size: 10px; color: var(--accent); letter-spacing: 0.2em; text-transform: uppercase; margin-bottom: 10px; }
+      .card h4 { font-size: 16px; font-weight: var(--reg); color: var(--metal-100); margin-bottom: 10px; }
+
+      .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+
+      .ascii {
+        font-family: var(--mono);
+        font-size: 13px;
+        background: var(--metal-900);
+        color: var(--metal-200);
+        padding: 24px 28px;
+        border-radius: 4px;
+        white-space: pre;
+        overflow-x: auto;
+        line-height: 1.6;
+        box-shadow: inset 0 0 30px rgba(0,0,0,0.5);
+        border: 1px solid var(--metal-700);
+        margin-bottom: 24px;
+      }
+      .ascii .em { color: var(--accent); font-weight: var(--med); }
+      .ascii .warn { color: var(--warn); font-weight: var(--med); }
+      .ascii .good { color: var(--good); font-weight: var(--med); }
+      .ascii .gold { color: var(--gold); font-weight: var(--med); }
+
+      .result-table { width: 100%; border-collapse: collapse; margin: 24px 0; }
+      .result-table th, .result-table td { padding: 12px 16px; text-align: left; border-bottom: 1px solid var(--metal-700); font-size: 14px; }
+      .result-table th { color: var(--metal-400); font-family: var(--mono); font-size: 11px; text-transform: uppercase; letter-spacing: 0.15em; }
+      .result-table td { color: var(--metal-200); }
+      .result-table .pass { color: var(--good); }
+      .result-table .partial { color: var(--gold); }
+
+      details { margin: 16px 0; border: 1px solid var(--metal-700); border-radius: 4px; padding: 16px 20px; background: var(--metal-900); }
+      summary { cursor: pointer; color: var(--metal-100); font-size: 14px; font-weight: var(--reg); }
+      details .body { padding-top: 16px; }
+
+      blockquote {
+        border-left: 3px solid var(--accent-dim);
+        padding: 16px 24px;
+        margin: 24px 0;
+        background: rgba(107,137,168,0.05);
+        border-radius: 0 4px 4px 0;
+        font-size: 14px;
+        color: var(--metal-200);
+      }
+
+      .checklist { list-style: none; padding: 0; }
+      .checklist li { padding: 10px 0; border-bottom: 1px solid var(--metal-700); color: var(--metal-300); font-size: 14px; }
+      .checklist li strong { color: var(--metal-100); }
+
+      footer {
+        margin-top: 96px;
+        padding-top: 32px;
+        border-top: 1px solid var(--metal-700);
+        font-family: var(--mono);
+        font-size: 11px;
+        color: var(--metal-400);
+      }
+      .tags { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 16px; }
+      .tags span { padding: 4px 10px; background: var(--metal-800); border: 1px solid var(--metal-700); border-radius: 3px; font-size: 11px; }
+
+      @media (max-width: 768px) {
+        .stats { grid-template-columns: repeat(2, 1fr); }
+        .grid-2 { grid-template-columns: 1fr; }
+        .hero { padding: 40px 28px; }
+        .hero h1 { font-size: 28px; }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+
+      <!-- HERO -->
+      <div class="hero">
+        <div class="meta">2026 · 06 · 10 ─── REVIEW NOTE / Planning Design D7 + 可信赖 Agent D7 + 推理时计算 D60</div>
+        <h1>双 D7 通过 · 推理时计算 <em>D60 毕业</em><br/>—— 口诀焊死 · 钥匙不生锈</h1>
+        <p class="lead">
+          上半场 Planning Design + 可信赖 Agent D7 综合压测 5 题通过。<em>六字段"约束"焊死</em>，<em>五威胁"级联"焊死</em>。安全边界三档判断需 D30 继续追击。
+          下半场推理时计算 D60 压测 4 题通过。分层钥匙自动启动（红点 #1 不复发），命名通道稳定（红点 #2 不复发），RLHF 交叉因果链完整。维度 B 具体成员退化为 B 层。
+        </p>
+        <div class="stats">
+          <div class="stat"><div class="num"><em>9</em></div><div class="lbl">总题量</div></div>
+          <div class="stat"><div class="num"><em>2</em></div><div class="lbl">D7 通过</div></div>
+          <div class="stat"><div class="num"><em>1</em></div><div class="lbl">D60 毕业</div></div>
+          <div class="stat"><div class="num"><em>3</em></div><div class="lbl">红点无复发</div></div>
+        </div>
+      </div>
+
+      <!-- SECTION 01 -->
+      <section>
+        <div class="sec-num">SECTION 01 ─── Planning Design + 可信赖 Agent · D7 综合压测</div>
+        <h2>口诀补漏验证：<em>约束焊死 · 级联焊死</em></h2>
+
+        <h3>Plan 六字段</h3>
+        <div class="ascii"><span class="em">目标 · 约束 · 任务 · 依赖 · 分配 · 验收</span>
+
+第一轮只答出 5 个（漏"依赖关系"），提示后秒出。
+"约束"字段：D2 漏过 → D7 <span class="good">首轮就记住</span> → 正式焊死。
+
+口诀节奏：目标 约束 ｜ 任务 依赖 ｜ 分配 验收
+           （想做什么）  （怎么拆）    （谁来做+怎么验）</div>
+
+        <h3>五类核心威胁</h3>
+        <div class="ascii"><span class="em">注入 · 越权 · 过载 · 投毒 · 级联</span>
+
+第一轮答错 1 个：把"身份冒充"混入（它是注入的子手法，非独立分类）。
+漏了"越权"（权限滥用）。提示后记起。
+
+"级联"：D2 漏过 → D7 <span class="good">首轮就答出</span> → 正式焊死。</div>
+
+        <h3>级联错误为何难检出</h3>
+        <blockquote>
+          级联错误的每一步，<strong>给定它收到的输入</strong>，逻辑确实没问题。但它收到的输入已经被上一步污染了。毒藏在<em>传播链路</em>里，不在任何一个局部节点上。
+        </blockquote>
+      </section>
+
+      <!-- SECTION 02 -->
+      <section>
+        <div class="sec-num">SECTION 02 ─── 安全边界三档判断 · 暴露薄弱点</div>
+        <h2>b/c <em>判反</em> · 判断标准需磨刀</h2>
+
+        <table class="result-table">
+          <thead>
+            <tr><th>操作</th><th>学习者判断</th><th>正确答案</th><th>分析</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>读代码生成摘要</td><td class="pass">自动执行 ✓</td><td>自动执行</td><td>只读无副作用</td></tr>
+            <tr><td>git push --force main</td><td class="partial">人类审批 ✗</td><td>绝对禁止</td><td>不可逆 + 灾难级，即使确认了也不该由 Agent 做</td></tr>
+            <tr><td>发营销邮件给 500 人</td><td class="partial">绝对禁止 ✗</td><td>人类审批</td><td>有副作用但确认后可做</td></tr>
+          </tbody>
+        </table>
+
+        <div class="ascii"><span class="gold">判断标准口诀：</span>
+
+自动执行 → 看看而已（只读/无副作用）
+人类审批 → 让我看一眼（有副作用，<span class="good">确认后可做</span>）
+绝对禁止 → 打死不干（<span class="warn">不可逆 + 灾难级 / 无论谁要求都不该做</span>）
+
+核心辨别：是"确认后可以做"还是"即使确认了也不应该做"？</div>
+      </section>
+
+      <!-- SECTION 03 -->
+      <section>
+        <div class="sec-num">SECTION 03 ─── Checkpoint 双重身份 · 跨章节缝合</div>
+        <h2>同一个<em>暂停点</em>：两件事同时干</h2>
+
+        <div class="grid-2">
+          <div class="card">
+            <div class="tag">身份 A · 工程容错</div>
+            <h4>存档点 · 局部低阶 N</h4>
+            <p>把 p^N 的长指数切成多段短链，每段可独立重试。降低连续成功的指数级压力。</p>
+          </div>
+          <div class="card">
+            <div class="tag">身份 B · 安全治理</div>
+            <h4>审批关卡 · 红色大按钮</h4>
+            <p>高风险操作前暂停执行，等人类确认后再放行。拦住不可逆副作用。</p>
+          </div>
+        </div>
+
+        <blockquote>
+          <strong>为什么同一个机制能服务两个目的？</strong><br/>
+          本质动作相同：在连续执行流中<em>插入一个暂停点</em>。暂停之后拿来干什么取决于场景——存档回退 or 人类审批——但"断开连续性"这个物理动作是同一个。
+        </blockquote>
+      </section>
+
+      <!-- SECTION 04 -->
+      <section>
+        <div class="sec-num">SECTION 04 ─── 依赖关系 × 安全边界 · 防级联策略</div>
+        <h2>审批关卡插在<em>依赖箭头上</em></h2>
+
+        <div class="ascii">A ──→ B ──→ C ──→ D      （依赖链 = 数据流方向）
+         │           │
+    [<span class="em">checkpoint</span>]    [<span class="em">checkpoint</span>]   （在传播路径上设卡）
+
+插入位置优先级：
+1. <span class="good">扇出节点</span>（一个输出喂给多个下游）→ 影响面最大
+2. <span class="gold">不可逆操作前</span>（部署/写入/外部 API 调用）
+3. <span class="warn">避免全量审批疲劳</span>（不是每步都审，只卡关键路径）</div>
+
+        <p>这道题把三章缝在一起：<strong>Planning Design（依赖关系画方向）× 可信赖 Agent（安全边界三档）× 错误累积（级联扩散 → 在传播路径截断）</strong>。</p>
+      </section>
+
+      <!-- SECTION 05 -->
+      <section>
+        <div class="sec-num">SECTION 05 ─── 推理时计算 D60 · 分层钥匙 · 红点检测</div>
+        <h2>钥匙<em>没生锈</em> · 成员退化为 B 层</h2>
+
+        <div class="ascii"><span class="em">第 3 层（爷爷）</span>          推理时计算（Test-Time Compute）
+                            │
+       ┌────────────────────┴────────────────────┐
+<span class="gold">维度 A · 如何生成更多回答</span>              <span class="gold">维度 B · 如何选择更好回答</span>
+       │                                         │
+   ┌───┴────┐                                ┌───┴───┬─────────┬──────┐
+<span class="good">Best-of-N</span>  <span class="good">集束搜索</span>                          <span class="good">对数概率</span>  <span class="good">验证器</span>  <span class="good">多数</span>     <span class="good">用户</span>
+                                            <span class="good">重排序</span>     <span class="good">打分</span>     <span class="good">投票</span>     <span class="good">选择</span>
+       │                                         │
+       └────── 跨维度组合 ───→  <span class="em">自洽性</span>  ←──────┘
+                          = Best-of-N (生成) + 多数投票 (选择)
+                            │
+<span class="warn">第 1 层（底层工具/数据原语）</span>
+                       采样 · 对数概率（数字）· 奖励模型（组件）</div>
+
+        <h3>D60 红点复发检测</h3>
+        <table class="result-table">
+          <thead><tr><th>红点</th><th>状态</th><th>证据</th></tr></thead>
+          <tbody>
+            <tr><td>#1 钥匙主动启动</td><td class="pass">不复发 ✓</td><td>无提示直接用"爷爷/儿子/工具"框架组织答案</td></tr>
+            <tr><td>#2 命名通道</td><td class="pass">不复发 ✓</td><td>"自洽性"秒答</td></tr>
+            <tr><td>#3 跨问一致性</td><td class="pass">不复发 ✓</td><td>全程无自相矛盾</td></tr>
+          </tbody>
+        </table>
+
+        <h3>暴露点：维度 B 四兄弟模糊</h3>
+        <p>两个月没复习，"对数概率重排序 / 验证器打分 / 多数投票 / 用户选择"这四个选择策略提取不出来。但钥匙结构（双维度框架）完好，说明<strong>结构焊住了，内容自然退化</strong>——这是正常的 B 层衰减，不需要单独追击。</p>
+      </section>
+
+      <!-- SECTION 06 -->
+      <section>
+        <div class="sec-num">SECTION 06 ─── RLHF × 推理时计算 · 交叉因果链</div>
+        <h2>比较式信号 → 自信天然胜出 → <em>验证器被欺骗</em></h2>
+
+        <div class="ascii"><span class="gold">完整因果链（5 步）：</span>
+
+① 人类标注员用<span class="em">比较式信号</span>（A 比 B 好）训练奖励模型
+② 比较时，人类<span class="warn">天然倾向选更确定、更流畅的回答</span>（即使不一定更正确）
+③ 奖励模型学到："自信 = 高分"
+④ PPO 阶段，基础模型为拿高分，<span class="warn">学会用自信语气表达</span>
+⑤ 推理时计算用验证器打分时，<span class="warn">同样的偏好被带入选择环节</span>
+   → 自信但错误的回答拿高分，犹豫但正确的回答被压低</div>
+
+        <p><strong>最容易被欺骗的打分方法：</strong>验证器/奖励模型打分。因为验证器本身就是 RLHF 训练出来的，继承了人类比较行为注入的"自信偏好"。</p>
+      </section>
+
+      <!-- SECTION 07 -->
+      <section>
+        <div class="sec-num">SECTION 07 ─── 自洽性 · 威力与天花板</div>
+        <h2>频率 <em>≠</em> 真理</h2>
+
+        <div class="grid-2">
+          <div class="card">
+            <div class="tag">威力</div>
+            <h4>过滤偶然性错误</h4>
+            <p>模型随机波动导致的偶尔答错，多次采样 + 多数投票可以有效纠正。</p>
+          </div>
+          <div class="card">
+            <div class="tag">天花板</div>
+            <h4>无法修正系统性错误</h4>
+            <p>如果模型<strong>一致地</strong>把某类题理解错，8 个回答里 6 个都是同一个错误答案，多数投票"民主地选出错误"。</p>
+          </div>
+        </div>
+
+        <details>
+          <summary>为什么必须用 Best-of-N 而不是集束搜索？</summary>
+          <div class="body">
+            <p>集束搜索每步保留"最优"，K 条路径之间<strong>基数相似、视角趋同</strong>——投票等于自己投自己。</p>
+            <p>Best-of-N 每次独立采样，路径才真正多样，多数投票才有意义。</p>
+            <p style="color: var(--gold);">金句："自洽性必须用 Best-of-N——因为集束搜索角度一致，多样性不够。"</p>
+          </div>
+        </details>
+      </section>
+
+      <!-- SECTION 08 -->
+      <section>
+        <div class="sec-num">SECTION 08 ─── N > 400 反转 · 对抗性输出</div>
+        <h2>加 N 不是<em>线性提升</em></h2>
+
+        <p><strong>机制：</strong>N 足够大时，采样空间里那些极端但恰好能骗过验证器的"对抗性输出"被抽到的概率上升。它们 RLHF 分数高但事实错误——N 越大，这种漏网之鱼越容易拿到最高分。</p>
+
+        <p><strong>与"线性 vs 指数"钥匙的关系：</strong>有关但不是同一个数学结构。共同点是"线性直觉失效"——人以为加 N 线性提升，但现实非单调。不同点：p^N 是严格的指数衰减，N > 400 是收益反转。属于同一思维家族的远亲。</p>
+      </section>
+
+      <!-- SECTION 09 -->
+      <section>
+        <div class="sec-num">SECTION 09 ─── 综合成绩单 + 下一站</div>
+        <h2>今日<em>全景</em></h2>
+
+        <table class="result-table">
+          <thead><tr><th>主题</th><th>阶段</th><th>结果</th><th>备注</th></tr></thead>
+          <tbody>
+            <tr><td>Planning Design</td><td>D7</td><td class="pass">通过 ✓</td><td>约束焊死，依赖提示后秒出</td></tr>
+            <tr><td>可信赖 Agent</td><td>D7</td><td class="pass">通过 ✓</td><td>级联焊死，越权需记牢，三档判断需追击</td></tr>
+            <tr><td>推理时计算</td><td>D60</td><td class="pass">毕业 ✓</td><td>钥匙稳、命名稳、红点全不复发</td></tr>
+          </tbody>
+        </table>
+
+        <h3>需 D30 追击</h3>
+        <ul class="checklist">
+          <li><strong>安全边界三档判断</strong> — b/c 判反暴露"绝对禁止 vs 人类审批"标准不够锐利。口诀：打死不干 vs 让我看一眼。</li>
+          <li><strong>五威胁口诀中"越权"提取不稳</strong> — "身份冒充"替代了"越权"。需要整体背五兄弟。</li>
+        </ul>
+
+        <h3>复习计划</h3>
+        <ul class="checklist">
+          <li><strong>6/11（明天）</strong> — 多代理设计模式 D7 跨章节综合（5 题）。</li>
+          <li><strong>6/12</strong> — 缓存 + Claude Code 上下文管理 D30 回访。</li>
+          <li><strong>7/7</strong> — Planning Design + 可信赖 Agent D30 综合压测（含安全边界场景题追击）。</li>
+        </ul>
+      </section>
+
+      <!-- FOOTER -->
+      <footer>
+        <div class="tags">
+          <span>#Planning Design</span>
+          <span>#可信赖 Agent</span>
+          <span>#推理时计算</span>
+          <span>#D7</span>
+          <span>#D60</span>
+          <span>#安全边界</span>
+          <span>#RLHF</span>
+          <span>#自洽性</span>
+          <span>#频率≠真理</span>
+        </div>
+        <div>2026 · 06 · 10 · LEARN-LLM / REVIEW · Planning Design D7 + 可信赖 Agent D7 + 推理时计算 D60</div>
+      </footer>
+    </div>
+  </body>
+</html>

@@ -1,0 +1,384 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>2026-07-01 · 元认知 D2+D7 + 生产环境 D2</title>
+  <style>
+    :root {
+      --bg: #0f1318;
+      --surface: #1a2028;
+      --border: #2a3442;
+      --text: #d8dde3;
+      --muted: #8a929e;
+      --accent: #c9b687;
+      --green: #5a9a7a;
+      --blue: #6b89a8;
+      --red: #a86b5c;
+    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.7;
+      padding: 3rem 1.5rem;
+      max-width: 900px;
+      margin: 0 auto;
+    }
+    .hero { margin-bottom: 3rem; }
+    .hero .eyebrow {
+      font-size: 0.7rem;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: var(--muted);
+      display: block;
+      margin-bottom: 0.5rem;
+    }
+    .hero h1 {
+      font-size: 2rem;
+      font-weight: 700;
+      margin-bottom: 1rem;
+    }
+    .hero h1 strong { color: var(--green); }
+    .hero p { color: var(--muted); font-size: 0.9rem; max-width: 70ch; }
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+      gap: 1rem;
+      margin-top: 1.5rem;
+    }
+    .stat {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 1rem;
+      text-align: center;
+    }
+    .stat strong { font-size: 1.5rem; display: block; }
+    .stat span { font-size: 0.75rem; color: var(--muted); }
+    section { margin-bottom: 3rem; }
+    section .eyebrow {
+      font-size: 0.65rem;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: var(--accent);
+      display: block;
+      margin-bottom: 0.25rem;
+    }
+    section h2 {
+      font-size: 1.3rem;
+      font-weight: 600;
+      margin-bottom: 1rem;
+    }
+    .card-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 1rem;
+      margin-bottom: 1.5rem;
+    }
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 1.2rem;
+    }
+    .card .label {
+      font-size: 0.65rem;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      margin-bottom: 0.3rem;
+    }
+    .card h3 { font-size: 0.95rem; font-weight: 600; margin-bottom: 0.5rem; }
+    .card p { font-size: 0.8rem; color: var(--muted); }
+    .card--green { border-color: rgba(90, 154, 122, 0.4); }
+    .card--red { border-color: rgba(107, 63, 58, 0.8); }
+    .card--blue { border-color: rgba(107, 137, 168, 0.4); }
+    pre.ascii {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 1.5rem;
+      font-size: 0.78rem;
+      line-height: 1.6;
+      overflow-x: auto;
+      color: var(--text);
+      margin-bottom: 1.5rem;
+    }
+    blockquote {
+      border-left: 3px solid var(--accent);
+      padding: 0.8rem 1.2rem;
+      background: rgba(201, 182, 135, 0.05);
+      border-radius: 0 8px 8px 0;
+      font-style: italic;
+      font-size: 0.85rem;
+      color: var(--accent);
+      margin: 1.5rem 0;
+    }
+    .tag-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.4rem;
+      margin-top: 1rem;
+    }
+    .tag-row span {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      padding: 0.2rem 0.5rem;
+      font-size: 0.7rem;
+      color: var(--muted);
+    }
+    footer {
+      border-top: 1px solid var(--border);
+      padding-top: 1.5rem;
+      margin-top: 3rem;
+    }
+    footer .meta {
+      display: flex;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      font-size: 0.7rem;
+      color: var(--muted);
+      font-family: monospace;
+      margin-bottom: 1rem;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.8rem;
+      margin: 1rem 0;
+    }
+    th, td {
+      padding: 0.5rem 0.8rem;
+      border: 1px solid var(--border);
+      text-align: left;
+    }
+    th { background: var(--surface); color: var(--accent); font-weight: 600; }
+    details {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 1rem;
+      margin: 1rem 0;
+    }
+    summary { cursor: pointer; font-size: 0.85rem; font-weight: 500; }
+    .details-body { margin-top: 0.8rem; font-size: 0.8rem; color: var(--muted); }
+    .details-body p { margin-bottom: 0.4rem; }
+  </style>
+</head>
+<body>
+  <!-- HERO -->
+  <header class="hero">
+    <span class="eyebrow">REVIEW &middot; 2026 &middot; 07 &middot; 01 &middot; 元认知 D2+D7 + 生产环境 D2</span>
+    <h1>元认知 D7 通过 + 生产环境 D2 通过<strong> 三轮连通</strong></h1>
+    <p>
+      元认知从 D2 基础验证到 D7 跨章节综合一次性打通。生产环境 D2 三题全过。
+      核心焊点："改策略不只改答案"、战术vs战略级思考、协调层元认知审视协作策略、动态觉察 vs 固定checkpoint。
+    </p>
+    <div class="stats">
+      <div class="stat"><strong style="color:#6b89a8">11</strong><span>总题量</span></div>
+      <div class="stat"><strong style="color:#eef0f3">3</strong><span>复习轮次</span></div>
+      <div class="stat"><strong style="color:#5a9a7a">3</strong><span>跨章节连接</span></div>
+      <div class="stat"><strong style="color:#c9b687">&check;</strong><span>全部通过</span></div>
+    </div>
+  </header>
+
+  <!-- SECTION 01 · 元认知 D2 -->
+  <section>
+    <span class="eyebrow">SECTION 01 &middot; 元认知 D2 &middot; 基础验证</span>
+    <h2>改策略不只改答案 &middot; 无状态三缺失 &middot; 纠正型vs先发式</h2>
+    <div class="card-grid">
+      <div class="card card--green">
+        <div class="label" style="color:var(--green)">焊死</div>
+        <h3>元认知 vs 纠错</h3>
+        <p>普通纠错改答案（换酒店X→酒店Y），元认知改策略（"选最便宜" → "选最高评分"）。方向首答对，精度经磨锐通过。</p>
+      </div>
+      <div class="card card--green">
+        <div class="label" style="color:var(--green)">秒出</div>
+        <h3>LLM 无状态性</h3>
+        <p>"无状态"关键词秒出。三缺失方向对：决策历史存储、评估机制、策略切换逻辑。措辞需更具体。</p>
+      </div>
+      <div class="card card--green">
+        <div class="label" style="color:var(--green)">通过</div>
+        <h3>纠正型 RAG vs 先发式加载</h3>
+        <p>触发时机：任务中 vs 任务前。类比：考试时翻书 vs 考前放公式表。补充：触发条件还包含"信息质量不够"。</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- SECTION 02 · 元认知 D7 -->
+  <section>
+    <span class="eyebrow">SECTION 02 &middot; 元认知 D7 &middot; 跨章节综合</span>
+    <h2>战术vs战略 &middot; 协调层元认知 &middot; 动态觉察切短N</h2>
+
+    <div class="card-grid">
+      <div class="card card--green">
+        <div class="label" style="color:var(--green)">通过</div>
+        <h3>酒店 Agent 元认知三步</h3>
+        <p>执行（按策略输出）→ 反思 Reflection（审视策略本身）→ 策略切换。核心：中间多了审视策略这一步。</p>
+      </div>
+      <div class="card card--blue">
+        <div class="label" style="color:var(--blue)">2/3首答对</div>
+        <h3>Over-Reflection 三场景判断</h3>
+        <p>A不反思(简单查询)✓、B反思(连续三轮不满意)✓、C需反思(新类型首次失败=策略质疑信号)——经引导修正。</p>
+      </div>
+      <div class="card card--green">
+        <div class="label" style="color:var(--green)">通过</div>
+        <h3>ReAct vs ReAct+Reflection</h3>
+        <p>ReAct 思考是战术级（下一步做什么），加 Reflection 升级为战略级（我的做法本身对不对）。</p>
+      </div>
+    </div>
+
+    <div class="card-grid">
+      <div class="card card--blue">
+        <div class="label" style="color:var(--blue)">引导后通过</div>
+        <h3>元认知 &times; 多代理</h3>
+        <p>放在协调层（Orchestrator）。审视的不是个体输出对错，而是任务分配、协作模式、Agent选择等策略级决策。首答混淆了"质检"和"策略审视"。</p>
+      </div>
+      <div class="card card--green">
+        <div class="label" style="color:var(--green)">方向对</div>
+        <h3>元认知 &times; 错误累积</h3>
+        <p>元认知=动态觉察，在错误刚发生时阻断传播链。vs checkpoint=固定位置插暂停点。两者配合：checkpoint兜底，元认知主动刹车。</p>
+      </div>
+    </div>
+
+    <pre class="ascii">元认知切短 N 的机制对比：
+
+┌────────────────────────────────────────────────┐
+│  checkpoint（固定位置）                          │
+│  Step1 → Step2 → [存档点] → Step3 → Step4      │
+│  错误发生在 Step3 → 从存档点重试                 │
+│  特点：预设位置，被动等待                         │
+└────────────────────────────────────────────────┘
+
+┌────────────────────────────────────────────────┐
+│  元认知（动态觉察）                              │
+│  Step1 → Step2(策略错) → Reflection发现!         │
+│                        → 立刻停下换策略重来       │
+│  特点：主动觉察，早发现早止损                     │
+└────────────────────────────────────────────────┘
+
+配合使用：元认知是主动刹车，checkpoint是安全网兜底。</pre>
+
+    <details>
+      <summary>Over-Reflection 判断口诀</summary>
+      <div class="details-body">
+        <p><strong>不该反思</strong>：简单任务 / 熟悉任务的常规小错</p>
+        <p><strong>该反思</strong>：连续失败 / 新领域首次失败 / 用户反复不满意</p>
+        <p>核心判断：错的是"答案"还是"策略本身"？如果可能是策略有问题 → 反思。</p>
+      </div>
+    </details>
+  </section>
+
+  <!-- SECTION 03 · 生产环境 D2 -->
+  <section>
+    <span class="eyebrow">SECTION 03 &middot; 生产环境可观测性与评估 D2</span>
+    <h2>Trace/Span 树形结构 &middot; 评估闭环 &middot; 成本三策略串联</h2>
+    <div class="card-grid">
+      <div class="card card--green">
+        <div class="label" style="color:var(--green)">修正后通过</div>
+        <h3>Trace / Span 结构</h3>
+        <p>Trace = 一个完整任务的生命周期。Span = 任务中单个步骤，可嵌套子 Span，整体是树形结构。首答误将 Span 限定为叶子节点，修正后通过。</p>
+      </div>
+      <div class="card card--green">
+        <div class="label" style="color:var(--green)">精准</div>
+        <h3>评估迭代闭环</h3>
+        <p>离线测试 → 部署上线 → 在线收集真实 case → 回流离线测试集 → 优化 → 重复。一句话抓住核心循环。</p>
+      </div>
+      <div class="card card--green">
+        <div class="label" style="color:var(--green)">完整</div>
+        <h3>成本三策略串联</h3>
+        <p>缓存做围栏（拦截高频重复）→ 路由做分发（判断复杂度）→ 小模型做兜底（简单任务不浪费大模型）。串联顺序和决策逻辑完整。</p>
+      </div>
+    </div>
+
+    <pre class="ascii">成本管理串联流：
+
+用户请求
+    │
+    ▼
+┌─────────┐   命中 → 直接返回（最省）
+│  缓存    │──────────────────────────→ 结果
+│ (围栏)   │
+└────┬────┘
+     │ 未命中
+     ▼
+┌─────────┐   简单任务 → 小模型（省钱）
+│  路由    │──────────────────────────→ 结果
+│ (分发)   │
+└────┬────┘
+     │ 复杂任务
+     ▼
+┌─────────┐
+│ 大模型   │──────────────────────────→ 结果
+│ (全力)   │
+└─────────┘</pre>
+  </section>
+
+  <!-- SECTION 04 · 总结 -->
+  <section>
+    <span class="eyebrow">SECTION 04 &middot; 总结</span>
+    <h2>三轮连通 &middot; D30 追击清单</h2>
+
+    <table>
+      <thead>
+        <tr><th>轮次</th><th>题量</th><th>结果</th><th>关键焊点</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>元认知 D2</td><td>3题</td><td style="color:var(--green)">通过</td><td>改策略不只改答案 / 无状态三缺失 / 纠正型vs先发式</td></tr>
+        <tr><td>元认知 D7</td><td>5题</td><td style="color:var(--green)">通过</td><td>战术vs战略 / 协调层审视协作策略 / 动态觉察切短N</td></tr>
+        <tr><td>生产环境 D2</td><td>3题</td><td style="color:var(--green)">通过</td><td>Span可嵌套 / 闭环流转 / 缓存围栏→路由分发→小模型兜底</td></tr>
+      </tbody>
+    </table>
+
+    <h3 style="margin-top:1.5rem; font-size:0.95rem;">D30 追击清单</h3>
+    <div class="card-grid">
+      <div class="card card--red">
+        <div class="label" style="color:var(--red)">需关注</div>
+        <h3>"改策略"意识滑回</h3>
+        <p>两次差点从元认知滑回纠错思维。需要把"改策略不只改答案"练成肌肉反应。</p>
+      </div>
+      <div class="card card--red">
+        <div class="label" style="color:var(--red)">需关注</div>
+        <h3>协调层 vs 质检混淆</h3>
+        <p>首答把协调层元认知描述成"检查输出对不对"——这是质检不是元认知。元认知审视的是协作策略。</p>
+      </div>
+      <div class="card card--red">
+        <div class="label" style="color:var(--red)">需关注</div>
+        <h3>Over-Reflection 判断标准</h3>
+        <p>新领域首次失败=该反思（策略质疑信号），场景C 首答判错。口诀需内化。</p>
+      </div>
+    </div>
+
+    <blockquote>
+      "今天三轮连通，最大的收获不是具体知识点，而是把元认知和之前学的多代理、错误累积全部缝到了一起——知识网络越密，提取越快。"
+    </blockquote>
+  </section>
+
+  <!-- FOOTER -->
+  <footer>
+    <div class="meta">
+      <span>2026 &middot; 07 &middot; 01 &middot; 元认知 D2+D7 + 生产环境 D2</span>
+      <span>11 题 &middot; 全部通过 &middot; 三轮连通</span>
+    </div>
+    <div class="tag-row">
+      <span>元认知</span>
+      <span>Metacognition</span>
+      <span>ReAct</span>
+      <span>Reflection</span>
+      <span>战术vs战略</span>
+      <span>协调层</span>
+      <span>Over-Reflection</span>
+      <span>错误累积</span>
+      <span>动态觉察</span>
+      <span>checkpoint</span>
+      <span>Trace/Span</span>
+      <span>评估闭环</span>
+      <span>成本三策略</span>
+      <span>D2</span>
+      <span>D7</span>
+    </div>
+  </footer>
+</body>
+</html>

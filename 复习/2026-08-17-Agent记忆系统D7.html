@@ -1,0 +1,552 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>2026-08-17 · Agent 记忆系统 D7 跨章节综合（含 D2 补验）</title>
+  <style>
+    :root {
+      --bg-primary: #0f1419;
+      --bg-secondary: #1a2332;
+      --bg-card: #1e2a3a;
+      --bg-card-hover: #243447;
+      --text-primary: #eef0f3;
+      --text-secondary: #8b99a8;
+      --text-muted: #5a6a7a;
+      --accent-blue: #6b89a8;
+      --accent-gold: #c9b687;
+      --accent-green: #5a9a7a;
+      --accent-red: #c97a6b;
+      --border-subtle: rgba(107, 137, 168, 0.15);
+      --border-glow: rgba(107, 137, 168, 0.3);
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Segoe UI', sans-serif;
+      background: var(--bg-primary);
+      color: var(--text-primary);
+      line-height: 1.7;
+      min-height: 100vh;
+    }
+
+    .container {
+      max-width: 860px;
+      margin: 0 auto;
+      padding: 3rem 2rem;
+    }
+
+    .hero {
+      text-align: center;
+      margin-bottom: 3rem;
+      padding: 2.5rem;
+      background: linear-gradient(135deg, var(--bg-secondary), var(--bg-card));
+      border-radius: 16px;
+      border: 1px solid var(--border-subtle);
+    }
+
+    .hero .eyebrow {
+      display: block;
+      font-size: 0.7rem;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--accent-blue);
+      margin-bottom: 1rem;
+    }
+
+    .hero h1 {
+      font-size: 1.8rem;
+      font-weight: 700;
+      margin-bottom: 1rem;
+      background: linear-gradient(135deg, var(--text-primary), var(--accent-blue));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .hero p {
+      color: var(--text-secondary);
+      font-size: 0.95rem;
+      max-width: 640px;
+      margin: 0 auto;
+    }
+
+    .stats-row {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 1rem;
+      margin-top: 2rem;
+    }
+
+    .stat-card {
+      background: var(--bg-primary);
+      border-radius: 10px;
+      padding: 1rem;
+      text-align: center;
+      border: 1px solid var(--border-subtle);
+    }
+
+    .stat-card strong {
+      display: block;
+      font-size: 1.4rem;
+      color: var(--accent-gold);
+    }
+
+    .stat-card span {
+      font-size: 0.72rem;
+      color: var(--text-muted);
+    }
+
+    section.content-section {
+      margin-bottom: 2.5rem;
+    }
+
+    .section-header {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      margin-bottom: 1.2rem;
+    }
+
+    .section-header .num {
+      font-size: 0.65rem;
+      color: var(--accent-blue);
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      white-space: nowrap;
+    }
+
+    .section-header h2 {
+      font-size: 1.15rem;
+      font-weight: 600;
+    }
+
+    .card {
+      background: var(--bg-card);
+      border-radius: 12px;
+      padding: 1.5rem;
+      margin-bottom: 1rem;
+      border: 1px solid var(--border-subtle);
+      transition: border-color 0.2s;
+    }
+
+    .card:hover {
+      border-color: var(--border-glow);
+    }
+
+    .card h3 {
+      font-size: 0.95rem;
+      color: var(--accent-gold);
+      margin-bottom: 0.5rem;
+    }
+
+    .card p {
+      font-size: 0.88rem;
+      color: var(--text-secondary);
+    }
+
+    pre.ascii-map {
+      background: var(--bg-primary);
+      border: 1px solid var(--border-subtle);
+      border-radius: 10px;
+      padding: 1.5rem;
+      font-family: 'SF Mono', 'Fira Code', monospace;
+      font-size: 0.78rem;
+      color: var(--accent-blue);
+      overflow-x: auto;
+      line-height: 1.6;
+      margin-bottom: 1rem;
+    }
+
+    .grid-2 {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 1rem;
+    }
+
+    @media (max-width: 640px) {
+      .grid-2 { grid-template-columns: 1fr; }
+      .stats-row { grid-template-columns: repeat(2, 1fr); }
+    }
+
+    .tag-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+      margin-top: 1.5rem;
+    }
+
+    .tag {
+      font-size: 0.7rem;
+      padding: 0.25rem 0.6rem;
+      border-radius: 999px;
+      background: rgba(107, 137, 168, 0.1);
+      color: var(--accent-blue);
+      border: 1px solid rgba(107, 137, 168, 0.2);
+    }
+
+    .blindspot {
+      border-left: 3px solid var(--accent-red);
+      padding-left: 1rem;
+      margin-bottom: 1rem;
+    }
+
+    .blindspot h4 {
+      font-size: 0.85rem;
+      color: var(--accent-red);
+      margin-bottom: 0.3rem;
+    }
+
+    .blindspot p {
+      font-size: 0.82rem;
+      color: var(--text-secondary);
+    }
+
+    .highlight {
+      border-left: 3px solid var(--accent-green);
+      padding-left: 1rem;
+      margin-bottom: 1rem;
+    }
+
+    .highlight h4 {
+      font-size: 0.85rem;
+      color: var(--accent-green);
+      margin-bottom: 0.3rem;
+    }
+
+    .highlight p {
+      font-size: 0.82rem;
+      color: var(--text-secondary);
+    }
+
+    .report-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 1rem;
+    }
+
+    .report-table th {
+      text-align: left;
+      font-size: 0.75rem;
+      color: var(--accent-blue);
+      padding: 0.5rem;
+      border-bottom: 1px solid var(--border-subtle);
+    }
+
+    .report-table td {
+      font-size: 0.82rem;
+      color: var(--text-secondary);
+      padding: 0.5rem;
+      border-bottom: 1px solid rgba(107, 137, 168, 0.08);
+    }
+
+    .warn { color: var(--accent-red); }
+    .ok { color: var(--accent-green); }
+
+    .quote {
+      border-left: 3px solid var(--accent-gold);
+      padding: 0.75rem 1rem;
+      margin-top: 1rem;
+      background: rgba(201, 182, 135, 0.06);
+      font-size: 0.85rem;
+      color: var(--text-secondary);
+      font-style: italic;
+      border-radius: 0 8px 8px 0;
+    }
+
+    footer {
+      text-align: center;
+      color: var(--text-muted);
+      font-size: 0.78rem;
+      margin-top: 3rem;
+      padding-top: 1.5rem;
+      border-top: 1px solid var(--border-subtle);
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <!-- HERO -->
+    <div class="hero">
+      <span class="eyebrow">REVIEW &middot; D7 &middot; 2026 &middot; 08 &middot; 17 &middot; Agent 记忆系统（学习日 08-10）</span>
+      <h1>Agent 记忆系统 D7 跨章节综合 · 含 D2 基础补验</h1>
+      <p>
+        距学习日 7 天（D2 逾期 5 天未做，折叠进本场开头补验）。9 问闭卷，一题一评。
+        最大发现：初学当天"焊死"的三层家族树有两颗钉子锈掉（类型压平 + RAG 降级），现场重焊立稳；
+        最大亮点：自发推导出「提示工程 ⊆ 上下文工程」，⊆ 关系模式完成自发迁移。
+      </p>
+      <div class="stats-row">
+        <div class="stat-card">
+          <strong style="color: var(--accent-blue);">9</strong>
+          <span>闭卷小问</span>
+        </div>
+        <div class="stat-card">
+          <strong style="color: var(--accent-red);">2</strong>
+          <span>锈钉重焊</span>
+        </div>
+        <div class="stat-card">
+          <strong style="color: var(--accent-green);">6</strong>
+          <span>补针修正</span>
+        </div>
+        <div class="stat-card">
+          <strong style="color: var(--accent-gold);">3</strong>
+          <span>自发洞察</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- SECTION 01 · D2 补验 -->
+    <section class="content-section">
+      <div class="section-header">
+        <span class="num">SECTION 01</span>
+        <h2>🅰️ D2 基础补验（A1–A3）</h2>
+      </div>
+
+      <div class="blindspot">
+        <h4>A1 三层结构图 · 首轮翻车 → 三轮修成 ✓</h4>
+        <p>
+          首轮把「长期/短期/工作/情景/个人偏好」<strong>五个类型压平在同一层</strong>，工具层只剩"向量数据库"——
+          正是初学当天盲点第 1 条（全部放同一层）的复发，锈钉一号。二轮追问"长期记忆的三个孩子"后骨架归位，
+          但 RAG 仍与 Mem0 并列——盲点第 4 条（RAG 是设计模式）同步复发，锈钉二号。三轮完整画出正确家族树。
+          附加题「工作记忆 vs 短期记忆边界」直接弃权 → 现场讲授（任务级草稿纸 vs 会话级会议记录）。
+        </p>
+      </div>
+
+      <pre class="ascii-map">第3层：Agent Memory（记忆系统）
+          │
+第2层·时效：工作记忆(任务级) │ 短期记忆(会话级) │ 长期记忆(跨会话)
+                                                      │
+                          第2层·内容：角色记忆 │ 情节记忆 │ 实体记忆
+                                                      │
+          ———— RAG（设计模式：检索→注入→生成，高于工具）————
+                                                      │
+第1层·工具：Mem0 / Cognee —— 向量 + 图 + KV 三种存储混合
+
+🔑 工作记忆=手边草稿纸（任务结束就扔）｜短期记忆=会议记录本（会话结束才合上）
+   一段会话可含多个任务 → 时效维度上是兄弟，不是父子</pre>
+
+      <div class="grid-2">
+        <div class="card">
+          <h3>A2 双角色 · 补丁后通过 ✓</h3>
+          <p>
+            方向与时机全对（对话后写 / 任务前读），亮点是自发说出"<strong>判断是否需要</strong>存入"——
+            相关性过滤意识留存。缺两处：角色工牌（存档员/情报员）与写路径中间工序<strong>「加工」</strong>
+            （去噪、压缩、结构化成干净记忆条目）。补讲：没有加工，记忆库变垃圾场 → 分心失败模式回归。
+          </p>
+        </div>
+        <div class="card">
+          <h3>A3 上下兄弟（情节记忆）· 补丁后通过 ✓</h3>
+          <p>
+            「上」连爷爷都请出（长期记忆 → Agent Memory），层级重焊见效。
+            「兄」把<strong>情节记忆自己列进了兄弟名单</strong>——站进家族看关系时先把自己摘出去。
+            「下」工具名正确，补上存储能力：情节记忆靠<strong>向量·语义相似搜索</strong>找回。
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <!-- SECTION 02 · D7 跨章节 -->
+    <section class="content-section">
+      <div class="section-header">
+        <span class="num">SECTION 02</span>
+        <h2>🅱️ D7 跨章节综合（B1–B5）</h2>
+      </div>
+
+      <div class="card">
+        <h3>B1 Mem0 两阶段 + 三存储 · 补丁后通过 ✓</h3>
+        <p>
+          ① 提取 ✓ / 更新决策 ✓，但答成"增删改<strong>查</strong>"——查是情报员的读路径，不在写流水线（读写分层）。
+          亮点：<strong>"删"（遗忘能力）在 7 天后仍然留存</strong>，初学当天的高光时刻还亮着。
+          ② 图=关系穿梭 ✓；精确匹配 initially 误答向量 → 修正为 KV（key 进 value 出，一是一二是二）。
+          ③ 本质答对（三种存取方式根本不同），并自发补充<strong>构建成本视角</strong>（向量最贵）——课本外的工程洞察；
+          精修：图也不便宜（抽实体关系要靠 LLM），真正便宜到家的是 KV。
+        </p>
+      </div>
+
+      <pre class="ascii-map">写路径（两阶段流水线）：提取（LLM总结对话→记忆片段） → 更新决策（加 / 改 / 删）
+读路径（不在流水线内）：情报员检索 → 注入上下文
+
+向量 = 模糊语义相似  → 情节记忆（"和这经历类似的"）
+图   = 实体关系穿梭  → 实体记忆·关系面（"小王关联哪些偏好"）
+KV   = 精确匹配      → 实体记忆·事实面（"小王住哪个城市"）
+角色记忆 = 每轮直接注入 system prompt（基本不靠"查"）</pre>
+
+      <div class="card">
+        <h3>B2 Memory × 元认知 · 通过 ✓</h3>
+        <p>
+          三问全对：审视对象（思考过程 vs 对话历史）、目的（改决策 vs 补信息）、核心分工（改变 vs 辅助）。
+          收口补全循环骨架：两者同为「审视 → 提取 → 应用」，套在不同对象上。
+          口诀存档：<strong>元认知改"怎么想"，知识 Agent 管"手里有什么"。</strong>
+        </p>
+      </div>
+
+      <div class="card">
+        <h3>B3 知识 Agent ⊆ 上下文工程 · 补丁后通过 ✓</h3>
+        <p>
+          方向正确但踩了术语陷阱：答成"提示词构建"——那是<strong>静态</strong>阵营的词！
+          正确归属：检索→注入 = 上下文工程的<strong>动态注入</strong>策略（运行时按需给药）。
+          五种上下文类型已补讲：指令 / 知识（★长期记忆挂此户）/ 工具 / 对话历史 / 用户偏好——
+          知识 Agent 只管"长期记忆"这一种信息来源，注入后成为"知识"类型的一部分，故为真子集。
+        </p>
+      </div>
+
+      <pre class="ascii-map">上下文工程（管整个窗口的全部信息流 · 运行时动态调配）
+   ├── ⊇ 提示工程（产出 = 五种类型第①类"指令"，静态写好交运行时管理）
+   └── ⊇ 知识 Agent（管"知识/记忆"类型的检索→注入）
+
+🔑 对立是教学手法，包含才是事实结构。
+   提示工程 = 开工前写剧本（设计期·静态）；上下文工程 = 演出中当导播（运行期·动态）
+   ⚠️ 术语警报：提示词注入(Prompt Injection) = 安全攻击术语，与提示工程不同户口</pre>
+
+      <div class="card">
+        <h3>B4 知识 Agent 为何独立 · 通过 ✓</h3>
+        <p>
+          ① 上下文隔离 ✓——且自发缝入 Lost in the Middle（分心），一条答案串起记忆×上下文工程×多代理三章。
+          ② 权限面 ✓——"一个 Agent 权限太多易出安全问题"，正合"一个权限面"；顺势补全失败域（记忆 bug 拖垮业务）。
+          ③ 异步运行——经"用户要等归档吗"场景引导后答出 ✓（记忆提取不实时，后台不阻塞用户）。
+        </p>
+      </div>
+
+      <div class="card">
+        <h3>B5 缓存生死题 × 四种记忆 · 补丁后通过 ✓</h3>
+        <p>
+          两道生死题报名字 ✓（"实效性"→修"时<strong>效</strong>性"）。角色记忆 ✓。
+          但处方阶段<strong>只用了"用户关联"轴，"时效性"轴几乎闲置</strong>——报完题不用题，是本场最可惜的失分方式。
+          情节 vs 实体的区分已补讲：档案卡（"是"什么·KV精确查）vs 日记（"发生"过什么·向量相似搜）。
+        </p>
+      </div>
+
+      <pre class="ascii-map">缓存处方表（两道生死题：① 时效性 ② 用户关联度）
+
+角色记忆 ✓ 可缓存        —— 基本不变 + 与用户无关
+实体记忆 ⚠️ 语义缓存✗ / 提示词缓存✓ —— 稳定但高度私人
+           （语义缓存按"问题相似"命中 → 张三的问题可能命中李四的答案，隐私串味）
+           （提示词缓存复用同用户稳定前缀的 KV 计算 → 省算力不跨用户）
+情节记忆 ⚠️ 带 TTL 判断时效 —— 私人 + 可能过时（"上个月住北京"会搬家）
+工作记忆 ✗ 不缓存        —— 时效极短，任务结束即弃，缓存无意义</pre>
+    </section>
+
+    <!-- SECTION 03 · 打字默写检查 -->
+    <section class="content-section">
+      <div class="section-header">
+        <span class="num">SECTION 03</span>
+        <h2>📝 打字默写检查 · 当日留存答案</h2>
+      </div>
+      <table class="report-table">
+        <tr><th>题目</th><th>最终留存答案（修正后）</th></tr>
+        <tr><td>A1 层级图</td><td>三层：总称 → 时效三兄弟（长期下辖内容三孩子：角色/情节/实体）→ 工具层（Mem0/Cognee，向量+图+KV；RAG 居设计模式层）</td></tr>
+        <tr><td>A1 附加</td><td>工作记忆=任务级草稿纸；短期记忆=会话级会议记录。一段会话含多个任务 → 兄弟非父子</td></tr>
+        <tr><td>A2 双角色</td><td>存档员（写：发现→提取、加工→存入）；情报员（读：检索→注入上下文）</td></tr>
+        <tr><td>A3 三句</td><td>情节记忆：上=长期记忆/Agent Memory；下=向量·语义相似搜索；兄=角色、实体（不含自己）</td></tr>
+        <tr><td>B1 Mem0</td><td>提取 → 更新决策（加/改/删，无"查"）；三存储各配一种存取方式，单存储顾此失彼</td></tr>
+        <tr><td>B2 元认知</td><td>同循环（审视→提取→应用）异对象：改怎么想 vs 管手里有什么</td></tr>
+        <tr><td>B3 ⊆</td><td>检索→注入 = 动态注入策略；上下文工程管五种类型，知识 Agent 只管长期记忆一种</td></tr>
+        <tr><td>B4 独立</td><td>上下文隔离（防 Lost in the Middle）+ 权限面/失败域 + 异步不阻塞</td></tr>
+        <tr><td>B5 缓存</td><td>角色✓ / 实体：语义✗提示词✓ / 情节：TTL时效 / 工作✗</td></tr>
+      </table>
+    </section>
+
+    <!-- SECTION 04 · 盲点自查 -->
+    <section class="content-section">
+      <div class="section-header">
+        <span class="num">SECTION 04</span>
+        <h2>⚠️ 盲点自查与修正（今日新焊/补针）</h2>
+      </div>
+
+      <div class="blindspot">
+        <h4>① 三层家族树锈掉两颗钉子（类型压平 + RAG 降级）→ 已重焊</h4>
+        <p>初学当天盲点 1、4 的原位复发，典型 7 天衰减曲线。重焊后立稳，但属"新焊点"，D30 需重点防复发。</p>
+      </div>
+      <div class="blindspot">
+        <h4>② 工作记忆 vs 短期记忆边界：弃权 → 已讲授</h4>
+        <p>判据：寿命跟一个任务走（草稿纸）还是跟整段会话走（会议记录）。学习日标记的薄弱点，今日正式厘清。</p>
+      </div>
+      <div class="blindspot">
+        <h4>③ "增删改查"串入"查" → 读写路径分层</h4>
+        <p>查 = 情报员读路径，不在 Mem0 写流水线。流水线只做加/改/删三种更新决策。</p>
+      </div>
+      <div class="blindspot">
+        <h4>④ "提示词构建"术语陷阱 → 动态注入；附赠术语警报</h4>
+        <p>知识 Agent 的注入姓"上下文工程"不姓"提示工程"（运行时 vs 设计期）。另区分：提示词注入 = 安全攻击术语。</p>
+      </div>
+      <div class="blindspot">
+        <h4>⑤ 缓存处方只用"用户关联"一个轴 → 双轴齐用</h4>
+        <p>报了两道生死题却只用一道半。实体记忆要分缓存类型（语义✗/提示词✓）；情节记忆必须上 TTL 时效判断。</p>
+      </div>
+      <div class="blindspot">
+        <h4>⑥ 兄弟名单含自己 → 已修正</h4>
+        <p>问"兄"时先把自己摘出去——站进家族里看关系，而不是站在外面背名单。</p>
+      </div>
+    </section>
+
+    <!-- SECTION 05 · 亮点 -->
+    <section class="content-section">
+      <div class="section-header">
+        <span class="num">SECTION 05</span>
+        <h2>✨ 今日亮点（自发生长）</h2>
+      </div>
+
+      <div class="highlight">
+        <h4>① 自发推导「提示工程 ⊆ 上下文工程」⭐ 本场最佳</h4>
+        <p>学完 ⊆ 关系当场迁移到新概念，还看穿"对立是教学手法、包含才是事实结构"。⊆ 模式完成自发迁移。</p>
+      </div>
+      <div class="highlight">
+        <h4>② "判断是否需要"过滤器留存</h4>
+        <p>A2 自发带出相关性过滤（不能什么都存）——这是核心挑战层面的理解，不是背流程。</p>
+      </div>
+      <div class="highlight">
+        <h4>③ "删"（遗忘能力）7 天后仍亮 + 存储成本视角新长</h4>
+        <p>初学高光时刻存活；另自发补充向量构建成本最高的工程视角，超出课本。</p>
+      </div>
+      <div class="highlight">
+        <h4>④ 诚实换真讲解</h4>
+        <p>多处直接说"不会/忘记了"（边界题、五种类型、情节vs实体）——诚实比答对更值钱，每次都换来针对性补讲。</p>
+      </div>
+    </section>
+
+    <!-- SECTION 06 · 复习报告 -->
+    <section class="content-section">
+      <div class="section-header">
+        <span class="num">SECTION 06</span>
+        <h2>📊 复习报告与后续计划</h2>
+      </div>
+
+      <table class="report-table">
+        <tr><th>维度</th><th>结论</th></tr>
+        <tr><td>本场结论</td><td class="ok">通过（D2 补验 + D7 跨章节，9 问全部收口）</td></tr>
+        <tr><td>骨架 vs 细节</td><td>骨架在（三层树/双角色/流水线/⊆/独立三理由），细节漏（术语、边界、缓存轴）——典型 7 天衰减</td></tr>
+        <tr><td>元层级状态</td><td>层级钉子锈二焊二；"上下兄弟问三句"仍需用到条件反射</td></tr>
+        <tr><td class="warn">需关注</td><td>① 新焊家族树防复发（D30 首验）② 缓存时效轴的运用习惯 ③ 上下文工程五种类型已褪色 → 已排入 08-19 抢救</td></tr>
+      </table>
+
+      <table class="report-table">
+        <tr><th>日期</th><th>安排</th><th>依据</th></tr>
+        <tr><td>08-18（明天）</td><td>Agent 开发核心模式 D2 + A 层六单元 D2</td><td>逾期 3 天 / 1 天，趁新鲜清账</td></tr>
+        <tr><td>08-19</td><td>上下文工程 D2+D7 合并抢救</td><td>今日 B3 暴露五种类型已褪色</td></tr>
+        <tr><td>08-20</td><td>智能体协议 D2+D7 合并抢救</td><td>逾期最久（D2 欠 12 天）</td></tr>
+        <tr><td>09-09</td><td>Agent 记忆系统 D30 综合压测</td><td>首验今日新焊点防复发</td></tr>
+      </table>
+
+      <div class="quote">
+        今晚作业（5 分钟不看资料）：回忆 ① 记忆三层家族树 ② 四种记忆缓存处方表。
+      </div>
+
+      <div class="tag-row">
+        <span class="tag">Agent 记忆系统</span>
+        <span class="tag">D7 跨章节</span>
+        <span class="tag">D2 补验</span>
+        <span class="tag">上下兄弟问三句</span>
+        <span class="tag">Mem0</span>
+        <span class="tag">缓存生死题</span>
+        <span class="tag">⊆ 关系迁移</span>
+        <span class="tag">锈钉重焊</span>
+      </div>
+    </section>
+
+    <footer>
+      📅 复习日期：2026-08-17 · 学习日期：2026-08-10 · 阶段：D7（含 D2 补验）<br/>
+      🤖 Generated with Claude Code · 学习教练：温柔知性的学姐 AI
+    </footer>
+  </div>
+</body>
+</html>
